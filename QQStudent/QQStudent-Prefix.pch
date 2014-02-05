@@ -11,12 +11,5 @@
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
-
-    #import "CLog.h"
-    #import "ShareData.h"
-    #import "UIStartsImageView.h"
-    #import "SplashViewController.h"
-    #import "UIScreen+UIWindowSize.h"
-    #import "UIView+UIAdaptation.h"
-    #import "UIViewController+MJPopupViewController.h"
+    #import "ViewControllerHeader.h"
 #endif

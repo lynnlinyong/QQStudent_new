@@ -26,7 +26,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initView];
+    [self initUI];
 }
 - (void)didReceiveMemoryWarning
 {
@@ -36,7 +36,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {
     UIButton *shareFrdBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [shareFrdBtn setTitle:@"分享通讯录"

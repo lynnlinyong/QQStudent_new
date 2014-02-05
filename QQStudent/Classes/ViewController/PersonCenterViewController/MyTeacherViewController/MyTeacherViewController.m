@@ -28,7 +28,7 @@
     [super viewDidLoad];
     
     //初始化UI
-    [self initView];
+    [self initUI];
     
     //初始化上拉刷新
     [self initPullView];
@@ -77,7 +77,7 @@
 	[_refreshHeaderView refreshLastUpdatedDate];
 }
 
-- (void) initView
+- (void) initUI
 {
     teacherTab = [[UITableView alloc]init];
     teacherTab.delegate   = self;

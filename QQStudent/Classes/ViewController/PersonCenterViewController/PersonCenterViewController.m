@@ -7,7 +7,6 @@
 //
 
 #import "PersonCenterViewController.h"
-#import "ViewControllerHeader.h"
 
 @interface PersonCenterViewController ()
 
@@ -28,7 +27,7 @@
 {
     [super viewDidLoad];
     
-    [self initView];
+    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -39,7 +38,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {    
     MyTeacherViewController *mVctr = [[MyTeacherViewController alloc]initWithNibName:nil
                                                                               bundle:nil];

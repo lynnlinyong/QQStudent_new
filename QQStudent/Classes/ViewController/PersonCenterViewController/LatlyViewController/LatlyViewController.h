@@ -7,9 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ViewControllerHeader.h"
 
 @interface LatlyViewController : UIViewController<
+                                                ServerRequestDelegate,
                                                 EGORefreshTableHeaderDelegate,
                                                 UITableViewDelegate,
                                                 UITableViewDataSource>

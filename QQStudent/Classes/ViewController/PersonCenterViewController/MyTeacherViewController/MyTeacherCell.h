@@ -13,6 +13,7 @@
 @end
 
 @class Teacher;
+@class UIStartsImageView;
 @interface MyTeacherCell : UITableViewCell
 {
     UIButton            *headBtn;

@@ -7,7 +7,6 @@
 //
 
 #import "LoginViewController.h"
-#import "ViewControllerHeader.h"
 
 @interface LoginViewController ()
 
@@ -28,7 +27,7 @@
 {
     [super viewDidLoad];
     
-    [self initView];
+    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -57,8 +56,11 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {
+    NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
+    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    
     UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [backBtn setTitle:@"返回" forState:UIControlStateNormal];
     backBtn.frame = CGRectMake(0, 0, 100, 40);
@@ -76,7 +78,8 @@
     [self.view addSubview:registBtn];
     
     userNameFld = [[UITextField alloc]init];
-    userNameFld.delegate = self;
+    userNameFld.delegate    = self;
+    userNameFld.text        = student.email;
     userNameFld.borderStyle = UITextBorderStyleLine;
     userNameFld.placeholder = @"输入注册邮箱";
     userNameFld.frame = [UIView fitCGRect:CGRectMake(60, 110, 200, 30)
@@ -85,6 +88,7 @@
     
     phoneFld = [[UITextField alloc]init];
     phoneFld.delegate = self;
+    phoneFld.text     = student.phoneNumber;
     phoneFld.borderStyle = UITextBorderStyleLine;
     phoneFld.placeholder = @"输入手机号码";
     phoneFld.frame = [UIView fitCGRect:CGRectMake(60, 150, 200, 30)
@@ -109,7 +113,44 @@
               action:@selector(doHpBtnClicked:)
     forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:hpBtn];
+}
+
+- (BOOL) checkInfo
+{
+    if (userNameFld.text.length == 0 || phoneFld.text.length == 0)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"登录信息不完整!"
+                        delegate:self
+               otherButtonTitles:@"确定", nil];
+        
+        return NO;
+    }
     
+    BOOL isEmailType = [userNameFld.text isMatchedByRegex:@"\\b([a-zA-Z0-9%_.+\\-]+)@([a-zA-Z0-9.\\-]+?\\.[a-zA-Z]{2,6})\\b"];
+    if (!isEmailType)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"邮箱格式不正确"
+                        delegate:self
+               otherButtonTitles:@"确定", nil];
+        return NO;
+    }
+    
+    BOOL isPhone = [phoneFld.text isMatchedByRegex:@"^(13[0-9]|15[0-9]|18[0-9])\\d{8}$"];
+    if (!isPhone)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"手机号格式不正确"
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+        return NO;
+    }
+    
+    return YES;
 }
 
 - (void) doBackBtnClicked:(id)sender
@@ -126,15 +167,30 @@
 
 - (void) doLoginBtnClicked:(id)sender
 {
-    PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
-    [self.navigationController pushViewController:pcVctr
-                                         animated:YES];
-    [pcVctr release];
+    if (![self checkInfo])
+    {
+        return;
+    }
+    
+    NSString *idString = [[UIDevice currentDevice] uniqueIdentifier];
+    
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phoneNumber",@"email",@"deviceId",@"ios", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"login", phoneFld.text, userNameFld.text, idString, IOS, nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+    serverReq.delegate = self;
+    NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/", webAddress,STUDENT];
+    [serverReq requestASyncWith:kServerPostRequest
+                       paramDic:pDic
+                         urlStr:url];
 }
 
 - (void) doHpBtnClicked:(id)sender
 {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"tel://4008005430"]];
+    NSString *helpPhone = [[NSUserDefaults standardUserDefaults] objectForKey:@""];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", helpPhone]]];
 }
 
 #pragma mark -
@@ -144,5 +200,85 @@
     [textField resignFirstResponder];
     
     return YES;
+}
+
+#pragma mark -
+#pragma mark ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
+{
+    [self showAlertWithTitle:@"提示"
+                         tag:1
+                     message:@"网络繁忙"
+                    delegate:self
+           otherButtonTitles:@"确定",nil];
+    
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    //    NSArray      *keysArr  = [resDic allKeys];
+    //    NSArray      *valsArr  = [resDic allValues];
+    //    CLog(@"***********Result****************");
+    //    for (int i=0; i<keysArr.count; i++)
+    //    {
+    //        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    //    }
+    //    CLog(@"***********Result****************");
+    
+    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    if (errorid.intValue == 0)
+    {        
+        NSString *ssid = [resDic objectForKey:@"sessid"];
+        [[NSUserDefaults standardUserDefaults] setObject:ssid forKey:SSID];
+        
+        NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
+        CLog(@"Dictionary:%@", stuDic);
+        
+        //获得Student
+        Student *student    = [[Student alloc]init];
+        student.email       = [stuDic objectForKey:@"email"];
+        student.gender      = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"gender"]] stringValue];
+        student.grade       = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"grade"]] stringValue];
+        student.icon        = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"icon"]] stringValue];
+        student.latltude    = [stuDic objectForKey:@"latitude"];
+        student.longltude   = [stuDic objectForKey:@"longitude"];
+        student.lltime      = [stuDic objectForKey:@"lltime"];
+        student.nickName    = [stuDic objectForKey:@"nickname"];
+        student.phoneNumber = [stuDic objectForKey:@"phone"];
+        student.status      = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"status"]] stringValue];
+        student.phoneStars  = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"phone_stars"]] stringValue];
+        student.locStars    = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"location_stars"]] stringValue];
+        
+        NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
+        [[NSUserDefaults standardUserDefaults] setObject:stuData
+                                                  forKey:STUDENT];
+        [student release];
+        
+        //写入登录成功标识
+        [[NSUserDefaults standardUserDefaults] setBool:YES
+                                                forKey:LOGINE_SUCCESS];
+        
+        //跳转个人中心
+        PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
+        [self.navigationController pushViewController:pcVctr
+                                             animated:YES];
+        [pcVctr release];
+    }
+    else
+    {
+        NSString *errorMsg = [resDic objectForKey:@"message"];
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+    }
 }
 @end

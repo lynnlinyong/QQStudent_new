@@ -7,7 +7,6 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewControllerHeader.h"
 
 @implementation AppDelegate
 

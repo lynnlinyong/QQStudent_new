@@ -7,7 +7,6 @@
 //
 
 #import "MyTeacherCell.h"
-#import "ViewControllerHeader.h"
 
 @implementation MyTeacherCell
 @synthesize teacher;

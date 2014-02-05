@@ -8,7 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface LoginViewController : UIViewController<UITextFieldDelegate>
+@interface LoginViewController : UIViewController<
+                                                UIAlertViewDelegate,
+                                                UITextFieldDelegate,
+                                                ServerRequestDelegate>
 {
     UITextField *userNameFld;
     UITextField *phoneFld;

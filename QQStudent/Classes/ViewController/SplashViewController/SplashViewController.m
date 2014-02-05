@@ -7,7 +7,6 @@
 //
 
 #import "SplashViewController.h"
-#import "ViewControllerHeader.h"
 
 @interface SplashViewController ()
 
@@ -27,7 +26,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initView];
+    [self initUI];
 }
 
 - (void)viewDidUnload
@@ -52,7 +51,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {
     uiSView = [[UIScrollView alloc]init];
     uiSView.delegate = self;

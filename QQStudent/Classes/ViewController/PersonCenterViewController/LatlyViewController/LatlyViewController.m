@@ -26,7 +26,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initView];
+    [self initUI];
     [self initPullView];
 }
 
@@ -51,7 +51,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {
     latlyTab = [[UITableView alloc]init];
     latlyTab.delegate   = self;
@@ -75,6 +75,17 @@
 	
 	//  update the last update date
 	[_refreshHeaderView refreshLastUpdatedDate];
+}
+
+- (void) getSystemRecord
+{
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"",@"", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"",@"", nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    
+    ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+    serverReq.delegate = self;
 }
 
 #pragma mark -
@@ -154,5 +165,56 @@
     }
     
     return cell;
+}
+
+#pragma mark -
+#pragma mark - ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
+{
+    [self showAlertWithTitle:@"提示"
+                         tag:1
+                     message:@"网络繁忙"
+                    delegate:self
+           otherButtonTitles:@"确定",nil];
+    
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    //    NSArray      *keysArr  = [resDic allKeys];
+    //    NSArray      *valsArr  = [resDic allValues];
+    //    CLog(@"***********Result****************");
+    //    for (int i=0; i<keysArr.count; i++)
+    //    {
+    //        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    //    }
+    //    CLog(@"***********Result****************");
+    
+    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    if (errorid.intValue == 0)
+    {
+        NSArray *tearchArray = [resDic objectForKey:@"teachers"];
+        for (NSDictionary *item in tearchArray)
+        {
+//            [searchArray addObject:item];
+        }
+//        [searchTab reloadData];
+    }
+    else
+    {
+        NSString *errorMsg = [resDic objectForKey:@"message"];
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+    }
 }
 @end

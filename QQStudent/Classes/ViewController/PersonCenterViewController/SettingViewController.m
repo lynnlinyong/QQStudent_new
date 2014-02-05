@@ -27,7 +27,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initView];
+    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -37,7 +37,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {
     setTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 420)
                                                       isBackView:NO]
@@ -49,7 +49,11 @@
 
 - (void) doLogoutBtnClicked:(id)sender
 {
+    //写入登录成功标识
+    [[NSUserDefaults standardUserDefaults] setBool:NO
+                                            forKey:LOGINE_SUCCESS];
     
+    [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
 #pragma mark -

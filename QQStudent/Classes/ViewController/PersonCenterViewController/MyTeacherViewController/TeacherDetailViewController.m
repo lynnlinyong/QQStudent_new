@@ -26,7 +26,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initView];
+    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -37,7 +37,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) initView
+- (void) initUI
 {
     UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [backBtn setTitle:@"返回" forState:UIControlStateNormal];
