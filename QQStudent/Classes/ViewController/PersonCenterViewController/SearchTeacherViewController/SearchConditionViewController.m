@@ -13,7 +13,9 @@
 @end
 
 @implementation SearchConditionViewController
-@synthesize teacherItem;
+@synthesize tObj;
+@synthesize teacherArray;
+@synthesize posDic;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -28,6 +30,7 @@
 {
     [super viewDidLoad];
     
+    //初始化UI
     [self initUI];
 }
 
@@ -40,11 +43,15 @@
 - (void) viewDidUnload
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [teacherArray removeAllObjects];
     [super viewDidUnload];
 }
 
 - (void) dealloc
 {
+    [subValLab    release];
+    [dateValLab   release];
+    [teacherArray release];
     [timeValueLab release];
     [super dealloc];
 }
@@ -53,27 +60,22 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    backBtn.tag = 0;
-    [backBtn setTitle:@"返回" forState:UIControlStateNormal];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    backBtn.frame = CGRectMake(0, 0, 40, 30);
-    [self.view addSubview:backBtn];
-    
     orderTab = [[UITableView alloc]init];
     orderTab.delegate = self;
     orderTab.dataSource = self;
-    orderTab.frame = [UIView fitCGRect:CGRectMake(20, 50, 280, 350)
+    orderTab.frame = [UIView fitCGRect:CGRectMake(20, 40, 280, 300)
                             isBackView:NO];
     [self.view addSubview:orderTab];
     
-    UIButton *orderBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    UIButton *orderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     orderBtn.tag   = 1;
-    orderBtn.frame = [UIView fitCGRect:CGRectMake(80, 420, 160, 40)
+    UIImage *img   = [UIImage imageNamed:@"mainmap_bottom_button_2_hover"];
+    orderBtn.frame = [UIView fitCGRect:CGRectMake(160-img.size.width/4,
+                                                  460-54-img.size.height/2,
+                                                  img.size.width/2,
+                                                  img.size.height/2)
                             isBackView:NO];
-    [orderBtn setTitle:@"确认,开始邀请"
+    [orderBtn setImage:img
               forState:UIControlStateNormal];
     [orderBtn addTarget:self
                  action:@selector(doBackBtnClicked:)
@@ -82,19 +84,31 @@
     
     //注册设置性别消息
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setSexFromNotice:) name:@"setSexNotice"
+                                             selector:@selector(setSexFromNotice:)
+                                                 name:@"setSexNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setDateFromNotice:) name:@"setDateNotice"
+                                             selector:@selector(setSalaryFromNotice:)
+                                                 name:@"setSalaryNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setTimesFromNotice:) name:@"setTimesNotice"
+                                             selector:@selector(setDateFromNotice:)
+                                                 name:@"setDateNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setTimesFromNotice:)
+                                                 name:@"setTimesNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(setSubjectFromNotice:) name:@"setSubjectNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setPosNotice:) name:@"setPosNotice"
                                                object:nil];
 }
 
@@ -108,8 +122,30 @@
             [self.navigationController popViewControllerAnimated:YES];
             break;
         }
-        case 1:
+        case 1: //邀请
         {
+            if (dateValLab.text.length==0||subValLab.text.length==0||salaryValLab.text.length==0||sexValLab.text.length==0||timeValueLab.text.length==0||posValLab.text.length==0)
+            {
+                [self showAlertWithTitle:@"提示"
+                                     tag:0
+                                 message:@"筛选信息不完整"
+                                delegate:self
+                       otherButtonTitles:@"确定",nil];
+                return;
+            }
+            
+            //封装所选条件
+            NSDictionary *valueDic = [NSDictionary dictionaryWithObjectsAndKeys:dateValLab.text,@"Date",[Order searchSubjectID:subValLab.text],@"Subject",salaryDic,@"SalaryDic",[Student searchGenderID:sexValLab.text],@"Sex",timeValueLab.text,@"Time",posValLab.text,@"Pos",posDic,@"POSDIC",nil];
+            
+            CLog(@"codition:%@", valueDic);
+            
+            WaitConfirmViewController *wcVctr = [[WaitConfirmViewController alloc]init];
+            wcVctr.valueDic = valueDic;
+            wcVctr.tObj     = tObj;
+            wcVctr.teacherArray = teacherArray;
+            [self.navigationController pushViewController:wcVctr
+                                                 animated:YES];
+            [wcVctr release];
             break;
         }
         default:
@@ -119,23 +155,77 @@
 
 #pragma mark -
 #pragma mark - Notice
+- (void) setPosNotice:(NSNotification *) notice
+{
+    posDic = [notice.userInfo copy];
+    
+    NSString *provice = [notice.userInfo objectForKey:@"PROVICE"];
+    NSString *city    = [notice.userInfo objectForKey:@"CITY"];
+    NSString *dist    = [notice.userInfo objectForKey:@"DIST"];
+    posValLab.text    = [notice.userInfo objectForKey:@"ADDRESS"];
+    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+}
+
+- (void) setSalaryFromNotice:(NSNotification *) notice
+{
+    NSString *salary  = @"";
+    
+    if ([[notice.userInfo objectForKey:@"name"] isEqualToString:@"0"])
+        salary = @"师生协商";
+    else
+        salary = [notice.userInfo objectForKey:@"name"];
+    
+    salaryValLab.text = salary;
+    salaryDic = [notice.userInfo copy];
+}
+
 - (void) setSexFromNotice:(NSNotification *) notice
 {
+    int tag   = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
+    int index = ((NSNumber *)[notice.userInfo objectForKey:@"Index"]).intValue;
+    
+    if (tag==0)  //确定
+    {
+        switch (index)
+        {
+            case 1:
+            {
+                sexValLab.text = @"男";
+                break;
+            }
+            case 2:
+            {
+                sexValLab.text = @"女";
+                break;
+            }
+            case 3:
+            {
+                sexValLab.text = @"不限";
+                break;
+            }
+            default:
+                break;
+        }
+    }
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) setDateFromNotice:(NSNotification *) notice
 {
+    NSString *dateString = [notice.userInfo objectForKey:@"SetDate"];
+    dateValLab.text = dateString;
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) setTimesFromNotice:(NSNotification *)notice
 {
+    timeValueLab.text = [notice.userInfo objectForKey:@"Time"];
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) setSubjectFromNotice:(NSNotification *)notice
 {
+    subValLab.text = [notice.userInfo objectForKey:@"name"];
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
@@ -166,17 +256,22 @@
                 UILabel *startDate = [[UILabel alloc]init];
                 startDate.text = @"开始日期";
                 startDate.backgroundColor = [UIColor clearColor];
-                startDate.frame = [UIView fitCGRect:CGRectMake(0, 0, 140, 44)
+                startDate.frame = [UIView fitCGRect:CGRectMake(0, 0, 80, 44)
                                          isBackView:NO];
                 [cell addSubview:startDate];
                 [startDate release];
+                
+                dateValLab = [[UILabel alloc]init];
+                dateValLab.text = @"";
+                dateValLab.textAlignment   = NSTextAlignmentCenter;
+                dateValLab.backgroundColor = [UIColor clearColor];
+                dateValLab.frame = CGRectMake(80, 0, 170, 44);
+                [cell addSubview:dateValLab];
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                 break;
             }
             case 1:
             {
-//                NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
-//                Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
-//                CLog(@"grade:%@", student.grade);
                 UILabel *subLab = [[UILabel alloc]init];
                 subLab.text = [NSString stringWithFormat:@"辅导科目"];
                 subLab.backgroundColor = [UIColor clearColor];
@@ -184,12 +279,12 @@
                 [cell addSubview:subLab];
                 [subLab release];
                 
-                UILabel *subValLab = [[UILabel alloc]init];
-                subValLab.text = [teacherItem objectForKey:@"subject"];
+                subValLab  = [[UILabel alloc]init];
+                subValLab.text      = tObj.pf;
                 subValLab.textColor = [UIColor lightGrayColor];
                 subValLab.frame = CGRectMake(140, 0, 140, 44);
                 [cell addSubview:subValLab];
-                [subValLab release];
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                 break;
             }
             case 2:
@@ -201,12 +296,21 @@
                 [cell addSubview:sexLab];
                 [sexLab release];
                 
-                UILabel *sexValLab = [[UILabel alloc]init];
-                sexValLab.text = [teacherItem objectForKey:@"gender"];
+                sexValLab = [[UILabel alloc]init];
+                if (tObj.sex == 1)
+                {
+                    sexValLab.text = @"男";
+                }
+                else
+                {
+                    sexValLab.text = @"女";
+                }
                 sexValLab.textColor = [UIColor lightGrayColor];
                 sexValLab.frame = CGRectMake(140, 0, 140, 44);
                 [cell addSubview:sexValLab];
                 [sexValLab release];
+                
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                 break;
             }
             case 3:
@@ -218,6 +322,13 @@
                                          isBackView:NO];
                 [cell addSubview:salaryLab];
                 [salaryLab release];
+                
+                salaryValLab  = [[UILabel alloc]init];
+                salaryValLab.text      = @"";
+                salaryValLab.backgroundColor = [UIColor clearColor];
+                salaryValLab.frame = CGRectMake(140, 0, 140, 44);
+                [cell addSubview:salaryValLab];
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                 break;
             }
             case 4:
@@ -231,10 +342,11 @@
                 [timesLab release];
                 
                 timeValueLab = [[UILabel alloc]init];
-                timeValueLab.text = @"20";
+                timeValueLab.text  = @"20";
                 timeValueLab.backgroundColor = [UIColor clearColor];
                 timeValueLab.frame = CGRectMake(140, 0, 140, 44);
                 [cell addSubview:timeValueLab];
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                 break;
             }
             case 5:
@@ -246,6 +358,15 @@
                                       isBackView:NO];
                 [cell addSubview:posLab];
                 [posLab release];
+                
+                posValLab = [[UILabel alloc]init];
+                posValLab.text  = @"";
+                posValLab.backgroundColor = [UIColor clearColor];
+                posValLab.frame = CGRectMake(140, 0, 130, 44);
+                posValLab.font  = [UIFont systemFontOfSize:12.f];
+                [cell addSubview:posValLab];
+                
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                 break;
             }
             case 6:
@@ -291,8 +412,9 @@
         case 3:
         {
             SelectSalaryViewController *ssVctr = [[SelectSalaryViewController alloc]init];
-            [self presentPopupViewController:ssVctr
-                               animationType:MJPopupViewAnimationFade];
+            [self.navigationController pushViewController:ssVctr
+                                                 animated:YES];
+            [ssVctr release];
             break;
         }
         case 4:
@@ -306,8 +428,8 @@
         case 5:
         {
             SelectPosViewController *spVctr = [[SelectPosViewController alloc]init];
-            [self presentPopupViewController:spVctr
-                               animationType:MJPopupViewAnimationFade];
+            [self.navigationController pushViewController:spVctr animated:YES];
+            [spVctr release];
             break;
         }
         case 6:

@@ -14,12 +14,14 @@
                                                 UITableViewDelegate,
                                                 UITableViewDataSource>
 {
-    UITableView   *latlyTab;
+    UITableView     *latlyTab;
+    NSDictionary    *sysDic;
     
     EGORefreshTableHeaderView *_refreshHeaderView;
 	BOOL _reloading;
 }
 
+@property (nonatomic, copy) NSMutableArray  *msgArray;
 - (void)reloadTableViewDataSource;
 - (void)doneLoadingTableViewData;
 @end

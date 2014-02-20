@@ -19,6 +19,7 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.tabBarItem.title = @"搜索";
+        self.tabBarItem.image = [UIImage imageNamed:@"user_2_1"];
     }
     return self;
 }
@@ -26,6 +27,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
     [self initUI];
 }
 
@@ -67,7 +69,7 @@
     searchTab = [[UITableView alloc]init];
     searchTab.delegate   = self;
     searchTab.dataSource = self;
-    searchTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 380)
+    searchTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 300)
                              isBackView:NO];
     [self.view addSubview:searchTab];
     
@@ -75,7 +77,7 @@
     
     searchLab = [[UILabel alloc]init];
     searchLab.text  = @"搜索:";
-    searchLab.frame = [UIView fitCGRect:CGRectMake(0, 385, 40, 20)
+    searchLab.frame = [UIView fitCGRect:CGRectMake(0, 372-44, 40, 20)
                              isBackView:NO];
     [self.view addSubview:searchLab];
     
@@ -84,14 +86,14 @@
     searchFld.font = [UIFont systemFontOfSize:12];
     searchFld.placeholder = @"输入手机号/前14位身份证号/9位搜索码";
     searchFld.borderStyle = UITextBorderStyleLine;
-    searchFld.frame = [UIView fitCGRect:CGRectMake(40, 385, 240, 20)
+    searchFld.frame = [UIView fitCGRect:CGRectMake(40, 372-44, 240, 20)
                              isBackView:NO];
     [self.view addSubview:searchFld];
     
     UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [okBtn setTitle:@"确定"
            forState:UIControlStateNormal];
-    okBtn.frame = [UIView fitCGRect:CGRectMake(280, 385, 40, 30)
+    okBtn.frame = [UIView fitCGRect:CGRectMake(280, 372-44, 40, 30)
                          isBackView:NO];
     [okBtn addTarget:self
               action:@selector(doOkBtnClicked:)
@@ -101,6 +103,9 @@
 
 - (void) doOkBtnClicked:(id)sender
 {
+    [self repickView:self.view];
+    [searchFld resignFirstResponder];
+    
     if (searchFld.text.length == 0)
     {
         return;
@@ -131,7 +136,7 @@
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate       = self;
     NSString *webAddress     = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@/%@/", webAddress,STUDENT];
+    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
@@ -139,8 +144,15 @@
 
 #pragma mark -
 #pragma mark - UITextFieldDelegate
+- (void) textFieldDidBeginEditing:(UITextField *)textField
+{
+    self.view.frame = CGRectMake(0, 0, 320, 430);
+    [self moveViewWhenViewHidden:textField parent:self.view];
+}
+
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
-{ 
+{
+    [self repickView:self.view];
     [textField resignFirstResponder];
     return YES;
 }
@@ -172,9 +184,8 @@
                                      reuseIdentifier:idString]autorelease];
         
         NSString *webAddress  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-        NSDictionary *itemDic = [searchArray objectAtIndex:indexPath.row];
-        CLog(@"itemDic:%@", itemDic);
-        NSString *imgUrl = [NSString stringWithFormat:@"%@/%@",webAddress,[itemDic objectForKey:@"icon"]];
+        Teacher *tObj = [searchArray objectAtIndex:indexPath.row];
+        NSString *imgUrl = [NSString stringWithFormat:@"%@/%@",webAddress,tObj.headUrl];
         
         TTImageView *headImgView = [[TTImageView alloc]init];
         headImgView.URL   = imgUrl;
@@ -182,10 +193,15 @@
         [cell addSubview:headImgView];
         [headImgView release];
         
-        CLog(@"gender:%@ %@", [itemDic objectForKey:@"gender"], [itemDic objectForKey:@"subject"]);
-        
         UILabel *itrLab = [[UILabel alloc]init];
-        itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",[itemDic objectForKey:@"name"],[itemDic objectForKey:@"gender"],[itemDic objectForKey:@"subject"]];
+        if (tObj.sex==1)
+        {
+            itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",tObj.name,@"男",tObj.pf];
+        }
+        else
+        {
+            itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",tObj.name,@"女",tObj.pf];
+        }
         itrLab.backgroundColor = [UIColor clearColor];
         itrLab.frame = CGRectMake(80, 0, 200, 20);
         itrLab.font  = [UIFont systemFontOfSize:12.f];
@@ -193,7 +209,7 @@
         [itrLab release];
         
         UILabel *cntLab = [[UILabel alloc]init];
-        cntLab.text = [NSString stringWithFormat:@"辅导%d个学生",((NSNumber *)[itemDic objectForKey:@"TS"]).intValue];
+        cntLab.text = [NSString stringWithFormat:@"辅导%d个学生", tObj.studentCount];
         cntLab.backgroundColor = [UIColor clearColor];
         cntLab.frame = CGRectMake(80, 20, 200, 20);
         cntLab.font  = [UIFont systemFontOfSize:12.f];
@@ -201,7 +217,7 @@
         [cntLab release];
         
         UILabel *idLab = [[UILabel alloc]init];
-        idLab.text = [itemDic objectForKey:@"idnumber"];
+        idLab.text = tObj.idNums;
         idLab.backgroundColor = [UIColor clearColor];
         idLab.frame = CGRectMake(80, 40, 200, 20);
         idLab.font  = [UIFont systemFontOfSize:12.f];
@@ -218,9 +234,11 @@
 
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    Teacher *tObj = [searchArray objectAtIndex:indexPath.row];
+
     //订单编辑
     SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
-    scVctr.teacherItem = [searchArray objectAtIndex:indexPath.row];
+    scVctr.tObj = tObj;
     [self.navigationController pushViewController:scVctr
                                          animated:YES];
     [scVctr release];
@@ -249,14 +267,14 @@
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];
     NSDictionary *resDic   = [resStr JSONValue];
-    //    NSArray      *keysArr  = [resDic allKeys];
-    //    NSArray      *valsArr  = [resDic allValues];
-    //    CLog(@"***********Result****************");
-    //    for (int i=0; i<keysArr.count; i++)
-    //    {
-    //        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
-    //    }
-    //    CLog(@"***********Result****************");
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
     
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
@@ -264,7 +282,8 @@
         NSArray *tearchArray = [resDic objectForKey:@"teachers"];
         for (NSDictionary *item in tearchArray)
         {
-            [searchArray addObject:item];
+            Teacher *tObj = [Teacher setTeacherProperty:item];
+            [searchArray addObject:tObj];
         }
         [searchTab reloadData];
     }

@@ -10,11 +10,16 @@
 @class UIGridView;
 @class QRadioButton;
 @interface SetGradeViewController : UIViewController<
+                                                    ServerRequestDelegate,
                                                     UIGridViewDelegate,
                                                     QRadioButtonDelegate>
 {
     UIGridView  *gdView;
     NSString    *radioTitle;
+    
+    NSMutableArray  *gradeArr;
+    
+    int index;
 }
 
 @end

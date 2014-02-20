@@ -182,24 +182,29 @@
 {
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] dataForKey:STUDENT];
     Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
-    
     NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
-    CLog(@"SSID:%@", ssid);
     if ((nameValLab.text.length!=0) && (classValLab.text.length!=0)
                                     && (sexValLab.text.length!=0))
     {
+        NSString *valSex = nil;
+        if ([sexValLab.text isEqualToString:@"男"])
+            valSex = @"1";
+        else
+            valSex = @"2";
+        
         //更新个人资料
-        
         NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phone",@"email", @"grade",@"gender",@"nick",@"phone_stars",@"location_stars",@"sessid",nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:@"upinfo",student.phoneNumber,student.email,student.grade,student.gender,student.nickName,student.phoneStars, student.locStars, ssid, nil];
-        
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"upinfo",student.phoneNumber,
+                                                       student.email,student.grade,valSex,
+                                                       nameValLab.text,@"1",
+                                                       @"1",ssid,nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
-        
+        CLog(@"updateInfo:%@", pDic);
         ServerRequest *serverReq = [ServerRequest sharedServerRequest];
         serverReq.delegate   = self;
         NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-        NSString *url = [NSString stringWithFormat:@"%@/%@/", webAddress,STUDENT];
+        NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
         [serverReq requestASyncWith:kServerPostRequest
                            paramDic:pDic
                              urlStr:url];
@@ -231,15 +236,11 @@
 
 - (void) setGradeFromNotice:(NSNotification *) sender
 {
-    NSData *stuData  = [[NSUserDefaults standardUserDefaults] dataForKey:STUDENT];
-    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
-    
-    NSNotification *notice = sender;
-    NSDictionary *userInfoDic = notice.userInfo;
-    if (userInfoDic)
+    NSDictionary *userInfoDic = [sender.userInfo objectForKey:@"UserInfo"];
+    int tag = ((NSNumber *)[userInfoDic objectForKey:@"TAG"]).intValue;
+    if (tag == 0)
     {
-        classValLab.text = [userInfoDic objectForKey:@"gradeName"];
-        student.gender   = [userInfoDic objectForKey:@"gradeName"];
+        classValLab.text = [userInfoDic objectForKey:@"name"];
     }
     
     [self checkInfoComplete];

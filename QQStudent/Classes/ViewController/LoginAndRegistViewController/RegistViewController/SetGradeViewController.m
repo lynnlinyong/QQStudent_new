@@ -27,8 +27,14 @@
 {
     [super viewDidLoad];
     
-    //初始化UI
-    [self initUI];
+    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 360)
+                             isBackView:NO];
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    gradeArr = [[NSMutableArray alloc]initWithCapacity:0];
+    
+    //获得年级
+    [self getGrade];
 }
 
 - (void)didReceiveMemoryWarning
@@ -37,14 +43,16 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void) dealloc
+{
+    [gradeArr release];
+    [super dealloc];
+}
+
 #pragma mark -
 #pragma mark - Custom Action
 - (void) initUI
 {
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 280)
-                             isBackView:NO];
-    self.view.backgroundColor = [UIColor whiteColor];
-    
     UILabel *infoLab = [[UILabel alloc]init];
     infoLab.text  = @"选择年级";
     infoLab.frame = CGRectMake(45, 0, 150, 20);
@@ -54,12 +62,12 @@
     
     gdView = [[UIGridView alloc]init];
     gdView.uiGridViewDelegate = self;
-    gdView.frame = CGRectMake(0, 20, 240, 220);
+    gdView.frame = CGRectMake(0, 20, 240, 320);
     [self.view addSubview:gdView];
     
     UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     okBtn.tag = 0;
-    okBtn.frame = CGRectMake(60, 245, 40, 30);
+    okBtn.frame = CGRectMake(60, 360-30, 40, 30);
     [okBtn setTitle:@"确定"
            forState:UIControlStateNormal];
     [okBtn addTarget:self
@@ -69,45 +77,50 @@
     
     UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     cancelBtn.tag   = 1;
-    cancelBtn.frame = CGRectMake(160, 245, 40, 30);
+    cancelBtn.frame = CGRectMake(160, 360-30, 40, 30);
     [cancelBtn setTitle:@"取消"
                forState:UIControlStateNormal];
     [cancelBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:cancelBtn];
-
 }
 
+- (void) getGrade
+{
+    NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"getgrade",ssid, nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+    ServerRequest *request = [ServerRequest sharedServerRequest];
+    request.delegate = self;
+    [request requestASyncWith:kServerPostRequest
+                     paramDic:pDic
+                       urlStr:url];
+}
+
+#pragma mark -
+#pragma mark - Control Event
 - (void) doButtonClicked:(id)sender
 {
     UIButton *button = sender;
-    NSDictionary *dic = nil;
-    switch (button.tag)
-    {
-        case 0:
-        {
-            dic = [NSDictionary dictionaryWithObjectsAndKeys:radioTitle, @"gradeName", nil];
-            break;
-        }
-        case 1:
-        {
-            break;
-        }
-        default:
-            break;
-    }
+    NSDictionary *gradDic = [gradeArr objectAtIndex:index];
+    NSDictionary *userDic = [NSDictionary dictionaryWithObjectsAndKeys:gradDic,@"UserInfo",[NSNumber numberWithInt:button.tag],@"TAG", nil];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"setGradeNotice"
-                                                        object:self
-                                                      userInfo:dic];
+                                                        object:nil
+                                                      userInfo:userDic];
+
 }
 
 #pragma mark -
 #pragma mark - QRadioButtonDelegate
 - (void) didSelectedRadioButton:(QRadioButton *)radio groupId:(NSString *)groupId
 {
-    radioTitle = radio.titleLabel.text;
+    index = radio.tag;
 }
 
 #pragma mark - 
@@ -134,7 +147,7 @@
 
 - (NSInteger) numberOfCellsOfGridView:(UIGridView *) grid
 {
-    return 10;
+    return gradeArr.count;
 }
 
 - (UIGridViewCell *) gridView:(UIGridView *)grid cellForRowAt:(int)rowIndex AndColumnAt:(int)columnIndex
@@ -144,231 +157,81 @@
     if (!cell)
     {
         cell = [[[UIGridViewCell alloc]init]autorelease];
-        
-        switch (rowIndex)
-        {
-            case 0:
-            {
-                switch (columnIndex)
-                {
-                    case 0:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"初一"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    case 1:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"初二"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                break;
-            }
-            case 1:
-            {
-                switch (columnIndex)
-                {
-                    case 0:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                       
-                        [qrBtn setTitle:@"初三"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    case 1:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                    
-                        [qrBtn setTitle:@"高一"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                break;
-            }
-            case 2:
-            {
-                switch (columnIndex)
-                {
-                    case 0:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"高二"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    case 1:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"高三"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                break;
-            }
-            case 3:
-            {
-                switch (columnIndex)
-                {
-                    case 0:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"大一"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    case 1:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"大二"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                break;
-            }
-            case 4:
-            {
-                switch (columnIndex)
-                {
-                    case 0:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"大三"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    case 1:
-                    {
-                        QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
-                                                                            groupId:@"grade"];
-                        [qrBtn setTitle:@"大四"
-                               forState:UIControlStateNormal];
-                        [qrBtn setTitleColor:[UIColor grayColor]
-                                    forState:UIControlStateNormal];
-                        qrBtn.frame = CGRectMake(0, 0, 80, 30);
-                        [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-                        [qrBtn setChecked:YES];
-                        [cell addSubview:qrBtn];
-                        qrBtn.exclusiveTouch = YES;
-                        qrBtn.userInteractionEnabled = YES;
-                        [qrBtn release];
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                break;
-            }
-            default:
-                break;
-        }
     }
     
+    NSDictionary *gradDic = nil;
+    if ([gradeArr count]>0)
+        gradDic = [gradeArr objectAtIndex:rowIndex*2+columnIndex];
+    
+    QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
+                                                        groupId:@"grade"];
+    qrBtn.tag = rowIndex*2+columnIndex;
+    [qrBtn setTitle:[gradDic objectForKey:@"name"]
+           forState:UIControlStateNormal];
+    [qrBtn setTitleColor:[UIColor grayColor]
+                forState:UIControlStateNormal];
+    qrBtn.frame = CGRectMake(0, 0, 80, 30);
+    [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
+    [qrBtn setChecked:YES];
+    [cell addSubview:qrBtn];
+    qrBtn.exclusiveTouch = YES;
+    qrBtn.userInteractionEnabled = YES;
+    [qrBtn release];
+    
     return cell;
+}
+
+#pragma mark -
+#pragma mark ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
+{
+    [self showAlertWithTitle:@"提示"
+                         tag:1
+                     message:@"网络繁忙"
+                    delegate:self
+           otherButtonTitles:@"确定",nil];
+    
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
+    
+    
+    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    if (errorid.intValue == 0)
+    {
+        gradeArr = [[resDic objectForKey:@"grades"] copy];
+        
+        //保存年级列表
+        [[NSUserDefaults standardUserDefaults] setObject:gradeArr
+                                                  forKey:GRADE_LIST];
+        
+        //显示UI
+        [self initUI];
+    }
+    else
+    {
+        NSString *errorMsg = [resDic objectForKey:@"message"];
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+    }
 }
 @end

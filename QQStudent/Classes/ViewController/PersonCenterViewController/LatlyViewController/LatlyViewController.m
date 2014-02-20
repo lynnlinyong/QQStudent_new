@@ -13,12 +13,14 @@
 @end
 
 @implementation LatlyViewController
+@synthesize msgArray;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.tabBarItem.title = @"最近";
+        self.tabBarItem.image = [UIImage imageNamed:@"user_5_1"];
     }
     return self;
 }
@@ -26,8 +28,21 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initUI];
-    [self initPullView];
+    
+    msgArray = [[NSMutableArray alloc]init];
+}
+
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    //获得新消息
+    [self getMessageNewNumber];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(getMessageFromTeacher:)
+                                                 name:@"MessageComing"
+                                               object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -35,8 +50,17 @@
     [super didReceiveMemoryWarning];
 }
 
+- (void) viewDidDisappear:(BOOL)animated
+{
+    [msgArray removeAllObjects];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [super viewDidDisappear:animated];
+}
+
 - (void) viewDidUnload
 {
+    [msgArray removeAllObjects];
+    
     latlyTab.delegate   = nil;
     latlyTab.dataSource = nil;
     
@@ -46,6 +70,9 @@
 
 - (void) dealloc
 {
+    [sysDic release];
+    [msgArray release];
+    [latlyTab release];
     [super dealloc];
 }
 
@@ -59,6 +86,9 @@
     latlyTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 420)
                             isBackView:NO];
     [self.view addSubview:latlyTab];
+    
+    //初始化上拉刷新
+    [self initPullView];
 }
 
 - (void) initPullView
@@ -77,27 +107,57 @@
 	[_refreshHeaderView refreshLastUpdatedDate];
 }
 
-- (void) getSystemRecord
+- (void) getMessageFromTeacher:(NSNotification *)notice
 {
-    NSArray *paramsArr = [NSArray arrayWithObjects:@"",@"", nil];
-    NSArray *valuesArr = [NSArray arrayWithObjects:@"",@"", nil];
+    
+}
+
+- (void) getMessageNewNumber
+{
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action", @"sessid", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"getMessageNewNumber", ssid, nil];
     NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
-    
+    NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+    NSString *url  = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate = self;
+    [serverReq requestASyncWith:kServerPostRequest
+                       paramDic:pDic
+                         urlStr:url];
+}
+
+- (void) doButtonClicked:(id)sender
+{
+    
+}
+
+- (void) deleteTeacherFormChat:(NSString *) teacherId
+{
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"teacherId",@"sessid", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"deleteNewMember",teacherId,ssid, nil];
+    NSDictionary *dic  = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
+    ServerRequest *request = [ServerRequest sharedServerRequest];
+    request.delegate = self;
+    [request requestASyncWith:kServerPostRequest
+                     paramDic:dic
+                       urlStr:url];
 }
 
 #pragma mark -
 #pragma mark Data Source Loading / Reloading Methods
-
 - (void)reloadTableViewDataSource
 {
 	//  should be calling your tableviews data source model to reload
 	//  put here just for demo
 	_reloading = YES;
 	
-}
+} 
 
 - (void)doneLoadingTableViewData
 {
@@ -146,11 +206,16 @@
 
 - (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 1;
+    return msgArray.count+1;
 }
 
 - (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (indexPath.row == 0)
+    {
+        return 44;
+    }
+    
     return 80;
 }
 
@@ -164,7 +229,157 @@
                                      reuseIdentifier:idString];
     }
     
+    if (indexPath.row == 0)  //显示系统消息
+    {
+        if (sysDic)
+        {
+            UIImageView *flgImgView = [[UIImageView alloc]init];
+            flgImgView.image = [UIImage imageNamed:@"flag_bg.png"];
+            flgImgView.frame = CGRectMake(5, 2, 40, 40);
+            [cell addSubview:flgImgView];
+            [flgImgView release];
+            
+            UILabel *titleLab  = [[UILabel alloc]init];
+            titleLab.text  = [sysDic objectForKey:@"name"];
+            titleLab.backgroundColor = [UIColor clearColor];
+            titleLab.frame = CGRectMake(50, 0, 100, 20);
+            [cell addSubview:titleLab];
+            [titleLab release];
+            
+            UILabel *sysMsgLab = [[UILabel alloc]init];
+            sysMsgLab.font = [UIFont systemFontOfSize:12.f];
+            sysMsgLab.text = [sysDic objectForKey:@"message"];
+            sysMsgLab.backgroundColor = [UIColor clearColor];
+            sysMsgLab.frame = CGRectMake(50, 20, 200, 20);
+            [cell addSubview:sysMsgLab];
+            [sysMsgLab release];
+            
+            UILabel *timeLab = [[UILabel alloc]init];
+            timeLab.textAlignment = NSTextAlignmentRight;
+            timeLab.font  = [UIFont systemFontOfSize:12.f];
+            timeLab.text  = [sysDic objectForKey:@"time"];
+            timeLab.backgroundColor = [UIColor clearColor];
+            timeLab.frame = CGRectMake(320-60-10, 12, 60, 20);
+            [cell addSubview:timeLab];
+            [timeLab release];
+        }
+    }
+    else                     //显示聊天信息
+    {
+        if (msgArray.count>0)
+        {
+            NSDictionary *teacherDic = [msgArray objectAtIndex:indexPath.row-1];
+            
+            TTImageView *headImgView = [[TTImageView alloc]init];
+            headImgView.frame = CGRectMake(5, 15, 50, 50);
+            NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+            headImgView.URL   = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"icon"]];
+            [cell addSubview:headImgView];
+            [headImgView release];
+            
+            UILabel *nameLab = [[UILabel alloc]init];
+            nameLab.font  = [UIFont systemFontOfSize:12.f];
+            nameLab.text  = [teacherDic objectForKey:@"nickname"];
+            nameLab.backgroundColor = [UIColor clearColor];
+            nameLab.frame = CGRectMake(70, 10, 60, 20);
+            [cell addSubview:nameLab];
+            [nameLab release];
+            
+            UILabel *infoLab = [[UILabel alloc]init];
+            infoLab.font  = [UIFont systemFontOfSize:12.f];
+            int sex = ((NSNumber *)[teacherDic objectForKey:@"gender"]).intValue;
+            if (sex == 1)
+            {
+                infoLab.text  = [NSString stringWithFormat:@"男   %@",[teacherDic objectForKey:@"subjectText"]];
+            }
+            else
+            {
+                infoLab.text  = [NSString stringWithFormat:@"女   %@",[teacherDic objectForKey:@"subjectText"]];
+            }
+            infoLab.backgroundColor = [UIColor clearColor];
+            infoLab.frame = CGRectMake(70, 30, 60, 20);
+            [cell addSubview:infoLab];
+            [infoLab release];
+            
+            UILabel *msgLab = [[UILabel alloc]init];
+            msgLab.font  = [UIFont systemFontOfSize:12.f];
+            msgLab.text  = [teacherDic objectForKey:@"message"];
+            msgLab.backgroundColor = [UIColor clearColor];
+            msgLab.frame = CGRectMake(70, 50, 60, 20);
+            [cell addSubview:msgLab];
+            [msgLab release];
+            
+            UILabel *timeLab = [[UILabel alloc]init];
+            timeLab.textAlignment = NSTextAlignmentRight;
+            timeLab.font  = [UIFont systemFontOfSize:12.f];
+            timeLab.text  = [sysDic objectForKey:@"time"];
+            timeLab.backgroundColor = [UIColor clearColor];
+            timeLab.frame = CGRectMake(320-60-10, 30, 60, 20);
+            [cell addSubview:timeLab];
+            [timeLab release];
+        }
+    }
+    
     return cell;
+}
+
+- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row == 0)
+    {
+        SystemMessageViewController *smVctr= [[SystemMessageViewController alloc]init];
+        [self.navigationController pushViewController:smVctr
+                                             animated:YES];
+        [smVctr release];
+    }
+    else
+    {
+        NSDictionary *teacherDic = [msgArray objectAtIndex:indexPath.row-1];
+        
+        Teacher *tObj = [[Teacher alloc]init];
+        tObj.deviceId = [[teacherDic objectForKey:@"deviceId"] copy];
+        tObj.sex = ((NSNumber *)[teacherDic objectForKey:@"gender"]).intValue;
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults]objectForKey:WEBADDRESS];
+        tObj.headUrl = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"icon"]];
+        tObj.name      = [[teacherDic objectForKey:@"nickname"] copy];
+        tObj.phoneNums = [[teacherDic objectForKey:@"phone"] copy];
+        tObj.pf = [[teacherDic objectForKey:@"subjectText"] copy];
+
+        ChatViewController *cVctr = [[ChatViewController alloc]init];
+        cVctr.tObj = tObj;
+        [self.navigationController pushViewController:cVctr
+                                             animated:YES];
+        [cVctr release];
+        [tObj  release];
+    }
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row==0)
+        return NO;
+    
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        
+        NSDictionary *dic = [msgArray objectAtIndex:indexPath.row-1];
+        [self deleteTeacherFormChat:[(NSString *)[dic objectForKey:@"teacherId"] copy]];
+        [msgArray removeObjectAtIndex:indexPath.row-1];
+        
+        // Delete the row from the data source.
+        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
+                         withRowAnimation:UITableViewRowAnimationFade];
+        
+    }
+    else if (editingStyle == UITableViewCellEditingStyleInsert) {
+        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
+    }
 }
 
 #pragma mark -
@@ -188,24 +403,37 @@
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];
     NSDictionary *resDic   = [resStr JSONValue];
-    //    NSArray      *keysArr  = [resDic allKeys];
-    //    NSArray      *valsArr  = [resDic allValues];
-    //    CLog(@"***********Result****************");
-    //    for (int i=0; i<keysArr.count; i++)
-    //    {
-    //        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
-    //    }
-    //    CLog(@"***********Result****************");
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
     
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
     {
-        NSArray *tearchArray = [resDic objectForKey:@"teachers"];
-        for (NSDictionary *item in tearchArray)
+        NSString *action = [resDic objectForKey:@"action"];
+        if ([action isEqualToString:@"getMessageNewNumber"])
         {
-//            [searchArray addObject:item];
+            sysDic   = [[resDic objectForKey:@"sys_message"] copy];
+            
+            //添加老师沟通消息
+            NSArray *teacherArr = [resDic objectForKey:@"teachers"];
+            for (NSDictionary *item in teacherArr)
+            {
+                [msgArray addObject:item];
+            }
+            
+            //初始化UI
+            [self initUI];
         }
-//        [searchTab reloadData];
+        else if ([action isEqualToString:@"deleteNewMember"])
+        {
+            CLog(@"delete Teacher From Chat Success!");
+        }
     }
     else
     {
@@ -216,5 +444,7 @@
                         delegate:self
                otherButtonTitles:@"确定",nil];
     }
+    
+    [latlyTab reloadData];
 }
 @end

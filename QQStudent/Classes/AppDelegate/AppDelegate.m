@@ -18,8 +18,19 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    //初始化MQTT Server
+    [self initMQTTServer];
     
+    //向微信注册
+    [WXApi registerApp:WeiXinAppID withDescription:@"QQ_Student_IOS v1.0"];
+    
+    //注册设备推送通知
+    [[UIApplication sharedApplication]registerForRemoteNotificationTypes:
+                                                         (UIRemoteNotificationTypeAlert |
+                                                          UIRemoteNotificationTypeBadge |
+                                                          UIRemoteNotificationTypeSound)];
+    
+    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     UIViewController *pVctr = nil;
     if ([self isFirstLauncher])
     {
@@ -32,6 +43,9 @@
         UINavigationController *nVctr = [[UINavigationController alloc]initWithRootViewController:mVctr];
         pVctr = nVctr;
     }
+    
+    //ios5设置NavBar背景图片
+    [self isIos5ToUpdateNav];
     
     self.window.rootViewController = pVctr;
     self.window.backgroundColor = [UIColor whiteColor];
@@ -50,6 +64,9 @@
 {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+
+    //离线更新
+    [self updateLoginStatus:0];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
@@ -60,6 +77,9 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    
+    //上线更新
+    [self updateLoginStatus:1];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -67,8 +87,66 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
+{
+    return  [WXApi handleOpenURL:url delegate:self];
+}
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    BOOL isSuc = [WXApi handleOpenURL:url delegate:self];
+    CLog(@"url %@ isSuc %d",url,isSuc == YES ? 1 : 0);
+    return  isSuc;
+}
+
 #pragma mark -
 #pragma mark - Custom Action
+- (void) updateLoginStatus:(int) isBackgroud
+{
+    //判断是否显示试听和聘请
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    if (ssid)
+    {
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"online",@"sessid", nil];
+        NSArray *valusArr  = [NSArray arrayWithObjects:@"updateLoginStatus",[NSNumber numberWithInt:isBackgroud],ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valusArr
+                                                         forKeys:paramsArr];
+        
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        NSString *webAddress   = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+        NSString *url  = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+        NSData *resVal = [request requestSyncWith:kServerPostRequest
+                                         paramDic:pDic
+                                           urlStr:url];
+        if (resVal)
+        {
+            NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                     encoding:NSUTF8StringEncoding]autorelease];
+            NSDictionary *resDic  = [resStr JSONValue];
+            CLog(@"updateLoginStatus:%@", resDic);
+            NSString *action = [resDic objectForKey:@"action"];
+            if ([action isEqualToString:@"updateLoginStatus"])
+            {
+                CLog(@"Update Login Status Success!");
+            }
+            else
+            {
+                CLog(@"Update Login Status Failed!");
+            }
+        }
+    }
+}
+
+- (void) initMQTTServer
+{
+    //连接MQTT服务器
+    SingleMQTT *session = [SingleMQTT shareInstance];
+    [session.session setDelegate:self];
+    [session.session subscribeTopic:[SingleMQTT getCurrentDevTopic]];
+    CLog(@"Topic:%@", [SingleMQTT getCurrentDevTopic]);
+    [SingleMQTT connectServer];
+}
+
 - (BOOL) isFirstLauncher
 {
     BOOL isFirst = [[NSUserDefaults standardUserDefaults] boolForKey:LAUNCHERED];
@@ -83,5 +161,188 @@
                                             forKey:LAUNCHERED];
     
     return YES;
+}
+
+- (void) isIos5ToUpdateNav
+{
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
+    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navi.png"]
+                                       forBarMetrics:UIBarMetricsDefault];
+#endif
+}
+
+#pragma mark - MQtt Callback methods
+- (void)session:(MQTTSession*)sender
+     newMessage:(NSData*)data
+        onTopic:(NSString*)topic
+{
+    NSDictionary *pDic = nil;
+    NSLog(@"new message, %d bytes, topic=%@", [data length], topic);
+    NSString *payloadString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    if (payloadString)
+    {
+        pDic = [payloadString JSONValue];
+        CLog(@"DIC:%@", pDic);
+    }
+    
+    //解析MQTT接收消息
+    int msgType = ((NSString *)[pDic objectForKey:@"type"]).intValue;
+    switch (msgType)
+    {
+        case PUSH_TYPE_APPLY:       //接收到老师抢单信息
+        {
+            //添加到联系人,订单.等待老师确认。
+            Teacher *tObj = [[Teacher alloc]init];
+            tObj.deviceId = [pDic objectForKey:@"deviceId"];
+            tObj.sex = ((NSNumber *) [pDic objectForKey:@"gender"]).intValue;
+            tObj.headUrl = [pDic objectForKey:@"icon"];
+            tObj.idNums  = [pDic objectForKey:@"idnumber"];
+            tObj.info = [pDic objectForKey:@"info"];
+            tObj.name = [pDic objectForKey:@"nickname"];
+            tObj.phoneNums = [pDic objectForKey:@"phone"];
+            tObj.comment = ((NSNumber *) [pDic objectForKey:@"stars"]).intValue;
+            tObj.studentCount = ((NSNumber *) [pDic objectForKey:@"students"]).intValue;
+            tObj.pf = [pDic objectForKey:@"subjectText"];
+            NSDictionary *infoDic = [NSDictionary dictionaryWithObjectsAndKeys:tObj,@"OrderTeacher",nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"OrderConfirm"
+                                                                object:nil
+                                                              userInfo:infoDic];
+            break;
+        }
+        case PUSH_TYPE_CONFIRM:     //确认老师的确认消息
+        {
+            break;
+        }
+        case PUSH_TYPE_TEXT:        //接收到文本消息
+        {
+            //提示有一条新消息,最近页面刷新
+            CLog(@"Message:%@", pDic);
+            
+            break;
+        }
+        case PUSH_TYPE_IMAGE:       //接收到图片消息
+        {
+            break;
+        }
+        case PUSH_TYPE_AUDIO:       //接收到音频消息
+        {
+            break;
+        }
+        case PUSH_TYPE_ORDER_EDIT:  //发送修改订单消息
+        {
+            break;
+        }
+        case PUSH_TYPE_ORDER_CONFIRM:
+        {
+            break;
+        }
+        case PUSH_TYPE_ORDER_EDIT_SUCCESS:
+        {
+            break;
+        }
+        case PUSH_TYPE_ORDER_CONFIRM_SUCCESS:
+        {
+            break;
+        }
+        case PUSH_TYPE_LISTENING_CHANG:
+        {
+            break;
+        }
+        default:
+            break;
+    }
+    
+    //转发给各个ViewControllers
+}
+
+- (void)session:(MQTTSession*)sender handleEvent:(MQTTSessionEvent)eventCode {
+    switch (eventCode) {
+        case MQTTSessionEventConnected:
+            NSLog(@"connected");
+            break;
+        case MQTTSessionEventConnectionRefused:
+            NSLog(@"connection refused");
+            break;
+        case MQTTSessionEventConnectionClosed:
+            NSLog(@"connection closed");
+            break;
+        case MQTTSessionEventConnectionError:
+            NSLog(@"connection error");
+            NSLog(@"reconnecting...");
+            // Forcing reconnection
+            NSString *pushAddress = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHADDRESS];
+            NSString *port = [[NSUserDefaults standardUserDefaults] objectForKey:PORT];
+            if (pushAddress && port)
+            {
+                [[[SingleMQTT shareInstance] session] connectToHost:pushAddress
+                                                               port:port.intValue];
+            }
+            break;
+        case MQTTSessionEventProtocolError:
+            NSLog(@"protocol error");
+            break;
+    }
+}
+
+#pragma mark - Remote Notice Action
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+    NSString *token = [[deviceToken description] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]];
+    NSString *devToken = [token stringByReplacingOccurrencesOfString:@" "
+                                                          withString:@""];
+    CLog(@"New Device ToKen:%@", devToken);
+    [[NSUserDefaults standardUserDefaults] setObject:devToken
+                                              forKey:QQ_STUDENT];
+}
+
+- (void) application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+    CLog(@"RegisterForRemoteNotifications:%@", [NSString stringWithFormat: @"Error: %@", error]);
+    [[NSUserDefaults standardUserDefaults] setObject:@"deviceToken error"
+                                              forKey:QQ_STUDENT];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
+    
+    // 处理推送消息
+    UIAlertView *alert=[[UIAlertView alloc]initWithTitle:@"通知"
+                                                 message:@"我的信息"
+                                                delegate:self
+                                       cancelButtonTitle:@"取消"
+                                       otherButtonTitles:nil, nil];
+    [alert show];
+    [alert release];
+    
+    NSLog(@"%@", userInfo);
+}
+
+#pragma mark -
+#pragma mark - WXApiDelegate
+- (void) onResp:(BaseResp *)resp
+{
+    if([resp isKindOfClass:[SendMessageToWXResp class]])
+    {        
+        if (resp.errCode == 0) //分享成功
+        {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+                                                            message:@"分享成功"
+                                                           delegate:self
+                                                  cancelButtonTitle:@"确定"
+                                                  otherButtonTitles:nil, nil];
+            [alert show];
+            [alert release];
+        }
+        else                   //分享失败
+        {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+                                                            message:[NSString stringWithFormat:@"分享失败,errCode:%d", resp.errCode]
+                                                           delegate:self
+                                                  cancelButtonTitle:@"确定"
+                                                  otherButtonTitles:nil, nil];
+            [alert show];
+            [alert release];
+        }
+    }
+
 }
 @end

@@ -14,7 +14,17 @@
 {
     UILabel *timeValueLab;
     UITableView *orderTab;
+    
+    UILabel *dateValLab;
+    UILabel *subValLab;
+    UILabel *sexValLab;
+    UILabel *salaryValLab;
+    UILabel *posValLab;
+    
+    NSDictionary *salaryDic;
 }
 
-@property (nonatomic, retain) NSDictionary *teacherItem;
+@property (nonatomic, retain) Teacher *tObj;
+@property (nonatomic, copy) NSDictionary    *posDic;
+@property (nonatomic, copy) NSMutableArray  *teacherArray;
 @end

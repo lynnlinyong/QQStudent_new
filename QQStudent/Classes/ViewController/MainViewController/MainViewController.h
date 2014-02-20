@@ -7,9 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MQTTSession.h"
 
-@interface MainViewController : UIViewController<ServerRequestDelegate>
+@interface MainViewController : UIViewController<ServerRequestDelegate,
+                                                AMapSearchDelegate,
+                                                MAMapViewDelegate>
 {
-    NSString *appurl;
+    NSString        *appurl;
+    NSMutableArray  *teacherArray;
+    NSMutableArray  *annArray;
+    AMapSearchAPI   *search;
+    CalloutMapAnnotation *_calloutMapAnnotation;
 }
+@property (nonatomic, retain) MAMapView *mapView;
 @end

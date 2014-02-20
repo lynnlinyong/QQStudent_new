@@ -27,6 +27,7 @@
 {
     [super viewDidLoad];
     
+    //初始化UI
     [self initUI];
 }
 

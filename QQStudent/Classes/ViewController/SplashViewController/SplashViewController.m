@@ -114,10 +114,11 @@
     //进入主界面
     CGFloat offset = scrollView.contentOffset.x-(uiPctr.numberOfPages-1)*pageWidth;
     if ((page == 3) && (offset > 20))
-    {   
+    {
         MainViewController *mainVctr = [[MainViewController alloc]init];
-        AppDelegate *app = [[UIApplication sharedApplication] delegate];
-        app.window.rootViewController = mainVctr;
+        UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:mainVctr];
+        AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        app.window.rootViewController = nav;
     }
 }
 @end

@@ -59,13 +59,13 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [backBtn setTitle:@"返回" forState:UIControlStateNormal];
-    backBtn.frame = CGRectMake(0, 0, 100, 40);
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:backBtn];
+//    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+//    [backBtn setTitle:@"返回" forState:UIControlStateNormal];
+//    backBtn.frame = CGRectMake(0, 0, 100, 40);
+//    [backBtn addTarget:self
+//                action:@selector(doBackBtnClicked:)
+//      forControlEvents:UIControlEventTouchUpInside];
+//    [self.view addSubview:backBtn];
     
     userNameFld = [[UITextField alloc]init];
     userNameFld.delegate = self;
@@ -147,17 +147,19 @@
         return;
     }
     
-    NSString *idString  = [[UIDevice currentDevice] uniqueIdentifier];
+    NSString *idString    = [SingleMQTT getCurrentDevTopic];
+    NSString *deviceToken = [[NSUserDefaults standardUserDefaults] objectForKey:QQ_STUDENT];
+    
     NSArray *paramsArr  = [NSArray arrayWithObjects:@"action",@"phoneNumber",@"email",
-                                                              @"deviceId",@"ios",nil];
+                                                              @"deviceId",@"ios",@"deviceToken",nil];
     NSArray *valuesArr  = [NSArray arrayWithObjects:@"register", phoneFld.text,
-                                                   userNameFld.text, idString, IOS, nil];
+                                                   userNameFld.text, idString, IOS,deviceToken,nil];
     NSDictionary *pDic  = [NSDictionary dictionaryWithObjects:valuesArr
                                                       forKeys:paramsArr];
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate   = self;
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@/%@/", webAddress,STUDENT];
+    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
@@ -213,14 +215,14 @@
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];
     NSDictionary *resDic   = [resStr JSONValue];
-//    NSArray      *keysArr  = [resDic allKeys];
-//    NSArray      *valsArr  = [resDic allValues];
-//    CLog(@"***********Result****************");
-//    for (int i=0; i<keysArr.count; i++)
-//    {
-//        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
-//    }
-//    CLog(@"***********Result****************");
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
     
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
@@ -232,25 +234,24 @@
                otherButtonTitles:@"确定", nil];
         
         NSString *ssid = [resDic objectForKey:@"sessid"];
-        [[NSUserDefaults standardUserDefaults] setObject:ssid forKey:SSID];
-        
-        NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
-        CLog(@"Dictionary:%@", stuDic);
-        
+        [[NSUserDefaults standardUserDefaults] setObject:ssid
+                                                  forKey:SSID];
+
         //获得Student
+        NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
         Student *student    = [[Student alloc]init];
         student.email       = [stuDic objectForKey:@"email"];
-        student.gender      = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"gender"]] stringValue];
-        student.grade       = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"grade"]] stringValue];
-        student.icon        = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"icon"]] stringValue];
+        student.gender      = [[stuDic objectForKey:@"gender"] copy];
+        student.grade       = [[stuDic objectForKey:@"grade"]  copy];
+        student.icon        = [[stuDic objectForKey:@"icon"]   copy];
         student.latltude    = [stuDic objectForKey:@"latitude"];
         student.longltude   = [stuDic objectForKey:@"longitude"];
         student.lltime      = [stuDic objectForKey:@"lltime"];
         student.nickName    = [stuDic objectForKey:@"nickname"];
         student.phoneNumber = [stuDic objectForKey:@"phone"];
-        student.status      = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"status"]] stringValue];
-        student.phoneStars  = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"phone_stars"]] stringValue];
-        student.locStars    = [[NSNumber numberWithInt:(int)[stuDic objectForKey:@"location_stars"]] stringValue];
+        student.status      = [[stuDic objectForKey:@"status"] copy];
+        student.phoneStars  = [[stuDic objectForKey:@"phone_stars"] copy];
+        student.locStars    = [[stuDic objectForKey:@"location_stars"] copy];
         
         NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
         [[NSUserDefaults standardUserDefaults] setObject:stuData

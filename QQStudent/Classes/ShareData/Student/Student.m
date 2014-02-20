@@ -27,6 +27,7 @@
     self = [super init];
     if (self)
     {
+        icon        = [[NSString alloc]init];
         email       = [[NSString alloc]init];
         nickName    = [[NSString alloc]init];
         phoneNumber = [[NSString alloc]init];
@@ -45,6 +46,7 @@
 
 - (void) dealloc
 {
+    [icon           release];
     [email          release];
     [nickName       release];
     [phoneNumber    release];
@@ -75,6 +77,7 @@
         sObj.status      = [status copy];
         sObj.phoneStars  = [phoneStars copy];
         sObj.locStars    = [locStars copy];
+        sObj.icon        = [icon copy];
     }
     
     return sObj;
@@ -96,6 +99,7 @@
         sObj.status      = [status mutableCopy];
         sObj.phoneStars  = [phoneStars mutableCopy];
         sObj.locStars    = [locStars mutableCopy];
+        sObj.icon        = [icon copy];
     }
     
     return sObj;
@@ -125,6 +129,8 @@
                   forKey:@"phoneStars"];
     [aCoder encodeObject:self.locStars
                   forKey:@"locStars"];
+    [aCoder encodeObject:self.icon
+                  forKey:@"icon"];
 }
 
 - (id)initWithCoder:(NSCoder *)aDecoder
@@ -143,8 +149,79 @@
         status      = [[aDecoder decodeObjectForKey:@"status"] copy];
         phoneStars  = [[aDecoder decodeObjectForKey:@"phoneStars"] copy];
         locStars    = [[aDecoder decodeObjectForKey:@"locStars"] copy];
+        icon        = [[aDecoder decodeObjectForKey:@"icon"] copy];
     }
     
     return self;
+}
+
+//根据年级列表,名字查询年级ID
++ (NSString *) searchGradeID:(NSString *)gradeName
+{
+    NSString *result = nil;
+    
+    NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:GRADE_LIST];
+    if (gradList)
+    {
+        for (NSDictionary *item in gradList)
+        {
+            NSString *tGdName = [item objectForKey:@"name"];
+            if ([gradeName isEqualToString:tGdName])
+            {
+                return [[item objectForKey:@"id"] retain];
+            }
+        }
+    }
+    
+    return result;
+}
+
+//根据年级列表,年级ID查询名字
++ (NSString *) searchGradeName:(NSString *) gradeID
+{
+    NSString *result  = nil;
+    NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:GRADE_LIST];
+    if (gradList)
+    {
+        for (NSDictionary *item in gradList)
+        {
+            NSString *tGdID = [item objectForKey:@"id"];
+            if ([gradeID isEqualToString:tGdID])
+            {
+                return [[item objectForKey:@"name"] retain];
+            }
+        }
+    }
+    
+    return result;
+}
+
+//根据性别ID,查询性别
++ (NSString *) searchGenderName:(NSString *) genderId
+{
+    NSString *result = @"";
+    
+    if ([genderId isEqualToString:@"1"])
+        result = @"男";
+    else
+        result = @"女";
+    
+    return result;
+}
+
+//根据性别, 查询ID
++ (NSString *) searchGenderID:(NSString *) genderName
+{
+    NSString *result = @"";
+    
+    if ([genderName isEqualToString:@"男"])
+        result = @"1";
+    else if ([genderName isEqualToString:@"不限"])
+        result = @"0";
+    else
+        result = @"2";
+    
+    
+    return result;
 }
 @end
