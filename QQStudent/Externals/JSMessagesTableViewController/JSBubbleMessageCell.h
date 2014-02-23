@@ -40,6 +40,7 @@ typedef enum {
     JSAvatarStyleCircle = 0,
     JSAvatarStyleSquare,
     JSAvatarStyleText,
+    JSAvatarTxtIncomingImgOutgoing,
     JSAvatarStyleNone
 } JSAvatarStyle;
 
@@ -54,8 +55,13 @@ typedef enum {
          reuseIdentifier:(NSString *)reuseIdentifier;
 
 #pragma mark - Message cell
+//add by lynn
+- (void) setVoiceImage;
+- (void) setTag:(int) tag;
+
 - (void)setMessage:(NSString *)msg;
 - (void)setTimestamp:(NSDate *)date;
+- (void) setWebAvatarImage:(NSString *) imagePath;
 - (void)setAvatarImage:(UIImage *)image;
 - (JSAvatarStyle) getAvatarStyle;
 - (void)setAvatarText:(NSString *) txt;

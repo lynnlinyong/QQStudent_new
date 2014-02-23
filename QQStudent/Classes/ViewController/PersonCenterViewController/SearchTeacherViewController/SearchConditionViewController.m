@@ -30,6 +30,10 @@
 {
     [super viewDidLoad];
     
+    //初始化录音
+    recordAudio = [[RecordAudio alloc]init];
+    recordAudio.delegate = self;
+    
     //初始化UI
     [self initUI];
 }
@@ -43,16 +47,24 @@
 - (void) viewDidUnload
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    messageField.delegate = nil;
+    messageField = nil;
+    
+    recordAudio.delegate = nil;
+    
     [teacherArray removeAllObjects];
     [super viewDidUnload];
 }
 
 - (void) dealloc
 {
+    [recordAudio  release];
     [subValLab    release];
     [dateValLab   release];
     [teacherArray release];
     [timeValueLab release];
+    [messageField release];
     [super dealloc];
 }
 
@@ -63,7 +75,7 @@
     orderTab = [[UITableView alloc]init];
     orderTab.delegate = self;
     orderTab.dataSource = self;
-    orderTab.frame = [UIView fitCGRect:CGRectMake(20, 40, 280, 300)
+    orderTab.frame = [UIView fitCGRect:CGRectMake(20, 20, 280, 340)
                             isBackView:NO];
     [self.view addSubview:orderTab];
     
@@ -78,7 +90,7 @@
     [orderBtn setImage:img
               forState:UIControlStateNormal];
     [orderBtn addTarget:self
-                 action:@selector(doBackBtnClicked:)
+                 action:@selector(doButtonClicked:)
        forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:orderBtn];
     
@@ -112,7 +124,104 @@
                                                object:nil];
 }
 
-- (void) doBackBtnClicked:(id)sender
+- (NSString *) getRecordURL
+{
+    NSArray *paths   = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+                                                           NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSMutableString  *path       = [[NSMutableString alloc]initWithString:documentsDirectory];
+    [path appendString:VOICE_NAME];
+    
+    return path;
+}
+
+- (void) startRecord
+{
+    [recordAudio stopPlay];
+    [recordAudio startRecord];
+}
+
+- (void) stopRecord
+{
+    //写入amr数据文件
+    NSURL *url       = [recordAudio stopRecord];
+    CLog(@"URL:%@", url);
+    NSData *curAudio = EncodeWAVEToAMR([NSData dataWithContentsOfURL:url],1,16);
+    NSString *path   = [self getRecordURL];
+    CLog(@"path:%@", path);
+    [curAudio writeToFile:path
+               atomically:YES];
+}
+
+-(void)RecordStatus:(int)status
+{
+    if (status==0)
+    {
+        //播放中
+    }
+    else if(status==1)
+    {
+        //完成
+        CLog(@"播放完成");
+    }
+    else if(status==2)
+    {
+        //出错
+        CLog(@"播放出错");
+    }
+}
+
+#pragma mark -
+#pragma mark - Control Event
+- (void) longPressButton:(UILongPressButton *)button status:(ButtonStatus)status
+{
+    switch (status)
+    {
+        case LONG_PRESS_BUTTON_DOWN:      //长按开始
+        {
+            [self startRecord];
+            break;
+        }
+        case LONG_PRESS_BUTTON_SHORT:    //长按太短
+        {
+            [self showAlertWithTitle:@"提示"
+                                 tag:0
+                             message:@"录音时间太短"
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+            break;
+        }
+        case LONG_PRESS_BUTTON_LONG:     //长按太长
+        {
+            [self showAlertWithTitle:@"提示"
+                                 tag:0
+                             message:@"录音时间太长"
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+            break;
+        }
+        case LONG_PRESS_BUTTON_UP:       //长按结束
+        {
+            [self stopRecord];
+            recordLongPressBtn.hidden = YES;
+            recordSuccessBtn.hidden   = NO;
+            
+            //显示喇叭
+            
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+- (BOOL) textFieldShouldReturn:(UITextField *)textField
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+
+- (void) doButtonClicked:(id)sender
 {
     UIButton *button = sender;
     switch (button.tag)
@@ -134,18 +243,88 @@
                 return;
             }
             
+            NSString *path = @"";
+            if (recordLongPressBtn.isRecord)
+            {
+                path = [self getRecordURL];
+                //获得时间戳
+                NSDate *dateNow  = [NSDate date];
+                NSString *timeSp = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
+                
+                NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+                NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"edittime",@"uptype",@"sessid",UPLOAD_FILE, nil];
+                NSArray *valuesArr = [NSArray arrayWithObjects:@"uploadfile",
+                                      timeSp,@"audio",ssid,[NSDictionary dictionaryWithObjectsAndKeys:path,@"file", nil],nil];
+                NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                                 forKeys:paramsArr];
+                
+                NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+                NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
+                
+                //上传录音文件
+                ServerRequest *request = [ServerRequest sharedServerRequest];
+                request.delegate = self;
+                NSData *resVal = [request requestSyncWith:kServerPostRequest
+                                                 paramDic:pDic
+                                                   urlStr:url];
+                if (resVal)
+                {
+                    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                             encoding:NSUTF8StringEncoding]autorelease];
+                    NSDictionary *resDic  = [resStr JSONValue];
+                    NSString *action = [resDic objectForKey:@"action"];
+                    if ([action isEqualToString:@"uploadfile"])
+                    {
+                        path = [resDic objectForKey:@"filepath"];
+                        CLog(@"filePath:%@", path);
+                    }
+                }
+                else
+                {
+                    [self showAlertWithTitle:@"提示"
+                                         tag:0
+                                     message:@"上传文件失败"
+                                    delegate:self
+                           otherButtonTitles:@"确定",nil];
+                }
+            }
+
             //封装所选条件
-            NSDictionary *valueDic = [NSDictionary dictionaryWithObjectsAndKeys:dateValLab.text,@"Date",[Order searchSubjectID:subValLab.text],@"Subject",salaryDic,@"SalaryDic",[Student searchGenderID:sexValLab.text],@"Sex",timeValueLab.text,@"Time",posValLab.text,@"Pos",posDic,@"POSDIC",nil];
-            
+            NSDictionary *valueDic = [NSDictionary dictionaryWithObjectsAndKeys:dateValLab.text,@"Date",[Order searchSubjectID:subValLab.text],@"Subject",salaryDic,@"SalaryDic",[Student searchGenderID:sexValLab.text],@"Sex",timeValueLab.text,@"Time",posValLab.text,@"Pos",posDic,@"POSDIC",path,@"AudioPath",messageField.text,@"Message",nil];
             CLog(@"codition:%@", valueDic);
             
             WaitConfirmViewController *wcVctr = [[WaitConfirmViewController alloc]init];
-            wcVctr.valueDic = valueDic;
-            wcVctr.tObj     = tObj;
+            wcVctr.valueDic     = valueDic;
+            wcVctr.tObj         = tObj;
             wcVctr.teacherArray = teacherArray;
             [self.navigationController pushViewController:wcVctr
                                                  animated:YES];
             [wcVctr release];
+            break;
+        }
+        case 2:     //录音
+        {
+            recordBtn.hidden    = YES;
+            messageField.hidden = YES;
+            keyBoardBtn.hidden  = NO;
+            recordLongPressBtn.hidden = NO;
+            
+            break;
+        }
+        case 3:     //键盘
+        {
+            recordBtn.hidden   = NO;
+            keyBoardBtn.hidden = YES;
+            messageField.hidden= NO;
+            recordLongPressBtn.hidden = YES;
+            recordSuccessBtn.hidden   = YES;
+            break;
+        }
+        case 5:     //录音成功
+        {
+            //显示提示
+            reCustomBtnView.hidden = NO;
+            clrBtnView.hidden = NO;
             break;
         }
         default:
@@ -163,7 +342,6 @@
     NSString *city    = [notice.userInfo objectForKey:@"CITY"];
     NSString *dist    = [notice.userInfo objectForKey:@"DIST"];
     posValLab.text    = [notice.userInfo objectForKey:@"ADDRESS"];
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) setSalaryFromNotice:(NSNotification *) notice
@@ -227,6 +405,36 @@
 {
     subValLab.text = [notice.userInfo objectForKey:@"name"];
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+}
+
+#pragma mark -
+#pragma mark - CustomButtomViewDelegate
+- (void) view:(CustomButtonView *)view index:(int)index
+{
+    switch (index)
+    {
+        case 0:      //重听一遍
+        {
+            //写入amr数据文件
+            NSString *path   = [self getRecordURL];
+            NSData *curAudio = [NSData dataWithContentsOfFile:path];
+            [recordAudio play:curAudio];
+            break;
+        }
+        case 1:      //清除录音
+        {
+            recordSuccessBtn.hidden     = YES;
+            recordLongPressBtn.hidden   = NO;
+            recordLongPressBtn.isRecord = NO;
+            break;
+        }
+        default:
+            break;
+    }
+    
+    //隐藏操作图层
+    reCustomBtnView.hidden = YES;
+    clrBtnView.hidden = YES;
 }
 
 #pragma mark -
@@ -371,6 +579,78 @@
             }
             case 6:
             {
+                recordBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                recordBtn.tag    = 2;
+                recordBtn.hidden = NO;
+                [recordBtn setTitle:@"录音"
+                           forState:UIControlStateNormal];
+                recordBtn.frame  = CGRectMake(30, 15, 40, 30);
+                [recordBtn addTarget:self
+                              action:@selector(doButtonClicked:)
+                    forControlEvents:UIControlEventTouchUpInside];
+                [cell addSubview:recordBtn];
+                
+                keyBoardBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                keyBoardBtn.tag     = 3;
+                keyBoardBtn.hidden  = YES;
+                [keyBoardBtn setTitle:@"键盘"
+                             forState:UIControlStateNormal];
+                keyBoardBtn.frame   = CGRectMake(30, 15, 40, 30);
+                [keyBoardBtn addTarget:self
+                                action:@selector(doButtonClicked:)
+                      forControlEvents:UIControlEventTouchUpInside];
+                [cell addSubview:keyBoardBtn];
+                
+                messageField = [[UITextField alloc]init];
+                messageField.text     = @"";
+                messageField.hidden   = NO;
+                messageField.delegate = self;
+                messageField.frame    = CGRectMake(70, 15, 160, 30);
+                messageField.borderStyle = UITextBorderStyleLine;
+                [cell addSubview:messageField];
+                                
+                recordLongPressBtn = [[UILongPressButton alloc]initWithFrame:CGRectMake(70, 7, 160, 30)];
+                recordLongPressBtn.tag      = 4;
+                recordLongPressBtn.delegate = self;
+                recordLongPressBtn.frame    = CGRectMake(70, 15, 160, 30);
+                recordLongPressBtn.hidden   = YES;
+                [cell addSubview:recordLongPressBtn];
+                
+                recordSuccessBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                recordSuccessBtn.hidden= YES;
+                recordSuccessBtn.tag   = 5;
+                recordSuccessBtn.frame = CGRectMake(70, 15, 160, 30);
+                [recordSuccessBtn setTitle:@"录音成功"
+                                  forState:UIControlStateNormal];
+                [recordSuccessBtn addTarget:self
+                                     action:@selector(doButtonClicked:)
+                             forControlEvents:UIControlEventTouchUpInside];
+                [cell addSubview:recordSuccessBtn];
+                
+                reCustomBtnView = [[CustomButtonView alloc]initWithFrame:CGRectMake(70, 120, 80, 80)];
+                reCustomBtnView.tag    = 0;
+                reCustomBtnView.hidden = YES;
+                reCustomBtnView.delegate = self;
+                reCustomBtnView.imageView.image = [UIImage imageNamed:@"re_hearing.png"];
+                reCustomBtnView.contentLab.text = @"重听一遍";
+                [self.view addSubview:reCustomBtnView];
+                
+                clrBtnView = [[CustomButtonView alloc]initWithFrame:CGRectMake(170, 120, 80, 80)];
+                clrBtnView.tag    = 1;
+                clrBtnView.hidden = YES;
+                clrBtnView.delegate = self;
+                clrBtnView.imageView.image = [UIImage imageNamed:@"cls_record.png"];
+                clrBtnView.contentLab.text = @"清除录音";
+                [self.view addSubview:clrBtnView];
+                
+                soundImageView = [[UIImageView alloc]initWithFrame:CGRectMake(100, -10, 20, 20)];
+                soundImageView.image  = [UIImage imageNamed:@"quanquan.png"];
+                
+                UIImageView *labaView = [[UIImageView alloc]initWithFrame:CGRectMake(5, 5, 10, 10)];
+                labaView.image = [UIImage imageNamed:@"laba.png"];
+                [soundImageView addSubview:labaView];
+                [recordSuccessBtn addSubview:soundImageView];
+                
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 break;
             }
@@ -380,6 +660,16 @@
     }
     
     return cell;
+}
+
+- (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row == 6)
+    {
+        return 60;
+    }
+    
+    return 44;
 }
 
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath

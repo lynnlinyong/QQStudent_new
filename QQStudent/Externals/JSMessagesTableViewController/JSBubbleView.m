@@ -58,15 +58,27 @@ CGFloat const kJSAvatarSize = 50.0f;
 
 
 @implementation JSBubbleView
-
+@synthesize tag;
 @synthesize type;
 @synthesize style;
 @synthesize text;
 @synthesize selectedToShowCopyMenu;
+@synthesize msgType;
+@synthesize voiceImageView;
 
 #pragma mark - Setup
 - (void)setup
 {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(startVoiceAnimation:)
+                                                 name:@"startVoiceAnimation"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(stopVoiceAnimation:)
+                                                 name:@"stopVoiceAnimation"
+                                               object:nil];
+    
     self.backgroundColor = [UIColor clearColor];
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
@@ -79,7 +91,7 @@ CGFloat const kJSAvatarSize = 50.0f;
     self = [super initWithFrame:rect];
     if(self) {
         [self setup];
-        self.type = bubleType;
+        self.type  = bubleType;
         self.style = bubbleStyle;
     }
     return self;
@@ -88,6 +100,11 @@ CGFloat const kJSAvatarSize = 50.0f;
 - (void)dealloc
 {
     self.text = nil;
+    [voiceImageView release];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    [super dealloc];
 }
 
 #pragma mark - Setters
@@ -109,10 +126,30 @@ CGFloat const kJSAvatarSize = 50.0f;
     [self setNeedsDisplay];
 }
 
+- (void) setVoiceImage
+{
+    [self setNeedsDisplay];
+}
+
 - (void)setSelectedToShowCopyMenu:(BOOL)isSelected
 {
     selectedToShowCopyMenu = isSelected;
     [self setNeedsDisplay];
+}
+
+#pragma mark - notice
+- (void)stopVoiceAnimation:(NSNotification *) notice
+{
+    [voiceImageView stopAnimating];
+}
+
+- (void)startVoiceAnimation:(NSNotification *) notice
+{
+    int recvTag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
+    if (tag == recvTag)
+    {
+        [voiceImageView startAnimating];
+    }
 }
 
 #pragma mark - Drawing
@@ -150,23 +187,63 @@ CGFloat const kJSAvatarSize = 50.0f;
     [super drawRect:frame];
     
 	UIImage *image = (self.selectedToShowCopyMenu) ? [self bubbleImageHighlighted] : [self bubbleImage];
-    
-    CGRect bubbleFrame = [self bubbleFrame];
-	[image drawInRect:bubbleFrame];
-	
-	CGSize textSize = [JSBubbleView textSizeForText:self.text];
-	
-    CGFloat textX = image.leftCapWidth - 3.0f + (self.type == JSBubbleMessageTypeOutgoing ? bubbleFrame.origin.x : 0.0f);
-    
-    CGRect textFrame = CGRectMake(textX,
-                                  kPaddingTop + kMarginTop,
-                                  textSize.width,
-                                  textSize.height);
-    
-	[self.text drawInRect:textFrame
-                 withFont:[JSBubbleView font]
-            lineBreakMode:NSLineBreakByWordWrapping
-                alignment:NSTextAlignmentLeft];
+    if (self.msgType == PUSH_TYPE_TEXT)
+    {
+        CGRect bubbleFrame = [self bubbleFrame];
+        [image drawInRect:bubbleFrame];
+        
+        CGSize textSize = [JSBubbleView textSizeForText:self.text];
+        
+        CGFloat textX = image.leftCapWidth - 3.0f + (self.type == JSBubbleMessageTypeOutgoing ? bubbleFrame.origin.x : 0.0f);
+        
+        CGRect textFrame = CGRectMake(textX,
+                                      kPaddingTop + kMarginTop,
+                                      textSize.width,
+                                      textSize.height);
+        
+        [self.text drawInRect:textFrame
+                     withFont:[JSBubbleView font]
+                lineBreakMode:NSLineBreakByWordWrapping
+                    alignment:NSTextAlignmentLeft];
+    }
+    else
+    {
+        CGRect bubbleFrame = CGRectMake((self.type == JSBubbleMessageTypeOutgoing ? self.frame.size.width - 40 : 0.0f),
+                                        kMarginTop,
+                                        40,
+                                        30);
+        [image drawInRect:bubbleFrame];
+        
+        //add by lynn
+        CGFloat imageX = image.leftCapWidth - 3.0f + (self.type == JSBubbleMessageTypeOutgoing ? self.frame.size.width-48 : -5.0f);
+        CGRect imgFrame = CGRectMake(imageX,
+                                     kPaddingTop + kMarginTop,
+                                     20,
+                                     20);
+        
+        //设置动画
+        voiceImageView = [[UIImageView alloc]init];
+        if (self.type == JSBubbleMessageTypeOutgoing)
+        {
+            voiceImageView.animationImages = [NSArray arrayWithObjects:
+                                               [UIImage imageNamed:@"skin_aio_ptt_action_r_1.png"],
+                                               [UIImage imageNamed:@"skin_aio_ptt_action_r_2.png"],
+                                               [UIImage imageNamed:@"skin_aio_ptt_action_r_3.png"],nil];
+            voiceImageView.image = [UIImage imageNamed:@"skin_aio_ptt_action_r_3.png"];
+        }
+        else
+        {
+            voiceImageView.animationImages = [NSArray arrayWithObjects:
+                                              [UIImage imageNamed:@"skin_aio_ptt_action_l_1.png"],
+                                              [UIImage imageNamed:@"skin_aio_ptt_action_l_2.png"],
+                                              [UIImage imageNamed:@"skin_aio_ptt_action_l_3.png"],nil];
+            voiceImageView.image = [UIImage imageNamed:@"skin_aio_ptt_action_l_3.png"];
+        }
+        [voiceImageView setAnimationDuration:1.f];
+        [voiceImageView setAnimationRepeatCount:0];
+        voiceImageView.frame = imgFrame;
+        [self addSubview:voiceImageView];
+    }
 }
 
 #pragma mark - Bubble view

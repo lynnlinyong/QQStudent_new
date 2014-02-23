@@ -79,17 +79,82 @@
 
     UIButton *sendButton = [self sendButton];
     sendButton.enabled = NO;
-    sendButton.frame = CGRectMake(self.inputToolBarView.frame.size.width - 65.0f, 8.0f, 59.0f, 26.0f);
+    sendButton.frame = CGRectMake(self.inputToolBarView.frame.size.width-65.0f,
+                                  8.0f, 59.0f, 26.0f);
     [sendButton addTarget:self
                    action:@selector(sendPressed:)
          forControlEvents:UIControlEventTouchUpInside];
     [self.inputToolBarView setSendButton:sendButton];
+    
+    UIButton *complainButton = [self complainButton];
+    complainButton.tag       = 0;
+    complainButton.frame     = CGRectMake(10, 8, 40, 26);
+    [complainButton addTarget:self
+                       action:@selector(doButtonPressed:)
+             forControlEvents:UIControlEventTouchUpInside];
+    [self.inputToolBarView setComplainBtn:complainButton];
+    
+    UIButton *phoneButton    = [self phoneButton];
+    phoneButton.tag          = 1;
+    phoneButton.frame        = CGRectMake(55, 8, 40, 26);
+    [phoneButton    addTarget:self
+                       action:@selector(doButtonPressed:)
+             forControlEvents:UIControlEventTouchUpInside];
+    [self.inputToolBarView setPhoneBtn:phoneButton];
+    
+    UIButton *voiceButton    = [self voiceButton];
+    voiceButton.tag          = 2;
+    voiceButton.frame        = CGRectMake(100, 8, 40, 26);
+    [voiceButton    addTarget:self
+                       action:@selector(doButtonPressed:)
+             forControlEvents:UIControlEventTouchUpInside];
+    [self.inputToolBarView setVoiceBtn:voiceButton];
+    
+    UIButton *keyBoardButton = [self keyBoardButton];
+    keyBoardButton.hidden    = YES;
+    keyBoardButton.tag       = 3;
+    keyBoardButton.frame     = CGRectMake(100, 8, 40, 26);
+    [keyBoardButton    addTarget:self
+                          action:@selector(doButtonPressed:)
+                forControlEvents:UIControlEventTouchUpInside];
+    [self.inputToolBarView setKeyBoardBtn:keyBoardButton];
+    
+    UILongPressButton *recordButton = [self recordButton:CGRectMake(150, 8, 160, 26)];
+    recordButton.hidden       = YES;
+    recordButton.delegate     = self;
+    [self.inputToolBarView setRecordBtn:recordButton];
+    
     [self.view addSubview:self.inputToolBarView];
 }
 
 - (UIButton *)sendButton
 {
     return [UIButton defaultSendButton];
+}
+
+- (UIButton *)complainButton
+{
+    return [UIButton defaultComplainButton];
+}
+
+- (UIButton *)phoneButton
+{
+    return [UIButton defaultPhoneButton];
+}
+
+- (UIButton *)voiceButton
+{
+    return [UIButton defaultVoiceButton];
+}
+
+- (UIButton *)keyBoardButton
+{
+    return [UIButton defaultKeyBoardButton];
+}
+
+- (UILongPressButton *)recordButton:(CGRect) rect
+{
+    return [UIButton defaultLongPressButton:rect];
 }
 
 #pragma mark - View lifecycle
@@ -132,9 +197,9 @@
 
 - (void)dealloc
 {
-    self.delegate = nil;
+    self.delegate   = nil;
     self.dataSource = nil;
-    self.tableView = nil;
+    self.tableView  = nil;
     self.inputToolBarView = nil;
     [super dealloc];
 }
@@ -158,6 +223,48 @@
 }
 
 #pragma mark - Actions
+#pragma mark -
+- (void) doButtonPressed:(id)sender
+{
+    UIButton *btn = sender;
+    
+    switch (btn.tag)
+    {
+        case 2:    //录音
+        {
+            self.inputToolBarView.textView.hidden       = YES;
+            self.inputToolBarView.sendButton.hidden     = YES;
+            self.inputToolBarView.inputFieldBack.hidden = YES;
+            self.inputToolBarView.voiceBtn.hidden       = YES;
+            
+            self.inputToolBarView.recordBtn.hidden      = NO;
+            self.inputToolBarView.keyBoardBtn.hidden    = NO;
+            break;
+        }
+        case 3:    //键盘
+        {
+            self.inputToolBarView.textView.hidden       = NO;
+            self.inputToolBarView.sendButton.hidden     = NO;
+            self.inputToolBarView.inputFieldBack.hidden = NO;
+            self.inputToolBarView.voiceBtn.hidden       = NO;
+            
+            self.inputToolBarView.recordBtn.hidden      = YES;
+            self.inputToolBarView.keyBoardBtn.hidden    = YES;
+            break;
+        }
+        default:
+            break;
+    }
+    
+    if (self.delegate)
+    {
+        if ([self.delegate respondsToSelector:@selector(buttonPressed:)])
+        {
+            [self.delegate buttonPressed:sender];
+        }
+    }
+}
+
 - (void)sendPressed:(UIButton *)sender
 {
     [self.delegate sendPressed:sender
@@ -187,7 +294,7 @@
     NSString *CellID = [NSString stringWithFormat:@"MessageCell_%d_%d_%d_%d", type, bubbleStyle, hasTimestamp, hasAvatar];
     JSBubbleMessageCell *cell = (JSBubbleMessageCell *)[tableView dequeueReusableCellWithIdentifier:CellID];
     
-    if(!cell)
+//    if(!cell)
         cell = [[JSBubbleMessageCell alloc] initWithBubbleType:type
                                                    bubbleStyle:bubbleStyle
                                                    avatarStyle:(hasAvatar) ? avatarStyle : JSAvatarStyleNone
@@ -201,24 +308,39 @@
         switch (type) {
             case JSBubbleMessageTypeIncoming:
             {
-                if ([cell getAvatarStyle] == JSAvatarStyleText)
+                if ([cell getAvatarStyle] == JSAvatarTxtIncomingImgOutgoing)
+                {
                     [cell setAvatarText:[self.dataSource avatarNameForIncomingMessage]];
-                else
-                    [cell setAvatarImage:[self.dataSource avatarImageForIncomingMessage]];
+                }
                 break;
             }
             case JSBubbleMessageTypeOutgoing:
-                if ([cell getAvatarStyle] == JSAvatarStyleText)
-                    [cell setAvatarText:[self.dataSource avatarNameForOutgoingMessage]];
-                else
-                    [cell setAvatarImage:[self.dataSource avatarImageForOutgoingMessage]];
+            {
+                if ([cell getAvatarStyle] == JSAvatarTxtIncomingImgOutgoing)
+                {
+                    [cell setWebAvatarImage:[self.dataSource avatarImagePathForOutgoingMessage]];
+                }
                 break;
+            }
         }
     }
-    
-    [cell setMessage:[self.dataSource textForRowAtIndexPath:indexPath]];
+    //判断消息类型
+    if ([self.dataSource msgTypeForRowAtIndexPath:indexPath] == PUSH_TYPE_TEXT)
+    {
+        [cell setMessage:[self.dataSource textForRowAtIndexPath:indexPath]];
+    }
+    else
+    {
+        [cell setVoiceImage];
+    }
+    cell.tag = indexPath.row;
     [cell setBackgroundColor:tableView.backgroundColor];
     return cell;
+}
+
+- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [self.delegate clickedMessageForRowAtIndexPath:indexPath];
 }
 
 #pragma mark - Table view delegate

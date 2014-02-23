@@ -57,6 +57,8 @@
 
 - (void) viewDidUnload
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     _refreshHeaderView    = nil;
     [teacherArray removeAllObjects];
     [super viewDidUnload];
@@ -72,6 +74,11 @@
 
 #pragma mark -
 #pragma mark - Notice
+- (void) dismissComplainNotice:(NSNotification *) notice
+{
+    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+}
+
 - (void) doCommentOrderNotice:(NSNotification *) notice
 {
     NSNumber *index    = [notice.userInfo objectForKey:@"Index"];
@@ -121,6 +128,11 @@
         [sVctr release];
     }
     [self.tableView reloadData];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(dismissComplainNotice:)
+                                                 name:@"dismissComplainNotice"
+                                               object:nil];
 }
 
 - (void) getOrderTeachers
@@ -265,7 +277,7 @@
 {
     switch (index)
     {
-        case 0:     //详情
+        case 0:     //教师详情
         {
             TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
             tdVctr.tObj = cell.teacher;
@@ -296,8 +308,7 @@
             //调用短信
             if( [MFMessageComposeViewController canSendText] )
             {
-                MFMessageComposeViewController * controller = [[MFMessageComposeViewController alloc]init]; //autorelease];                
-                controller.recipients = [NSArray arrayWithObject:@"10010"];
+                MFMessageComposeViewController * controller = [[MFMessageComposeViewController alloc]init];
                 controller.body = @"轻轻家教赶快去下载哦!!!www.baidu.com";
                 controller.messageComposeDelegate = self;
                 [self presentModalViewController:controller animated:YES];

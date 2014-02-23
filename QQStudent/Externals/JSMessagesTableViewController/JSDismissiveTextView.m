@@ -85,7 +85,8 @@
 - (void)setDismissivePanGestureRecognizer:(UIPanGestureRecognizer *)pan
 {
     dismissivePanGestureRecognizer = pan;
-    [dismissivePanGestureRecognizer addTarget:self action:@selector(handlePanGesture:)];
+    [dismissivePanGestureRecognizer addTarget:self
+                                       action:@selector(handlePanGesture:)];
 }
 
 #pragma mark - Notifications

@@ -9,10 +9,16 @@
 #import <UIKit/UIKit.h>
 
 @interface SearchConditionViewController : UIViewController<
+                                                        CustomButtonViewDelegate,
+                                                        ServerRequestDelegate,
+                                                        UILongPressButtonDelegate,
+                                                        RecordAudioDelegate,
+                                                        UIGestureRecognizerDelegate,
+                                                        UITextFieldDelegate,
                                                         UITableViewDelegate,
                                                         UITableViewDataSource>
 {
-    UILabel *timeValueLab;
+    UILabel     *timeValueLab;
     UITableView *orderTab;
     
     UILabel *dateValLab;
@@ -22,9 +28,24 @@
     UILabel *posValLab;
     
     NSDictionary *salaryDic;
+    
+    UIButton *recordBtn;
+    UIButton *keyBoardBtn;
+    
+    CustomButtonView  *reCustomBtnView;
+    CustomButtonView  *clrBtnView;
+    UIImageView       *soundImageView;
+    
+    UILongPressButton *recordLongPressBtn;
+    UIButton          *recordSuccessBtn;
+    
+    UITextField *messageField;
+    
+    RecordAudio *recordAudio;
+    BOOL        isRecord;
 }
 
 @property (nonatomic, retain) Teacher *tObj;
-@property (nonatomic, copy) NSDictionary    *posDic;
-@property (nonatomic, copy) NSMutableArray  *teacherArray;
+@property (nonatomic, copy)   NSDictionary    *posDic;
+@property (nonatomic, copy)   NSMutableArray  *teacherArray;
 @end

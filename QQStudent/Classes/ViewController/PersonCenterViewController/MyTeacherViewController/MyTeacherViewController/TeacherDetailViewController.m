@@ -13,6 +13,7 @@
 @end
 
 @implementation TeacherDetailViewController
+@synthesize tObj;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -26,7 +27,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self initUI];
+    
+    //获得老师个人信息
+    [self getTeacherDetail];
+    
+//    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -39,18 +44,154 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-//    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-//    [backBtn setTitle:@"返回" forState:UIControlStateNormal];
-//    backBtn.frame = [UIView fitCGRect:CGRectMake(0, 0, 60, 30)
-//                           isBackView:NO];
-//    [backBtn addTarget:self
-//                action:@selector(doBackBtnClicked:)
-//      forControlEvents:UIControlEventTouchUpInside];
-//    [self.view addSubview:backBtn];
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    TTImageView *headImageView = [[TTImageView alloc]init];
+    headImageView.frame = CGRectMake(110, 30, 100, 120);
+    headImageView.URL   = [NSString stringWithFormat:@"%@%@", webAdd,tObj.headUrl];
+    [self.view addSubview:headImageView];
+    [headImageView release];
+    
+    UILabel *infoLab = [[UILabel alloc]init];
+    infoLab.text  = [NSString stringWithFormat:@"%@ %@ %@", tObj.name, [Student searchGenderName:[NSString stringWithFormat:@"%d",tObj.sex]], tObj.pf];
+    infoLab.frame = CGRectMake(20, 190, 200, 20);
+    infoLab.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:infoLab];
+    [infoLab release];
+    
+    UILabel *idNumsLab = [[UILabel alloc]init];
+    idNumsLab.text = tObj.phoneNums;
+    idNumsLab.frame= CGRectMake(20, 210, 200, 20);
+    idNumsLab.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:idNumsLab];
+    [idNumsLab release];
+    
+    UILabel *studyLab = [[UILabel alloc]init];
+    studyLab.text = [NSString stringWithFormat:@"已辅导%d位学生", tObj.studentCount];
+    studyLab.frame= CGRectMake(20, 230, 200, 20);
+    studyLab.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:studyLab];
+    [studyLab release];
+    
+    UILabel *commentLab = [[UILabel alloc]init];
+    commentLab.text = @"口碑";
+    commentLab.frame=CGRectMake(20, 250, 40, 20);
+    commentLab.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:commentLab];
+    [commentLab release];
+    
+    UIImageView *goodImgView = [[UIImageView alloc]init];
+    goodImgView.image = [UIImage imageNamed:@"zan_hao.png"];
+    goodImgView.frame = CGRectMake(65, 250, 20, 20);
+    [self.view addSubview:goodImgView];
+    [goodImgView release];
+    
+    UILabel *goodLab = [[UILabel alloc]init];
+    goodLab.font = [UIFont systemFontOfSize:14.f];
+    goodLab.text = [NSString stringWithFormat:@"%d",tObj.goodCount];
+    goodLab.backgroundColor = [UIColor clearColor];
+    goodLab.frame = CGRectMake(90, 250, 20, 20);
+    [self.view addSubview:goodLab];
+    [goodLab release];
+    
+    UIImageView *badImgView = [[UIImageView alloc]init];
+    badImgView.image = [UIImage imageNamed:@"xun_3.png"];
+    badImgView.frame = CGRectMake(115, 250, 20, 20);
+    [self.view addSubview:badImgView];
+    [badImgView release];
+    
+    UILabel *badLab = [[UILabel alloc]init];
+    badLab.font = [UIFont systemFontOfSize:14.f];
+    badLab.text = [NSString stringWithFormat:@"%d",tObj.badCount];
+    badLab.backgroundColor = [UIColor clearColor];
+    badLab.frame = CGRectMake(135, 250, 40, 20);
+    [self.view addSubview:badLab];
+    [badLab release];
+    
+    UILabel *sayLab = [[UILabel alloc]init];
+    sayLab.text = @"TA这样说";
+    sayLab.frame=CGRectMake(20, 290, 100, 20);
+    sayLab.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:sayLab];
+    [sayLab release];
+    
+    UILabel *sayValueLab = [[UILabel alloc]init];
+    sayValueLab.text = tObj.info;
+    sayValueLab.frame= CGRectMake(20, 330, 100, 20);
+    sayValueLab.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:sayValueLab];
+    
+    UILabel *qfLab = [[UILabel alloc]init];
+    qfLab.text     = @"TA的资历";
+    qfLab.backgroundColor = [UIColor clearColor];
+    qfLab.frame    = CGRectMake(20, 370, 100, 20);
+    [self.view addSubview:qfLab];
+    [qfLab release];
 }
 
-- (void) doBackBtnClicked:(id)sender
+- (void) getTeacherDetail
 {
-    [self.navigationController popViewControllerAnimated:YES];
+    NSString *ssid      = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray  *paramsArr = [NSArray arrayWithObjects:@"action",@"teacher_phone",@"sessid",nil];
+    NSArray  *valuesArr = [NSArray arrayWithObjects:@"getTeacher",tObj.phoneNums,ssid,nil];
+    NSDictionary  *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                      forKeys:paramsArr];
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+    
+    ServerRequest *request = [ServerRequest sharedServerRequest];
+    request.delegate = self;
+    [request requestASyncWith:kServerPostRequest
+                     paramDic:pDic
+                       urlStr:url];
 }
+
+#pragma mark -
+#pragma mark - ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
+{
+    [self showAlertWithTitle:@"提示"
+                         tag:1
+                     message:@"网络繁忙"
+                    delegate:self
+           otherButtonTitles:@"确定",nil];
+    
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
+    
+    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    if (errorid.intValue == 0)
+    {
+        NSDictionary *tDic = [resDic objectForKey:@"teacherInfo"];
+        tObj = [Teacher setTeacherProperty:tDic];
+        
+        [self initUI];
+    }
+    else
+    {
+        NSString *errorMsg = [resDic objectForKey:@"message"];
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+    }
+}
+
 @end

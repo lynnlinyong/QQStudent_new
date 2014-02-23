@@ -27,11 +27,14 @@
 @synthesize phoneNums;
 @synthesize info;
 @synthesize teacherId;
+@synthesize goodCount;
+@synthesize badCount;
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic
 {
-    Teacher *teacherObj = [[[Teacher alloc]init]autorelease];
+    Teacher *teacherObj = [[Teacher alloc]init];
     teacherObj.studentCount = ((NSNumber *)[resDic objectForKey:@"TS"]).intValue;
+    teacherObj.studentCount = ((NSNumber *)[resDic objectForKey:@"students"]).intValue;
     teacherObj.deviceId  = [[resDic objectForKey:@"deviceId"] copy];
     teacherObj.expense   = ((NSNumber *)[resDic objectForKey:@"expense"]).intValue;
     teacherObj.sex       = ((NSNumber *)[resDic objectForKey:@"gender"]).intValue;
@@ -40,14 +43,17 @@
     teacherObj.isIos     = (BOOL) [resDic objectForKey:@"ios"];
     teacherObj.latitude  = [[resDic objectForKey:@"latitude"] copy];
     teacherObj.longitude = [[resDic objectForKey:@"longitude"] copy];
-    teacherObj.name = [[resDic objectForKey:@"name"] copy];
-    teacherObj.isOnline   = (BOOL) [resDic objectForKey:@"online"];
-    teacherObj.phoneNums  = [resDic objectForKey:@"phone"];
-    teacherObj.pfId    = ((NSNumber *) [resDic objectForKey:@"subject"]).intValue;
-    teacherObj.pf      = [[resDic objectForKey:@"subject"] copy];
-    teacherObj.comment = ((NSNumber *) [resDic objectForKey:@"tstars"]).intValue;
-    teacherObj.info    = [resDic objectForKey:@"info"];
-    
+    teacherObj.name      = [[resDic objectForKey:@"name"] copy];
+    teacherObj.name      = [[resDic objectForKey:@"nickname"] copy];
+    teacherObj.isOnline  = (BOOL) [resDic objectForKey:@"online"];
+    teacherObj.phoneNums = [resDic objectForKey:@"phone"];
+    teacherObj.pfId      = ((NSNumber *) [resDic objectForKey:@"subject"]).intValue;
+    teacherObj.pf        = [[resDic objectForKey:@"subjectText"] copy];
+    teacherObj.comment   = ((NSNumber *) [resDic objectForKey:@"tstars"]).intValue;
+    teacherObj.comment   = ((NSNumber *) [resDic objectForKey:@"teacher_stars"]).intValue;
+    teacherObj.info      = [resDic objectForKey:@"info"];
+    teacherObj.badCount  = ((NSNumber *)[resDic objectForKey:@"xunNum"]).intValue;
+    teacherObj.goodCount = ((NSNumber *) [resDic objectForKey:@"zanNum"]).intValue;
     return teacherObj;
 }
 
@@ -115,6 +121,8 @@
         tObj.longitude = [longitude copy];
         tObj.phoneNums = [phoneNums copy];
         tObj.info      = [info copy];
+        tObj.goodCount = goodCount;
+        tObj.badCount  = badCount;
     }
     
     return tObj;
@@ -142,6 +150,8 @@
         tObj.longitude = [longitude copy];
         tObj.phoneNums = [phoneNums copy];
         tObj.info = [info copy];
+        tObj.goodCount = goodCount;
+        tObj.badCount  = badCount;
     }
     
     return tObj;

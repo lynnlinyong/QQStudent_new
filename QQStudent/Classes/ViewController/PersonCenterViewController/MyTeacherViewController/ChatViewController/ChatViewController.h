@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface ChatViewController : JSMessagesViewController<
+                                                        RecordAudioDelegate,
                                                         ServerRequestDelegate,
                                                         EGORefreshTableHeaderDelegate,
                                                         JSMessagesViewDelegate,
@@ -19,11 +20,13 @@
     
     EGORefreshTableHeaderView *_refreshHeaderView;
 	BOOL _reloading;
+    
+    RecordAudio *recordAudio;
 }
 
-@property (nonatomic, copy)   Order *order;
-@property (retain, nonatomic) NSMutableArray   *messages;
+@property (nonatomic, copy)   Order   *order;
 @property (nonatomic, copy)   Teacher *tObj;
+@property (retain, nonatomic) NSMutableArray   *messages;
 
 - (void)reloadTableViewDataSource;
 - (void)doneLoadingTableViewData;

@@ -30,6 +30,8 @@
     NSString   *phoneNums;  //电话号码
     NSString   *info;       //简介
     NSString   *teacherId;  //工号
+    int        goodCount;   //好评
+    int        badCount;    //差评
 }
 
 @property (nonatomic, retain) NSString     *name;
@@ -50,6 +52,8 @@
 @property (nonatomic, retain) NSString     *phoneNums;
 @property (nonatomic, retain) NSString     *info;
 @property (nonatomic, retain) NSString     *teacherId;
+@property (nonatomic, assign) int          goodCount;
+@property (nonatomic, assign) int          badCount;
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic;
 @end

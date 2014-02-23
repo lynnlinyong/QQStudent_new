@@ -37,8 +37,13 @@
 #import "JSDismissiveTextView.h"
 
 @interface JSMessageInputView : UIImageView
-
+@property (strong, nonatomic) UIButton *complainBtn;
+@property (strong, nonatomic) UIButton *phoneBtn;
+@property (strong, nonatomic) UIButton *voiceBtn;
+@property (strong, nonatomic) UIButton *keyBoardBtn;
+@property (strong, nonatomic) UILongPressButton *recordBtn;
 @property (strong, nonatomic) JSDismissiveTextView *textView;
+@property (strong, nonatomic) UIImageView *inputFieldBack;
 @property (strong, nonatomic) UIButton *sendButton;
 
 #pragma mark - Initialization

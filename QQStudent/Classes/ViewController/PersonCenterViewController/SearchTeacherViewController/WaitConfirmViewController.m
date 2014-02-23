@@ -206,7 +206,7 @@
         //封装订单
         NSArray *keyArr = [NSArray arrayWithObjects:@"type", @"nickname", @"grade",@"gender",@"subjectId",@"teacherGender",@"tamount",@"yjfdnum",@"sd",@"iaddress",@"longitude",@"latitude",@"otherText",@"audio",@"deviceId", @"keyId", nil];
         
-        NSArray *valArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, student.grade, student.gender,[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,@"",@"",[SingleMQTT getCurrentDevTopic],timeSp, nil];
+        NSArray *valArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, student.grade, student.gender,[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,[valueDic objectForKey:@"Message"],[valueDic objectForKey:@"AudioPath"],[SingleMQTT getCurrentDevTopic],timeSp, nil];
         
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valArr
                                                          forKeys:keyArr];

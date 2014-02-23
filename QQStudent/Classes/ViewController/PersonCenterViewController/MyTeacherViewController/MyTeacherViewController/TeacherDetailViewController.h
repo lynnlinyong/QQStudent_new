@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TeacherDetailViewController : UIViewController
+@interface TeacherDetailViewController : UIViewController<ServerRequestDelegate>
 @property (nonatomic, copy) Teacher  *tObj;
 @end

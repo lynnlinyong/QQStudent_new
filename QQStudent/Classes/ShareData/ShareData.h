@@ -49,6 +49,12 @@
 //数据库名
 #define DATABASE        @"provinces.db"
 
+//录音名
+#define VOICE_NAME      @"/voice.amr"
+
+//上传文件标识
+#define UPLOAD_FILE     @"UPLOAD_FILE"
+
 //发送邀请等待时间
 static int waitTimeInvite = 20;
 

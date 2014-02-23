@@ -42,10 +42,13 @@
 @interface JSBubbleMessageCell()
 
 @property (strong, nonatomic) JSBubbleView *bubbleView;
-@property (strong, nonatomic) UILabel *timestampLabel;
-@property (strong, nonatomic) UIImageView *avatarImageView;
+@property (strong, nonatomic) UILabel      *timestampLabel;
+@property (strong, nonatomic) TTImageView  *avatarImageView;
 @property (assign, nonatomic) JSAvatarStyle avatarImageStyle;
-@property (nonatomic, retain) UILabel *nameLab;
+
+//add by lynn
+@property (nonatomic, retain) UILabel     *nameLab;
+@property (nonatomic, retain) UIImageView *soundImgView;
 
 - (void)setup;
 - (void)configureTimestampLabel;
@@ -120,7 +123,7 @@
     CGFloat offsetX = 0.0f;
     
     if(avatarStyle != JSAvatarStyleNone) {
-        offsetX = 4.0f;
+        offsetX = 24.0f;
         bubbleX = kJSAvatarSize;
         CGFloat avatarX = 0.5f;
         
@@ -129,21 +132,37 @@
             offsetX = kJSAvatarSize - 4.0f;
         }
         
-        if (avatarStyle != JSAvatarStyleText)
+        if (avatarStyle == JSAvatarTxtIncomingImgOutgoing)
         {
-            self.avatarImageView = [[UIImageView alloc] initWithFrame:CGRectMake(avatarX,
-                                                                                 self.contentView.frame.size.height - kJSAvatarSize,
-                                                                                 kJSAvatarSize,
-                                                                                 kJSAvatarSize)];
-            
-            self.avatarImageView.autoresizingMask = (UIViewAutoresizingFlexibleTopMargin
-                                                     | UIViewAutoresizingFlexibleLeftMargin
-                                                     | UIViewAutoresizingFlexibleRightMargin);
-            [self.contentView addSubview:self.avatarImageView];
+            if (type == JSBubbleMessageTypeIncoming)
+            {
+                self.nameLab = [[UILabel alloc] initWithFrame:CGRectMake(avatarX, self.contentView.frame.size.height-30, kJSAvatarSize, 20)];
+                self.nameLab.backgroundColor = [UIColor clearColor];
+                [self.contentView addSubview:self.nameLab];
+
+            }
+            else
+            {
+                
+                UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
+                                                                                        action:@selector(tapGestureRecongnizerResponse:)];
+                
+                self.avatarImageView = [[TTImageView alloc] initWithFrame:CGRectMake(avatarX,
+                                                                                     self.contentView.frame.size.height - kJSAvatarSize,
+                                                                                     kJSAvatarSize,
+                                                                                     kJSAvatarSize)];
+                [self.avatarImageView addGestureRecognizer:tapReg];
+                [tapReg release];
+                
+                self.avatarImageView.autoresizingMask = (UIViewAutoresizingFlexibleTopMargin
+                                                         | UIViewAutoresizingFlexibleLeftMargin
+                                                         | UIViewAutoresizingFlexibleRightMargin);
+                [self.contentView addSubview:self.avatarImageView];
+            }
         }
         else
         {
-            self.nameLab = [[UILabel alloc] initWithFrame:CGRectMake(avatarX, self.contentView.frame.size.height-30, kJSAvatarSize, 20)];
+            self.nameLab = [[UILabel alloc] initWithFrame:CGRectMake(avatarX, self.contentView.frame.size.height-30, 25, 20)];
             self.nameLab.backgroundColor = [UIColor clearColor];
             [self.contentView addSubview:self.nameLab];
         }
@@ -201,7 +220,21 @@
 #pragma mark - Message Cell
 - (void)setMessage:(NSString *)msg
 {
+    // add by lynn
+    self.bubbleView.msgType = PUSH_TYPE_TEXT;
     self.bubbleView.text = msg;
+}
+
+//add by lynn
+- (void) setVoiceImage
+{
+    self.bubbleView.msgType = PUSH_TYPE_IMAGE;
+    [self.bubbleView setVoiceImage];
+}
+
+- (void) setTag:(int) tag
+{
+    self.bubbleView.tag = tag;
 }
 
 - (void)setTimestamp:(NSDate *)date
@@ -216,6 +249,11 @@
     return self.avatarImageStyle;
 }
 
+- (void) setWebAvatarImage:(NSString *) imagePath
+{
+    self.avatarImageView.URL = imagePath;
+}
+
 - (void)setAvatarImage:(UIImage *)image
 {
     UIImage *styledImg = nil;
@@ -223,8 +261,8 @@
         case JSAvatarStyleCircle:
             styledImg = [image circleImageWithSize:kJSAvatarSize];
             break;
-            
-        case JSAvatarStyleSquare:
+        case JSAvatarTxtIncomingImgOutgoing:
+        case JSAvatarStyleSquare:            
             styledImg = [image squareImageWithSize:kJSAvatarSize];
             break;
             
@@ -287,6 +325,13 @@
 }
 
 #pragma mark - Gestures
+- (void) tapGestureRecongnizerResponse:(UITapGestureRecognizer *) reg
+{
+    //教师详细信息
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"showTeacherDetailNotice"
+                                                        object:nil];
+}
+
 - (void)handleLongPress:(UILongPressGestureRecognizer *)longPress
 {
     if(longPress.state != UIGestureRecognizerStateBegan

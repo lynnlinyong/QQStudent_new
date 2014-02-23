@@ -57,13 +57,16 @@ typedef enum {
 
 @protocol JSMessagesViewDelegate <NSObject>
 @required
+- (void)buttonPressed:(UIButton *)sender;
 - (void)sendPressed:(UIButton *)sender withText:(NSString *)text;
+- (void)clickedMessageForRowAtIndexPath:(NSIndexPath *) indexPath;
 - (JSBubbleMessageType)messageTypeForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (JSBubbleMessageStyle)messageStyleForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (JSMessagesViewTimestampPolicy)timestampPolicy;
 - (JSMessagesViewAvatarPolicy)avatarPolicy;
 - (JSAvatarStyle)avatarStyle;
-
+- (JSAvatarStyle) outgoingAvatarStyle;
+- (JSAvatarStyle) incomingAvatarStyle;
 @optional
 - (BOOL)hasTimestampForRowAtIndexPath:(NSIndexPath *)indexPath;
 
@@ -75,15 +78,18 @@ typedef enum {
 @required
 - (NSString *)textForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (NSDate *)timestampForRowAtIndexPath:(NSIndexPath *)indexPath;
+//add by lynn
+- (MsgType) msgTypeForRowAtIndexPath:(NSIndexPath *) indexPath;
 - (UIImage *)avatarImageForIncomingMessage;
 - (UIImage *)avatarImageForOutgoingMessage;
 - (NSString *)avatarNameForIncomingMessage;
 - (NSString *)avatarNameForOutgoingMessage;
+- (NSString *)avatarImagePathForOutgoingMessage;
 @end
 
 
 
-@interface JSMessagesViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate>
+@interface JSMessagesViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UILongPressButtonDelegate>
 
 @property (assign, nonatomic) id<JSMessagesViewDelegate> delegate;
 @property (assign, nonatomic) id<JSMessagesViewDataSource> dataSource;

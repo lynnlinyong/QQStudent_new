@@ -128,11 +128,6 @@
                          urlStr:url];
 }
 
-- (void) doButtonClicked:(id)sender
-{
-    
-}
-
 - (void) deleteTeacherFormChat:(NSString *) teacherId
 {
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
@@ -147,6 +142,15 @@
     [request requestASyncWith:kServerPostRequest
                      paramDic:dic
                        urlStr:url];
+}
+
+- (void) tapGestureRecongnizer:(UITapGestureRecognizer *) reg
+{
+    //教师详细信息
+    TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
+    [self.navigationController pushViewController:tdVctr
+                                         animated:YES];
+    [tdVctr release];
 }
 
 #pragma mark -
@@ -270,12 +274,16 @@
         {
             NSDictionary *teacherDic = [msgArray objectAtIndex:indexPath.row-1];
             
+            UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
+                                                                                    action:@selector(tapGestureRecongnizer:)];
             TTImageView *headImgView = [[TTImageView alloc]init];
             headImgView.frame = CGRectMake(5, 15, 50, 50);
             NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
             headImgView.URL   = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"icon"]];
+            [headImgView addGestureRecognizer:tapReg];
             [cell addSubview:headImgView];
             [headImgView release];
+            [tapReg release];
             
             UILabel *nameLab = [[UILabel alloc]init];
             nameLab.font  = [UIFont systemFontOfSize:12.f];

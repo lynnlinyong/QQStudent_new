@@ -272,7 +272,8 @@
         default:
             break;
     }
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"dismissComplainNotice"
+                                                        object:nil];
 }
 
 #pragma mark -

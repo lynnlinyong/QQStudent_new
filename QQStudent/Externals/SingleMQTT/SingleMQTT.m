@@ -121,7 +121,7 @@ static SingleMQTT *sessionInstance = nil;
         // Release the buffer memory
         free(msgBuffer);
     }
-    
+//    macAddressString = [NSString stringWithFormat:@"x_%@", macAddressString];
     return macAddressString;
 }
 

@@ -211,6 +211,7 @@
 
 - (void) dealloc
 {
+    [posDic release];
     [toolBar release];
     [self.mapView release];
     [_calloutMapAnnotation release];
@@ -234,7 +235,6 @@
     self.mapView.showsUserLocation = YES;
     
     UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(addAnnotationForMap:)];
-//    [longPress setMinimumPressDuration:1];
     [self.mapView addGestureRecognizer:longPress];
     [longPress release];
     
@@ -252,6 +252,8 @@
     topView.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 460)
                            isBackView:NO];
     [self.view addSubview:topView];
+    
+    posDic = [[NSMutableDictionary alloc]init];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(selectPosAreaNotice:) name:@"selectPosAreaNotice"
@@ -330,8 +332,7 @@
 
 - (void) selectPosAreaNotice:(NSNotification *) notice
 {
-    posDic = [notice.userInfo copy];
-    NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [posDic objectForKey:@"PROVICE"],[posDic objectForKey:@"CITY"],[posDic objectForKey:@"DIST"]];
+    NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [notice.userInfo objectForKey:@"PROVICE"],[notice.userInfo objectForKey:@"CITY"],[notice.userInfo objectForKey:@"DIST"]];
     CLog(@"posAddress:%@", posAddress);
     [self searchGeocode:posAddress];
 }
@@ -360,26 +361,26 @@
     [search AMapGeocodeSearch: geoRequest];
 }
 
-#pragma mark - HZAreaPicker delegate
-- (void) pickerDidChaneStatus:(HZAreaPickerView *)picker
-{
-    if (picker.pickerStyle == HZAreaPickerWithStateAndCityAndDistrict)
-    {
-         CLog(@"ChangStatus:%@",[NSString stringWithFormat:@"%@ %@ %@", picker.locate.state, picker.locate.city, picker.locate.district]);
-        posDic = [[NSDictionary alloc] initWithObjectsAndKeys:picker.locate.state,@"PROVICE",picker.locate.city, @"CITY",picker.locate.district, @"DIST", nil];
-    }
-    else
-    {
-//        self.cityValue = [NSString stringWithFormat:@"%@ %@", picker.locate.state, picker.locate.city];
-    }
-}
-
-- (void) cancelLocatePicker
-{
-    [self.locatePicker cancelPicker];
-    self.locatePicker.delegate = nil;
-    self.locatePicker = nil;
-}
+//#pragma mark - HZAreaPicker delegate
+//- (void) pickerDidChaneStatus:(HZAreaPickerView *)picker
+//{
+//    if (picker.pickerStyle == HZAreaPickerWithStateAndCityAndDistrict)
+//    {
+//         CLog(@"ChangStatus:%@",[NSString stringWithFormat:@"%@ %@ %@", picker.locate.state, picker.locate.city, picker.locate.district]);
+//         posDic = [[NSDictionary alloc] initWithObjectsAndKeys:picker.locate.state,@"PROVICE",picker.locate.city, @"CITY",picker.locate.district, @"DIST", nil];
+//    }
+//    else
+//    {
+////        self.cityValue = [NSString stringWithFormat:@"%@ %@", picker.locate.state, picker.locate.city];
+//    }
+//}
+//
+//- (void) cancelLocatePicker
+//{
+//    [self.locatePicker cancelPicker];
+//    self.locatePicker.delegate = nil;
+//    self.locatePicker = nil;
+//}
 
 #pragma mark -
 #pragma mark - SiteOtherViewDelegate
@@ -448,26 +449,26 @@
         }
         case 1:     //确定
         {
-//            if ([toolBar.posFld isEditable])
-//            {
-//                [toolBar.posFld resignFirstResponder];
-//            }
-//            else
-//            {
-//                [self.locatePicker cancelPicker];
-//            }
-            [self.locatePicker cancelPicker];
-            [self repickView:self.view];
+////            if ([toolBar.posFld isEditable])
+////            {
+////                [toolBar.posFld resignFirstResponder];
+////            }
+////            else
+////            {
+////                [self.locatePicker cancelPicker];
+////            }
+//            [self.locatePicker cancelPicker];
+//            [self repickView:self.view];
 
             //获得地理编码
-            NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [posDic objectForKey:@"PROVICE"],[posDic objectForKey:@"CITY"],[posDic objectForKey:@"DIST"]];
-            CLog(@"posAddress:%@", posAddress);
-            [self searchGeocode:posAddress];
+//            NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [posDic objectForKey:@"PROVICE"],[posDic objectForKey:@"CITY"],[posDic objectForKey:@"DIST"]];
+//            CLog(@"posAddress:%@", posAddress);
+//            [self searchGeocode:posAddress];
             
-//            [[NSNotificationCenter defaultCenter] postNotificationName:@"setPosNotice"
-//                                                                object:nil
-//                                                              userInfo:msgDic];
-//            [self.navigationController popViewControllerAnimated:YES];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"setPosNotice"
+                                                                object:nil
+                                                              userInfo:posDic];
+            [self.navigationController popViewControllerAnimated:YES];
             break;
         }
         default:
@@ -502,7 +503,10 @@
     NSString *city = response.regeocode.addressComponent.city;
     NSString *dist = response.regeocode.addressComponent.district;
     
-    posDic = [[NSDictionary alloc] initWithObjectsAndKeys:provice,@"PROVICE",city, @"CITY",dist, @"DIST", nil];
+    [posDic setObject:provice forKey:@"PROVICE"];
+    [posDic setObject:city forKey:@"CITY"];
+    [posDic setObject:dist forKey:@"DIST"];
+    [posDic setObject:posName forKey:@"ADDRESS"];
     
     toolBar.posFld.text = posName;
     toolBar.posFld.font = [UIFont systemFontOfSize:10.f];
@@ -633,8 +637,18 @@
         //创建搭载自定义calloutview的annotation
         _calloutMapAnnotation = [[[CalloutMapAnnotation alloc] initWithLatitude:view.annotation.coordinate.latitude andLongitude:view.annotation.coordinate.longitude]autorelease];
         _calloutMapAnnotation.site =annn.siteObj;
+
         //显示地址
         toolBar.posFld.text = annn.siteObj.address;
+        [posDic setObject:annn.siteObj.proviceName
+                   forKey:@"PROVICE"];
+        [posDic setObject:annn.siteObj.cityName
+                   forKey:@"CITY"];
+        [posDic setObject:annn.siteObj.districtName
+                   forKey:@"DIST"];
+        [posDic setObject:annn.siteObj.address
+                   forKey:@"ADDRESS"];
+        
         [self.mapView addAnnotation:_calloutMapAnnotation];
         [self.mapView setCenterCoordinate:view.annotation.coordinate
                                  animated:YES];

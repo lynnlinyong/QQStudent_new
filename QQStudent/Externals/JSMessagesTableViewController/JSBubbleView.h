@@ -54,8 +54,12 @@ typedef enum {
 
 @property (assign, nonatomic) JSBubbleMessageType type;
 @property (assign, nonatomic) JSBubbleMessageStyle style;
-@property (copy, nonatomic) NSString *text;
+@property (copy, nonatomic)   NSString *text;
 @property (assign, nonatomic) BOOL selectedToShowCopyMenu;
+//add by lynn
+@property (nonatomic, assign) int tag;
+@property (assign, nonatomic) MsgType msgType;
+@property (nonatomic, retain) UIImageView *voiceImageView;
 
 #pragma mark - Initialization
 - (id)initWithFrame:(CGRect)rect
@@ -68,6 +72,9 @@ typedef enum {
 - (UIImage *)bubbleImageHighlighted;
 
 #pragma mark - Bubble view
+//add by lynn
+- (void) setVoiceImage;
+
 + (UIImage *)bubbleImageForType:(JSBubbleMessageType)aType
                           style:(JSBubbleMessageStyle)aStyle;
 

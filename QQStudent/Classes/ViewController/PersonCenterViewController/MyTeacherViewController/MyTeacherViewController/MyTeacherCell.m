@@ -21,6 +21,11 @@
         headImgView = [[TTImageView alloc]init];
         headImgView.frame = CGRectMake(10, 15, 50, 50);
         
+        UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
+                                                                                action:@selector(tapGestureRecongnizerResponse:)];
+        [headImgView addGestureRecognizer:tapReg];
+        [tapReg release];
+        
         introduceLab  = [[UILabel alloc]init];
         introduceLab.backgroundColor = [UIColor clearColor];
         introduceLab.frame = CGRectMake(65, 5, 100, 20);
@@ -101,6 +106,8 @@
     return teacher;
 }
 
+#pragma mark -
+#pragma mark - Control Event
 - (void) doButtonClicked:(id)sender
 {
     UIButton *btn = sender;
@@ -109,6 +116,17 @@
         if ([delegate respondsToSelector:@selector(tableViewCell:ClickedButton:)])
         {
             [delegate tableViewCell:self ClickedButton:btn.tag];
+        }
+    }
+}
+
+- (void) tapGestureRecongnizerResponse:(NSNotification *) notice
+{
+    if (delegate)
+    {
+        if ([delegate respondsToSelector:@selector(tableViewCell:ClickedButton:)])
+        {
+            [delegate tableViewCell:self ClickedButton:0];
         }
     }
 }

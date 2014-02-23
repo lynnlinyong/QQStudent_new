@@ -18,8 +18,8 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.tabBarItem.title = @"分享";
-        self.tabBarItem.image = [UIImage imageNamed:@"user_3_1"];
+//        self.tabBarItem.title = @"分享";
+        self.tabBarItem = [[UITabBarItem alloc]initWithTitle:@"sdfsf" image:[UIImage imageNamed:@"user_3_1.png"] tag:0];
     }
     return self;
 }

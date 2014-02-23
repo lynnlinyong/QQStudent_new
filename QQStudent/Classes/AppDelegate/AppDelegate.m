@@ -171,6 +171,23 @@
 #endif
 }
 
+- (BOOL) isInChatView
+{
+    BOOL isIn = NO;
+    
+    UINavigationController *vctr = (UINavigationController *)self.window.rootViewController;
+    for (UIViewController *viewController in vctr.viewControllers)
+    {
+        if ([viewController isKindOfClass:[ChatViewController class]])
+        {
+            isIn = YES;
+            break;
+        }
+    }
+    
+    return isIn;
+}
+
 #pragma mark - MQtt Callback methods
 - (void)session:(MQTTSession*)sender
      newMessage:(NSData*)data
@@ -194,9 +211,9 @@
             //添加到联系人,订单.等待老师确认。
             Teacher *tObj = [[Teacher alloc]init];
             tObj.deviceId = [pDic objectForKey:@"deviceId"];
-            tObj.sex = ((NSNumber *) [pDic objectForKey:@"gender"]).intValue;
-            tObj.headUrl = [pDic objectForKey:@"icon"];
-            tObj.idNums  = [pDic objectForKey:@"idnumber"];
+            tObj.sex      = ((NSNumber *) [pDic objectForKey:@"gender"]).intValue;
+            tObj.headUrl  = [pDic objectForKey:@"icon"];
+            tObj.idNums   = [pDic objectForKey:@"idnumber"];
             tObj.info = [pDic objectForKey:@"info"];
             tObj.name = [pDic objectForKey:@"nickname"];
             tObj.phoneNums = [pDic objectForKey:@"phone"];
@@ -213,19 +230,43 @@
         {
             break;
         }
+        case PUSH_TYPE_IMAGE:       //接收到图片消息
+        case PUSH_TYPE_AUDIO:       //接收到音频消息
         case PUSH_TYPE_TEXT:        //接收到文本消息
         {
-            //提示有一条新消息,最近页面刷新
-            CLog(@"Message:%@", pDic);
-            
-            break;
-        }
-        case PUSH_TYPE_IMAGE:       //接收到图片消息
-        {
-            break;
-        }
-        case PUSH_TYPE_AUDIO:       //接收到音频消息
-        {
+            //判断是否在聊天界面
+            if ([self isInChatView])
+            {
+                CLog(@"Chat Message:%@", pDic);
+                //提示音播放,刷新页面显示
+                NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_record_start"
+                                                                    ofType:@"wav"];
+                NSData *infoSound = [NSData dataWithContentsOfFile:path];
+                [RecordAudio playWav:infoSound];
+                
+                //发送刷新数据Notice
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshNewData"
+                                                                    object:nil];
+            }
+            else
+            {
+                //播放您有一条新消息,跳转聊天界面显示
+                CLog(@"Not Chat Message:%@", pDic);
+                NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
+                                                                    ofType:@"wav"];
+                NSData *infoSound = [NSData dataWithContentsOfFile:path];
+                [RecordAudio playWav:infoSound];
+                
+                //跳转聊天记录
+                Teacher *tObj = [Teacher setTeacherProperty:pDic];
+                CLog(@"phone:%@, lynn:%@", tObj.phoneNums, tObj.name);
+                ChatViewController *cVctr   = [[ChatViewController alloc]init];
+                UINavigationController *nav = (UINavigationController *)self.window.rootViewController;
+                cVctr.tObj = tObj;
+                [nav pushViewController:cVctr
+                               animated:YES];
+                [cVctr release];
+            }
             break;
         }
         case PUSH_TYPE_ORDER_EDIT:  //发送修改订单消息
@@ -270,13 +311,7 @@
             NSLog(@"connection error");
             NSLog(@"reconnecting...");
             // Forcing reconnection
-            NSString *pushAddress = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHADDRESS];
-            NSString *port = [[NSUserDefaults standardUserDefaults] objectForKey:PORT];
-            if (pushAddress && port)
-            {
-                [[[SingleMQTT shareInstance] session] connectToHost:pushAddress
-                                                               port:port.intValue];
-            }
+            [SingleMQTT connectServer];
             break;
         case MQTTSessionEventProtocolError:
             NSLog(@"protocol error");
@@ -302,18 +337,18 @@
                                               forKey:QQ_STUDENT];
 }
 
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    CLog(@"New APNS Message:%@", userInfo);
     
-    // 处理推送消息
-    UIAlertView *alert=[[UIAlertView alloc]initWithTitle:@"通知"
-                                                 message:@"我的信息"
-                                                delegate:self
-                                       cancelButtonTitle:@"取消"
-                                       otherButtonTitles:nil, nil];
-    [alert show];
-    [alert release];
+    //提示有一条新消息
+    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
+                                                        ofType:@"wav"];
+    NSData *infoSound = [NSData dataWithContentsOfFile:path];
+    [RecordAudio playWav:infoSound];
     
-    NSLog(@"%@", userInfo);
+    //清除消息中心消息
+    [[UIApplication sharedApplication ] setApplicationIconBadgeNumber:0];
 }
 
 #pragma mark -

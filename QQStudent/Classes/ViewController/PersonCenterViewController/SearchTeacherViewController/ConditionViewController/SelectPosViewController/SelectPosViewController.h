@@ -44,8 +44,8 @@
                                                     BottomToolBarDelegate,
                                                     HZAreaPickerDelegate>
 {
-    BottomToolBar   *toolBar;
-    NSDictionary    *posDic;
+    BottomToolBar          *toolBar;
+    NSMutableDictionary    *posDic;
     CustomPointAnnotation *selAnn;
     CalloutMapAnnotation *_calloutMapAnnotation;
 }

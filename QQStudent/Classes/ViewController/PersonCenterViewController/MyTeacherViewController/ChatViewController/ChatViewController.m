@@ -30,6 +30,10 @@
 {
     [super viewDidLoad];
     
+    //初始化录音
+    recordAudio = [[RecordAudio alloc]init];
+    recordAudio.delegate = self;
+    
     //初始化UI
     [self initUI];
     [self initPullView];
@@ -40,6 +44,7 @@
 
 - (void) viewDidUnload
 {
+    recordAudio.delegate = nil;
     [super viewDidUnload];
 }
 
@@ -57,6 +62,7 @@
 - (void) dealloc
 {
     [order release];
+    [recordAudio release];
     [super dealloc];
 }
 
@@ -99,6 +105,21 @@
     [self isShowListenBtn];
     if (!order)
         [self isShowEmployBtn];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(showTeacherDetailNotice:)
+                                                 name:@"showTeacherDetailNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(dismissComplainNotice:)
+                                                 name:@"dismissComplainNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(refreshNewData:)
+                                                 name:@"refreshNewData"
+                                               object:nil];
 }
 
 - (void) initPullView
@@ -241,6 +262,183 @@
                        urlStr:url];
 }
 
+- (NSString *) getRecordURL
+{
+    NSArray *paths   = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+                                                           NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSMutableString  *path       = [[NSMutableString alloc]initWithString:documentsDirectory];
+    [path appendString:VOICE_NAME];
+    
+    return path;
+}
+
+- (void) startRecord
+{
+    [recordAudio stopPlay];
+    [recordAudio startRecord];
+}
+
+- (void) stopRecord
+{
+    //写入amr数据文件
+    NSURL *url       = [recordAudio stopRecord];
+    CLog(@"URL:%@", url);
+    NSData *curAudio = EncodeWAVEToAMR([NSData dataWithContentsOfURL:url],1,16);
+    NSString *path   = [self getRecordURL];
+    CLog(@"path:%@", path);
+    [curAudio writeToFile:path
+               atomically:YES];
+}
+
+-(void)RecordStatus:(int)status
+{
+    if (status==0)
+    {
+        //播放中
+    }
+    else if(status==1)
+    {
+        //完成
+
+    }
+    else if(status==2)
+    {
+        //出错
+        CLog(@"播放出错");
+    }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"stopVoiceAnimation"
+                                                        object:nil];
+}
+
+
+- (void) sendVoiceFile:(int) voiceTimes
+{
+    //上传语音文件
+    NSString *path = [self getRecordURL];
+    
+    //获得时间戳
+    NSDate *dateNow  = [NSDate date];
+    NSString *timeSp = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
+    
+    NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"edittime",@"uptype",@"sessid",UPLOAD_FILE, nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"uploadfile",
+                          timeSp,@"audio",ssid,[NSDictionary dictionaryWithObjectsAndKeys:path,@"file", nil],nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
+    
+    //上传录音文件
+    ServerRequest *request = [ServerRequest sharedServerRequest];
+    request.delegate = self;
+    NSData *resVal   = [request requestSyncWith:kServerPostRequest
+                                       paramDic:pDic
+                                         urlStr:url];
+    if (resVal)
+    {
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic  = [resStr JSONValue];
+        NSString *action = [resDic objectForKey:@"action"];
+        if ([action isEqualToString:@"uploadfile"])
+        {
+            path = [resDic objectForKey:@"filepath"];
+            CLog(@"filePath:%@", path);
+            
+            NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
+            Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+            
+            NSDate *dateNow  = [NSDate date];
+            NSString *timeSp = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
+            
+            NSArray *paramsArr  = [NSArray arrayWithObjects:@"type", @"phone", @"nickname", @"sound",@"stime",@"time",@"taPhone",@"deviceId",nil];
+            NSArray *valuesArr  = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_AUDIO],student.phoneNumber,student.nickName,path,[NSNumber numberWithInt:voiceTimes],timeSp,tObj.phoneNums,[SingleMQTT getCurrentDevTopic], nil];
+            NSDictionary *pDic  = [NSDictionary dictionaryWithObjects:valuesArr
+                                                              forKeys:paramsArr];
+            //发送消息
+            NSString *jsonMsg   = [pDic JSONFragment];
+            NSData *data        = [jsonMsg dataUsingEncoding:NSUTF8StringEncoding];
+            SingleMQTT *session = [SingleMQTT shareInstance];
+            [session.session publishData:data
+                                 onTopic:tObj.deviceId];
+            //消息上传服务器
+            [self uploadMessageToServer:jsonMsg];
+            
+            //播放声音
+            if((self.messages.count - 1) % 2)
+                [JSMessageSoundEffect playMessageSentSound];
+            else
+                [JSMessageSoundEffect playMessageReceivedSound];
+        }
+    }
+    else
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:@"上传文件失败"
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+    }
+}
+
+#pragma mark -
+#pragma mark - UILongPressButtonDelegate
+- (void) longPressButton:(UILongPressButton *)btn status:(ButtonStatus)status
+{
+    switch (status)
+    {
+        case LONG_PRESS_BUTTON_DOWN:
+        {
+            //显示动画
+            [SVProgressHUD show];
+            
+            [self startRecord];
+            break;
+        }
+        case LONG_PRESS_BUTTON_SHORT:
+        {
+            [self showAlertWithTitle:@"提示"
+                                 tag:0
+                             message:@"录音时间太短"
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+            //停止动画
+            [SVProgressHUD dismiss];
+            [self stopRecord];
+            break;
+        }
+        case LONG_PRESS_BUTTON_LONG:
+        {
+            [self showAlertWithTitle:@"提示"
+                                 tag:0
+                             message:@"录音时间太长"
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+            //停止动画
+            [SVProgressHUD dismiss];
+            [self stopRecord];
+            break;
+        }
+        case LONG_PRESS_BUTTON_UP:
+        {
+            //停止动画
+            [SVProgressHUD dismiss];
+            [self stopRecord];
+            
+            //发送语音文件
+            CLog(@"times:%d", [btn getVoiceTimes]);
+            [self sendVoiceFile:[btn getVoiceTimes]];
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 - (void) doButtonClicked:(id)sender
 {
     UIButton *btn = sender;
@@ -275,6 +473,10 @@
             }
             break;
         }
+        case 2:
+        {
+            break;
+        }
         default:
             break;
     }
@@ -283,8 +485,8 @@
 - (void) updateMessageZT
 {
     //获得时间戳
-    NSDate *dateNow  = [NSDate date];
-    NSString *timeSp = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
+    NSDate *dateNow    = [NSDate date];
+    NSString *timeSp   = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
     
     NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phone",
@@ -335,8 +537,8 @@
                                                      forKeys:paramsArr];
     
     ServerRequest *request = [ServerRequest sharedServerRequest];
-    request.delegate     = self;
-    NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+    request.delegate       = self;
+    NSString *webAddress   = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
     NSString *url  = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
     NSData *resVal = [request requestSyncWith:kServerPostRequest
                                      paramDic:pDic
@@ -362,6 +564,27 @@
                         delegate:self
                otherButtonTitles:@"确定",nil];
     }
+}
+
+#pragma mark -
+#pragma mark - Notice
+- (void) showTeacherDetailNotice:(NSNotification *) notice
+{
+    TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
+    tdVctr.tObj = tObj;
+    [self.navigationController pushViewController:tdVctr
+                                         animated:YES];
+    [tdVctr release];
+}
+
+- (void) dismissComplainNotice:(NSNotification *) notice
+{
+    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+}
+
+- (void) refreshNewData:(NSNotification *) notice
+{
+    [self getChatRecords];
 }
 
 #pragma mark -
@@ -401,9 +624,6 @@
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view
 {
 	[self reloadTableViewDataSource];
-//	[self performSelector:@selector(doneLoadingTableViewData)
-//               withObject:nil
-//               afterDelay:3.0];
 }
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view
@@ -423,6 +643,73 @@
 }
 
 #pragma mark - Messages view delegate
+- (void) buttonPressed:(UIButton *)sender 
+{
+    switch (sender.tag)
+    {
+        case 0:       //投诉
+        {
+            ComplainViewController *cVctr = [[ComplainViewController alloc]init];
+            [self presentPopupViewController:cVctr
+                               animationType:MJPopupViewAnimationFade];
+            break;
+        }
+        case 1:       //电话
+        {
+            //检测老师端是否允许接听电话
+            [self checkTeacherPhone];
+            break;
+        }
+        case 2:       //声音
+        {
+            
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+- (void) checkTeacherPhone
+{
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"teacher_phone",@"sessid", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"callPhone",tObj.phoneNums, ssid, nil];
+    
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
+    ServerRequest *request = [ServerRequest sharedServerRequest];
+    request.delegate = self;
+    NSData *resVal = [request requestSyncWith:kServerPostRequest
+                                     paramDic:pDic
+                                       urlStr:url];
+    if (resVal)
+    {
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic  = [resStr JSONValue];
+        NSString *action = [resDic objectForKey:@"action"];
+        if ([action isEqualToString:@"callPhone"])
+        {
+            //拨打电话
+            NSString *phone = [NSString stringWithFormat:@"tel://%@", tObj.phoneNums];
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phone]];
+        }
+        else
+        {
+            [self showAlertWithTitle:@"提示"
+                                 tag:0
+                             message:@"老师不允许拨打电话"
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+        }
+    }
+    
+}
+
 - (void)sendPressed:(UIButton *)sender withText:(NSString *)text
 {
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
@@ -432,7 +719,7 @@
     NSString *timeSp = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
     
     NSArray *paramsArr  = [NSArray arrayWithObjects:@"type", @"phone", @"nickname", @"icon",@"text",@"time",@"taPhone",@"deviceId",nil];
-    NSArray *valuesArr  = [NSArray arrayWithObjects:@"3",student.phoneNumber,student.nickName,@"http://210.5.152.145:8085/Interfaces/uploadfile/file/18610674146/image/20140113231657_49416.jpg",text,timeSp,tObj.phoneNums,[SingleMQTT getCurrentDevTopic], nil];
+    NSArray *valuesArr  = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_TEXT],student.phoneNumber,student.nickName,@"http://210.5.152.145:8085/Interfaces/uploadfile/file/18610674146/image/20140113231657_49416.jpg",text,timeSp,tObj.phoneNums,[SingleMQTT getCurrentDevTopic], nil];
     NSDictionary *pDic  = [NSDictionary dictionaryWithObjects:valuesArr
                                                       forKeys:paramsArr];
     
@@ -455,6 +742,33 @@
     [self finishSend];
 }
 
+- (void) clickedMessageForRowAtIndexPath:(NSIndexPath *) indexPath
+{
+    if (self.messages.count>0)
+    {
+        int index = self.messages.count-1-indexPath.row;
+        NSDictionary *item = [messages objectAtIndex:index];
+        NSString *soundPath= [item objectForKey:@"sound"];
+        if (soundPath)
+        {
+            //下载播放
+            
+            NSString *downPath = [self getRecordURL];
+            NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+            soundPath = [NSString stringWithFormat:@"%@%@", webAdd, soundPath];
+            
+            CLog(@"It's Sound:%@", soundPath);
+            
+            ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:soundPath]];
+            request.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:indexPath.row],@"TAG", nil];
+            [request setDelegate:self];
+            [request setDownloadProgressDelegate:self];
+            [request setDownloadDestinationPath:downPath];
+            [request startAsynchronous];
+        }
+    }
+}
+
 - (JSBubbleMessageType)messageTypeForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (self.messages.count>0)
@@ -463,14 +777,14 @@
         Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
         int index = self.messages.count-1-indexPath.row;
         NSDictionary *item = [messages objectAtIndex:index];
-        NSString *nickName = [item objectForKey:@"nickname"];
-        if ([student.nickName isEqualToString:nickName])
+        NSString *phone    = [item objectForKey:@"phone"];
+        if ([student.phoneNumber isEqualToString:phone])
         {
-            return JSBubbleMessageTypeOutgoing;
+            return JSBubbleMessageTypeIncoming;
         }
         else
         {
-            return JSBubbleMessageTypeIncoming;
+            return JSBubbleMessageTypeOutgoing;
         }
     }
     return JSBubbleMessageTypeOutgoing;
@@ -493,10 +807,41 @@
 
 - (JSAvatarStyle)avatarStyle
 {
-    return JSAvatarStyleText;//JSAvatarStyleSquare;
+    return JSAvatarTxtIncomingImgOutgoing;
+}
+
+- (JSAvatarStyle) outgoingAvatarStyle
+{
+    return JSAvatarStyleSquare;
+}
+
+- (JSAvatarStyle) incomingAvatarStyle
+{
+    return JSAvatarStyleText;
 }
 
 #pragma mark - Messages view data source
+- (MsgType) msgTypeForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (self.messages.count>0)
+    {
+        int index = self.messages.count-1-indexPath.row;
+        NSDictionary *dic = [self.messages objectAtIndex:index];
+        if ([dic objectForKey:@"text"])
+        {
+            CLog(@"The Message is Text");
+            return PUSH_TYPE_TEXT;
+        }
+        else if ([dic objectForKey:@"sound"])
+        {
+            CLog(@"The Message is Image");
+            return PUSH_TYPE_AUDIO;
+        }
+    }
+    
+    return PUSH_TYPE_TEXT;
+}
+
 - (NSString *)textForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (self.messages.count>0)
@@ -524,23 +869,44 @@
 //    return nil;//[UIImage imageNamed:@"demo-avatar-woz"];
 //}
 //
+
+- (NSString *)avatarImagePathForOutgoingMessage
+{
+    return tObj.headUrl;
+}
+
 //- (UIImage *)avatarImageForOutgoingMessage
 //{
-//    return nil;//[UIImage imageNamed:@"demo-avatar-jobs"];
+//    return [UIImage imageNamed:@"demo-avatar-jobs"];
 //}
 
 - (NSString *)avatarNameForIncomingMessage
 {
-    return tObj.name;
-}
-
-- (NSString *)avatarNameForOutgoingMessage
-{
     return @"我";
 }
 
+//- (NSString *)avatarNameForOutgoingMessage
+//{
+//    return tObj.name;
+//}
+
 #pragma mark -
 #pragma mark ServerRequest Delegate
+- (void)requestFinished:(ASIHTTPRequest *)request
+{
+    CLog(@"Down Load Success!");
+    
+    //播放声音
+    NSString *soundPath = [self getRecordURL];
+    NSData *soundData   = [NSData dataWithContentsOfFile:soundPath];
+    [recordAudio play:soundData];
+    
+    //显示动画
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"startVoiceAnimation"
+                                                        object:nil
+                                                      userInfo:request.userInfo];
+}
+
 - (void) requestAsyncFailed:(ASIHTTPRequest *)request
 {
     [self showAlertWithTitle:@"提示"

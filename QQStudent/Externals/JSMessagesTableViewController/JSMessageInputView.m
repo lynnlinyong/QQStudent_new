@@ -39,7 +39,7 @@
 #import "UIImage+JSMessagesView.h"
 
 #define SEND_BUTTON_WIDTH 78.0f
-
+#define SEND_TEXT_WIDTH   100.f
 @interface JSMessageInputView ()
 
 - (void)setup;
@@ -47,11 +47,14 @@
 
 @end
 
-
-
 @implementation JSMessageInputView
-
+@synthesize complainBtn;
+@synthesize phoneBtn;
+@synthesize voiceBtn;
+@synthesize keyBoardBtn;
 @synthesize sendButton;
+@synthesize recordBtn;
+@synthesize inputFieldBack;
 
 #pragma mark - Initialization
 - (id)initWithFrame:(CGRect)frame
@@ -67,8 +70,10 @@
 
 - (void)dealloc
 {
-    self.textView = nil;
-    self.sendButton = nil;
+    self.inputFieldBack = nil;
+    self.textView       = nil;
+    self.sendButton     = nil;
+    [super dealloc];
 }
 
 - (BOOL)resignFirstResponder
@@ -89,10 +94,10 @@
 
 - (void)setupTextView
 {
-    CGFloat width = self.frame.size.width - SEND_BUTTON_WIDTH;
+    CGFloat width = self.frame.size.width-SEND_BUTTON_WIDTH-SEND_TEXT_WIDTH;
     CGFloat height = [JSMessageInputView textViewLineHeight];
     
-    self.textView = [[JSDismissiveTextView  alloc] initWithFrame:CGRectMake(6.0f, 3.0f, width, height)];
+    self.textView = [[JSDismissiveTextView  alloc] initWithFrame:CGRectMake(width+6.0f, 3.0f, SEND_TEXT_WIDTH, height)];
     self.textView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     self.textView.backgroundColor = [UIColor whiteColor];
     self.textView.scrollIndicatorInsets = UIEdgeInsetsMake(10.0f, 0.0f, 10.0f, 8.0f);
@@ -108,7 +113,7 @@
     self.textView.returnKeyType = UIReturnKeyDefault;
     [self addSubview:self.textView];
 	
-    UIImageView *inputFieldBack = [[UIImageView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x - 1.0f,
+    inputFieldBack = [[UIImageView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x - 1.0f,
                                                                                 0.0f,
                                                                                 self.textView.frame.size.width + 2.0f,
                                                                                 self.frame.size.height)];
@@ -121,11 +126,56 @@
 #pragma mark - Setters
 - (void)setSendButton:(UIButton *)btn
 {
-    if(sendButton)
+    if (sendButton)
         [sendButton removeFromSuperview];
     
     sendButton = btn;
     [self addSubview:self.sendButton];
+}
+
+- (void) setComplainBtn:(UIButton *)btn
+{
+    if (complainBtn)
+        [complainBtn removeFromSuperview];
+    
+    complainBtn = btn;
+    [self addSubview:self.complainBtn];
+}
+
+- (void) setPhoneBtn:(UIButton *)btn
+{
+    if (phoneBtn)
+        [phoneBtn removeFromSuperview];
+    
+    phoneBtn = btn;
+    [self addSubview:self.phoneBtn];
+}
+
+- (void) setVoiceBtn:(UIButton *)btn
+{
+    if (voiceBtn)
+        [voiceBtn removeFromSuperview];
+
+    voiceBtn = btn;
+    [self addSubview:self.voiceBtn];
+}
+
+- (void) setKeyBoardBtn:(UIButton *)btn
+{
+    if (keyBoardBtn)
+        [keyBoardBtn removeFromSuperview];
+    
+    keyBoardBtn = btn;
+    [self addSubview:self.keyBoardBtn];
+}
+
+- (void) setRecordBtn:(UILongPressButton *)btn
+{
+    if (recordBtn)
+        [recordBtn removeFromSuperview];
+    
+    recordBtn = btn;
+    [self addSubview:self.recordBtn];
 }
 
 #pragma mark - Message input view

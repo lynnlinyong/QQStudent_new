@@ -40,4 +40,41 @@
     return sendButton;
 }
 
++ (UIButton *)defaultComplainButton
+{
+    UIButton *complainBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [complainBtn setTitle:@"投诉"
+                 forState:UIControlStateNormal];
+    return complainBtn;
+}
+
++ (UIButton *)defaultVoiceButton
+{
+    UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [voiceBtn setTitle:@"声音"
+              forState:UIControlStateNormal];
+    return voiceBtn;
+}
+
++ (UIButton *)defaultKeyBoardButton
+{
+    UIButton *keyBoardBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [keyBoardBtn setTitle:@"键盘"
+                 forState:UIControlStateNormal];
+    return keyBoardBtn;
+}
+
++ (UIButton *)defaultPhoneButton
+{
+    UIButton *phoneBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [phoneBtn setTitle:@"电话"
+              forState:UIControlStateNormal];
+    return phoneBtn;
+}
+
++ (UILongPressButton *) defaultLongPressButton:(CGRect) rect
+{
+    UILongPressButton *lpBtn = [[UILongPressButton alloc]initWithFrame:rect];
+    return lpBtn;
+}
 @end

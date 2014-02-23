@@ -12,4 +12,13 @@
 
 + (UIButton *)defaultSendButton;
 
++ (UIButton *)defaultComplainButton;
+
++ (UIButton *)defaultVoiceButton;
+
++ (UIButton *)defaultPhoneButton;
+
++ (UIButton *)defaultKeyBoardButton;
+
++ (UILongPressButton *) defaultLongPressButton:(CGRect) rect;
 @end

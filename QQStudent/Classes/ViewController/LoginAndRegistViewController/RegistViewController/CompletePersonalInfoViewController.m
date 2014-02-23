@@ -236,13 +236,20 @@
 
 - (void) setGradeFromNotice:(NSNotification *) sender
 {
+    NSData *stuData  = [[NSUserDefaults standardUserDefaults] dataForKey:STUDENT];
+    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    
     NSDictionary *userInfoDic = [sender.userInfo objectForKey:@"UserInfo"];
     int tag = ((NSNumber *)[userInfoDic objectForKey:@"TAG"]).intValue;
-    if (tag == 0)
+    if (tag == 0)  //确定
     {
         classValLab.text = [userInfoDic objectForKey:@"name"];
+        student.grade    = [userInfoDic objectForKey:@"id"];
     }
     
+    stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
+    [[NSUserDefaults standardUserDefaults] setObject:stuData forKey:STUDENT];
+
     [self checkInfoComplete];
     
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];

@@ -269,6 +269,7 @@
                                                 forKey:LOGINE_SUCCESS];
         
         //跳转个人中心
+        [self.navigationController popToRootViewControllerAnimated:NO];
         PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
         [self.navigationController pushViewController:pcVctr
                                              animated:YES];

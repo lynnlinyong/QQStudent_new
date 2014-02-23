@@ -68,11 +68,11 @@
 
 - (void) dealloc
 {
-    [appurl release];
-    [search release];
-    [annArray release];
-    [teacherArray release];
-    [self.mapView release];
+//    [appurl release];
+//    [search release];
+//    [annArray release];
+//    [teacherArray release];
+//    [self.mapView release];
     [super dealloc];
 }
 

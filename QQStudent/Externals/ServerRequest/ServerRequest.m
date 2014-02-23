@@ -89,6 +89,15 @@ static ServerRequest *sharedServerRequest = nil;
                 NSLog(@"value:%@", [valuesArr objectAtIndex:i]);
                 NSLog(@"param:%@", [paramsArr objectAtIndex:i]);
                 
+                if ([[paramsArr objectAtIndex:i] isEqual:UPLOAD_FILE])
+                {
+                    NSDictionary *fileDic = [valuesArr objectAtIndex:i];
+                    NSString *fileParam   = [[fileDic allKeys] objectAtIndex:0];
+                    NSString *filePath    = [[fileDic allValues]objectAtIndex:0];
+                    [request setFile:filePath forKey:fileParam];
+                    continue;
+                }
+
                 [request setPostValue:[valuesArr objectAtIndex:i] 
                                forKey:[paramsArr objectAtIndex:i]];
                 //                [request setTimeOutSeconds:10];
@@ -163,6 +172,15 @@ static ServerRequest *sharedServerRequest = nil;
             [request setDidFailSelector:@selector(requestAsyncFailed:)];
             for (int i=0; i<paramsArr.count; i++)
             {
+                if ([[paramsArr objectAtIndex:i] isEqual:UPLOAD_FILE])
+                {
+                    NSDictionary *fileDic = [valuesArr objectAtIndex:i];
+                    NSString *fileParam   = [[fileDic allKeys] objectAtIndex:0];
+                    NSString *filePath    = [[fileDic allValues]objectAtIndex:0];
+                    [request setFile:filePath forKey:fileParam];
+                    continue;
+                }
+                
                 [request setPostValue:[valuesArr objectAtIndex:i] 
                                forKey:[paramsArr objectAtIndex:i]];
             }
@@ -179,7 +197,6 @@ static ServerRequest *sharedServerRequest = nil;
             {
                 NSArray *paramsArr = [pDic allKeys];
                 NSArray *valuesArr = [pDic allValues];
-                
                 for (int i=0; i<paramsArr.count; i++)
                 {
                     if (i == 0)
@@ -226,7 +243,6 @@ static ServerRequest *sharedServerRequest = nil;
 - (void) requestASyncFailed:(ASIHTTPRequest *)request
 {
     NSLog(@"File:%s Line:%d", __FILE__, __LINE__);
-    
     if (_delegate)
     {
         if ([_delegate respondsToSelector:@selector(requestAsyncFailed:)])
