@@ -15,5 +15,6 @@
 {
     UITextField *userNameFld;
     UITextField *phoneFld;
+    UIButton    *registBtn;
 }
 @end

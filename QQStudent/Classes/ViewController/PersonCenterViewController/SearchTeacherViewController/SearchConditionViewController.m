@@ -72,6 +72,42 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
+    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
+    title.backgroundColor = [UIColor clearColor];
+    title.textAlignment   = UITextAlignmentCenter;
+    title.text = @"轻轻家教";
+    self.navigationItem.titleView = title;
+    [title release];
+    
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.tag       = 0;
+    backBtn.frame     = CGRectMake(0, 0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doButtonClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
+    
     orderTab = [[UITableView alloc]init];
     orderTab.delegate = self;
     orderTab.dataSource = self;
@@ -81,14 +117,16 @@
     
     UIButton *orderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     orderBtn.tag   = 1;
-    UIImage *img   = [UIImage imageNamed:@"mainmap_bottom_button_2_hover"];
-    orderBtn.frame = [UIView fitCGRect:CGRectMake(160-img.size.width/4,
-                                                  460-54-img.size.height/2,
-                                                  img.size.width/2,
-                                                  img.size.height/2)
+    UIImage *img   = [UIImage imageNamed:@"main_invit_normal_btn"];
+    orderBtn.frame = [UIView fitCGRect:CGRectMake(160-img.size.width/2,
+                                                  460-54-img.size.height,
+                                                  img.size.width,
+                                                  img.size.height)
                             isBackView:NO];
     [orderBtn setImage:img
               forState:UIControlStateNormal];
+    [orderBtn setImage:[UIImage imageNamed:@"main_invit_hlight_btn"]
+              forState:UIControlStateHighlighted];
     [orderBtn addTarget:self
                  action:@selector(doButtonClicked:)
        forControlEvents:UIControlEventTouchUpInside];

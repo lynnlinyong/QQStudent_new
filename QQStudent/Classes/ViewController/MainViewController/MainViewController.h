@@ -20,4 +20,8 @@
     CalloutMapAnnotation *_calloutMapAnnotation;
 }
 @property (nonatomic, retain) MAMapView *mapView;
+
++ (void) getWebServerAddress;
++ (NSString *) getPort:(NSString *) str;
++ (NSString *) getPushAddress:(NSString *) str;
 @end

@@ -54,6 +54,8 @@
 
 - (void) dealloc
 {
+    [bgInfoLab release];
+    [bgImgView release];
     [searchTab release];
     [searchArray release];
     
@@ -66,17 +68,76 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
+    self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
+    
+    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
+    title.backgroundColor = [UIColor clearColor];
+    title.textAlignment   = UITextAlignmentCenter;
+    title.text = @"个人中心";
+    self.navigationItem.titleView = title;
+    [title release];
+    
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0,
+                                   0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
+    
     searchTab = [[UITableView alloc]init];
     searchTab.delegate   = self;
     searchTab.dataSource = self;
+    searchTab.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
     searchTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 300)
                              isBackView:NO];
     [self.view addSubview:searchTab];
+    
+    UIImage *bgImg = [UIImage imageNamed:@"pp_nodata_bg"];
+    bgImgView      = [[UIImageView alloc]initWithImage:bgImg];
+    bgImgView.frame= [UIView fitCGRect:CGRectMake(160-50,
+                                                  280/2-40,
+                                                  100,
+                                                  80)
+                            isBackView:NO];
+    [self.view addSubview:bgImgView];
+    
+    bgInfoLab = [[UILabel alloc]init];
+    bgInfoLab.text  = @"输入手机号/前14位身份证号/9位搜索码";
+    bgInfoLab.frame = [UIView fitCGRect:CGRectMake(10, 200, 300, 20)
+                             isBackView:NO];
+    bgInfoLab.backgroundColor = [UIColor clearColor];
+    bgInfoLab.font            = [UIFont systemFontOfSize:14.f];
+    bgInfoLab.textColor       = [UIColor lightGrayColor];
+    bgInfoLab.textAlignment   = NSTextAlignmentCenter;
+    [self.view addSubview:bgInfoLab];
     
     searchArray = [[NSMutableArray alloc]init];
     
     searchLab = [[UILabel alloc]init];
     searchLab.text  = @"搜索:";
+    searchLab.backgroundColor = [UIColor clearColor];
     searchLab.frame = [UIView fitCGRect:CGRectMake(0, 372-44, 40, 20)
                              isBackView:NO];
     [self.view addSubview:searchLab];
@@ -125,6 +186,15 @@
     [self searchTeacherFromServer];
 }
 
+- (void) doBackBtnClicked:(id)sender
+{
+    MainViewController *mVctr = [[MainViewController alloc]init];
+    UINavigationController *nvc = [[UINavigationController alloc]initWithRootViewController:mVctr];
+    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    app.window.rootViewController = nvc;
+    [mVctr release];
+}
+
 - (void) searchTeacherFromServer
 {
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
@@ -166,6 +236,17 @@
 
 - (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
+    if (searchArray.count>0)
+    {
+        bgInfoLab.hidden = YES;
+        bgImgView.hidden = YES;
+    }
+    else
+    {
+        bgInfoLab.hidden = NO;
+        bgImgView.hidden = NO;
+    }
+    
     return searchArray.count;
 }
 

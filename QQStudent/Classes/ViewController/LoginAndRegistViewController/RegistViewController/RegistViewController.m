@@ -59,37 +59,103 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-//    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-//    [backBtn setTitle:@"返回" forState:UIControlStateNormal];
-//    backBtn.frame = CGRectMake(0, 0, 100, 40);
-//    [backBtn addTarget:self
-//                action:@selector(doBackBtnClicked:)
-//      forControlEvents:UIControlEventTouchUpInside];
-//    [self.view addSubview:backBtn];
+    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
+    title.backgroundColor = [UIColor clearColor];
+    title.textAlignment = UITextAlignmentCenter;
+    title.text = @"注册中";
+    self.navigationItem.titleView = title;
+    [title release];
     
+    //设置返回按钮    
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0, 0,
+                                   backImg.size.width+15,
+                                   backImg.size.height+10);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(12, 4,
+                                backImg.size.width,
+                                backImg.size.height);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
+    
+    
+    UIImage *normalImg = [UIImage imageNamed:@"normal_fld.png"];
     userNameFld = [[UITextField alloc]init];
-    userNameFld.delegate = self;
-    userNameFld.borderStyle = UITextBorderStyleLine;
+    userNameFld.delegate    = self;
+    userNameFld.borderStyle = UITextBorderStyleNone;
     userNameFld.placeholder = @"输入注册邮箱";
-    userNameFld.frame = [UIView fitCGRect:CGRectMake(60, 110, 200, 30)
+    userNameFld.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2,
+                                                     80,
+                                                     normalImg.size.width,
+                                                     normalImg.size.height)
                                isBackView:NO];
+    userNameFld.background  = normalImg;
     [self.view addSubview:userNameFld];
     
     phoneFld = [[UITextField alloc]init];
     phoneFld.delegate = self;
-    phoneFld.borderStyle = UITextBorderStyleLine;
+    phoneFld.borderStyle = UITextBorderStyleNone;
     phoneFld.placeholder = @"输入手机号码";
-    phoneFld.frame = [UIView fitCGRect:CGRectMake(60, 150, 200, 30)
+    phoneFld.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2,
+                                                  80+normalImg.size.height+10,
+                                                  normalImg.size.width,
+                                                  normalImg.size.height)
                             isBackView:NO];
+    phoneFld.background  = normalImg;
     [self.view addSubview:phoneFld];
     
-    UIButton *registBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [registBtn setTitle:@"注册" forState:UIControlStateNormal];
-    registBtn.frame = CGRectMake(110, 220, 100, 40);
+    UIImage *registImg  = [UIImage imageNamed:@"normal_btn.png"];
+    registBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [registBtn setTitle:@"注册"
+              forState:UIControlStateNormal];
+    [registBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                   forState:UIControlStateHighlighted];
+    [registBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                   forState:UIControlStateHighlighted];
+    [registBtn setBackgroundImage:registImg
+                        forState:UIControlStateNormal];
+    [registBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn.png"]
+                        forState:UIControlStateHighlighted];
+    registBtn.frame = [UIView fitCGRect:CGRectMake(160-registImg.size.width/2,
+                                                  80+registImg.size.height*2+30,
+                                                  registImg.size.width,
+                                                  registImg.size.height)
+                            isBackView:NO];
     [registBtn addTarget:self
-                  action:@selector(doRegistBtnClicked:)
-        forControlEvents:UIControlEventTouchUpInside];
+                 action:@selector(doRegistBtnClicked:)
+       forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:registBtn];
+    
+    UILabel *infoLab = [[UILabel alloc]init];
+    infoLab.text = @"请务必保密您的邮箱及手机号码组合,并可随时使用\"设置\"功能进行修订,以确保您的权利";
+    infoLab.frame= [UIView fitCGRect:CGRectMake(160-registImg.size.width/2,
+                                                80+registImg.size.height*3+40,
+                                                registImg.size.width,
+                                                registImg.size.height*3)
+                          isBackView:NO];
+    infoLab.font = [UIFont systemFontOfSize:13.f];
+    infoLab.backgroundColor = [UIColor clearColor];
+    infoLab.lineBreakMode   = NSLineBreakByWordWrapping;
+    infoLab.numberOfLines   = 0;
+    infoLab.textColor = [UIColor colorWithHexString:@"#ff6600"];
+    [self.view addSubview:infoLab];
+    [infoLab release];
 }
 
 - (BOOL) checkInfo
@@ -137,11 +203,6 @@
 
 - (void) doRegistBtnClicked:(id)sender
 {
-    //注册完成,跳转完成个人信息
-//    CompletePersonalInfoViewController *cpVctr = [[CompletePersonalInfoViewController alloc]init];
-//    [self.navigationController pushViewController:cpVctr
-//                                         animated:YES];
-    
     if (![self checkInfo])
     {
         return;
@@ -169,8 +230,26 @@
 #pragma mark - UITextFieldDelegate
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
 {
+    [self repickView:self.view];
     [textField resignFirstResponder];
     return YES;
+}
+
+- (void) textFieldDidBeginEditing:(UITextField *)textField
+{
+    if (textField == userNameFld)
+    {
+        userNameFld.background = [UIImage imageNamed:@"hight_fld"];
+        phoneFld.background    = [UIImage imageNamed:@"normal_fld"];
+    }
+    else
+    {
+        phoneFld.background    = [UIImage imageNamed:@"hight_fld"];
+        userNameFld.background = [UIImage imageNamed:@"normal_fld"];
+    }
+    
+    [self moveViewWhenViewHidden:registBtn
+                          parent:self.view];
 }
 
 #pragma mark -

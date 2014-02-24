@@ -40,12 +40,20 @@
     teacherObj.sex       = ((NSNumber *)[resDic objectForKey:@"gender"]).intValue;
     teacherObj.headUrl   = [[resDic objectForKey:@"icon"] copy];
     teacherObj.idNums    = [[resDic objectForKey:@"idnumber"] copy];
-    teacherObj.isIos     = (BOOL) [resDic objectForKey:@"ios"];
+    int isIos = ((NSNumber *)[resDic objectForKey:@"ios"]).intValue;
+    if (isIos==1)
+        teacherObj.isIos = YES;
+    else
+        teacherObj.isIos = NO;
     teacherObj.latitude  = [[resDic objectForKey:@"latitude"] copy];
     teacherObj.longitude = [[resDic objectForKey:@"longitude"] copy];
     teacherObj.name      = [[resDic objectForKey:@"name"] copy];
     teacherObj.name      = [[resDic objectForKey:@"nickname"] copy];
-    teacherObj.isOnline  = (BOOL) [resDic objectForKey:@"online"];
+    int isOnline = ((NSNumber *) [resDic objectForKey:@"online"]).intValue;
+    if (isOnline==1)
+        teacherObj.isOnline = YES;
+    else
+        teacherObj.isOnline = NO;
     teacherObj.phoneNums = [resDic objectForKey:@"phone"];
     teacherObj.pfId      = ((NSNumber *) [resDic objectForKey:@"subject"]).intValue;
     teacherObj.pf        = [[resDic objectForKey:@"subjectText"] copy];

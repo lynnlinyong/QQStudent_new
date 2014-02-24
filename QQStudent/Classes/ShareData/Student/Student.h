@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+@class ServerRequest;
 @interface Student : NSObject<NSCopying,NSMutableCopying,NSCoding>
 {
     NSString  *email;

@@ -139,5 +139,11 @@ static SingleMQTT *sessionInstance = nil;
         [session.session subscribeTopic:[SingleMQTT getCurrentDevTopic]];
         CLog(@"Topic:%@", [SingleMQTT getCurrentDevTopic]);
     }
+    else
+    {
+        //异步获取重新连接
+        [MainViewController getWebServerAddress];
+        [SingleMQTT connectServer];
+    }
 }
 @end

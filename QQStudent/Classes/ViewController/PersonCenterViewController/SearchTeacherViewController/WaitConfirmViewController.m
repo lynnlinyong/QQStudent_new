@@ -126,19 +126,74 @@
                                                object:nil];
 }
 
+- (void) seandInviteOffLineMsg:(NSString *) taPhone
+{
+    NSString *jsonStr  = [self packageJsonStr];
+    if (jsonStr)
+    {
+        NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"toPhone",@"pushMessage",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"pushMessageTeacher",taPhone,jsonStr,ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+        NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
+                                               paramDic:pDic
+                                                 urlStr:ServerAddress];
+        if (resVal)
+        {
+            NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                     encoding:NSUTF8StringEncoding]autorelease];
+            NSDictionary *resDic  = [resStr JSONValue];
+            if (resDic)
+            {
+                NSString *eerid = [[resDic objectForKey:@"errorid"] copy];
+                if (eerid.intValue==0)
+                {
+                    CLog(@"Send Online Message Success!");
+                }
+                else
+                {
+                    CLog(@"Send Online Message Failed!");
+                }
+            }
+        }
+        else
+        {
+            CLog(@"getWebAddress failed!");
+        }
+    }
+}
+
 - (void) sendInviteMsg
 {
     if (tObj)
     {
         CLog(@"ONLY ONE Teacher");
-        [self sendMessage:tObj.deviceId];
+        if (tObj.isIos && !tObj.isOnline)
+        {
+            CLog(@"The Teahcer is OffLine:%@", tObj.phoneNums);
+            [self seandInviteOffLineMsg:tObj.phoneNums];
+        }
+        else
+        {
+            [self sendMessage:tObj.deviceId];
+        }
     }
     else if (teacherArray)
     {
         CLog(@"ALL Teacher");
         for (Teacher *obj in teacherArray)
         {
-            [self sendMessage:obj.deviceId];
+            CLog(@"The Teahcer is OffLine:%@", tObj.phoneNums);
+            if (tObj.isIos && !tObj.isOnline)
+            {
+                [self seandInviteOffLineMsg:tObj.phoneNums];
+            }
+            else
+            {
+                [self sendMessage:obj.deviceId];
+            }
         }
     }
 }
@@ -169,8 +224,9 @@
     waitTimeInvite--;
 }
 
-- (void) sendMessage:(NSString *)tId
+- (NSString *) packageJsonStr
 {
+    NSString *jsonStr = nil;
     if (valueDic)
     {
         //个人信息
@@ -210,8 +266,17 @@
         
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valArr
                                                          forKeys:keyArr];
-        NSString *jsonStr = [pDic JSONFragment];
-        NSData *data      = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
+        jsonStr = [pDic JSONFragment];
+    }
+    return jsonStr;
+}
+
+- (void) sendMessage:(NSString *)tId
+{
+    NSString *jsonStr = [self packageJsonStr];
+    if (jsonStr)
+    {
+        NSData *data = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
         
         CLog(@"jsonStr:%@,%@", jsonStr, tId);
         session = [SingleMQTT shareInstance];

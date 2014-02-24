@@ -166,7 +166,7 @@
 - (void) isIos5ToUpdateNav
 {
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
-    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navi.png"]
+    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"nav_top_bg@2x"]
                                        forBarMetrics:UIBarMetricsDefault];
 #endif
 }

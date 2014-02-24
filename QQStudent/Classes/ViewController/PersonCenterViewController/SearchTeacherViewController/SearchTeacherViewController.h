@@ -19,5 +19,8 @@
     
     UITableView    *searchTab;
     NSMutableArray *searchArray;
+    
+    UIImageView    *bgImgView;
+    UILabel        *bgInfoLab;
 }
 @end

@@ -40,7 +40,7 @@
     [self initUI];
     
     //获得Web服务器地址
-    [self getWebServerAddress];
+    [MainViewController getWebServerAddress];
     
     //获得帮助电话
     [self getHelpPhone];
@@ -68,11 +68,11 @@
 
 - (void) dealloc
 {
-//    [appurl release];
-//    [search release];
-//    [annArray release];
-//    [teacherArray release];
-//    [self.mapView release];
+    [appurl release];
+    [search release];
+    [annArray release];
+    [teacherArray release];
+    [self.mapView release];
     [super dealloc];
 }
 
@@ -80,30 +80,44 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
+    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+    title.font            = [UIFont systemFontOfSize:18.f];
+    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
+    title.backgroundColor = [UIColor clearColor];
+    title.textAlignment = UITextAlignmentCenter;
+    title.text = @"轻轻家教";
+    self.navigationItem.titleView = title;
+    [title release];
+    
     //显示地图
-    self.mapView=[[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 460)
-                                                         isBackView:NO]];
+    self.mapView=[[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 480)
+                                                         isBackView:YES]];
     self.mapView.showsScale = NO;
     self.mapView.delegate   = self;
     [self.view addSubview:self.mapView];
     self.mapView.showsUserLocation = YES;
     
-    UIButton *gotoBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [gotoBtn setImage:[UIImage imageNamed:@"loginButton1.png"]
-             forState:UIControlStateNormal];
-    [gotoBtn setImage:[UIImage imageNamed:@"loginButton2.png"]
-             forState:UIControlStateHighlighted];
-    gotoBtn.frame = [UIView fitCGRect:CGRectMake(0, 0, 40, 30)
+    UIImage *navImg   = [UIImage imageNamed:@"main_nav_normal_btn@2x"];
+    UIButton *navBtn  = [UIButton buttonWithType:UIButtonTypeCustom];
+    [navBtn setImage:navImg
+            forState:UIControlStateNormal];
+    [navBtn setImage:[UIImage imageNamed:@"main_nav_hlight_btn@2x"]
+            forState:UIControlStateHighlighted];
+    navBtn.frame = [UIView fitCGRect:CGRectMake(0, 0,
+                                                navImg.size.width,
+                                                navImg.size.height)
                            isBackView:NO];
-    [gotoBtn addTarget:self
+    [navBtn addTarget:self
                 action:@selector(doGotoBtnClicked:)
       forControlEvents:UIControlEventTouchUpInside];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:gotoBtn];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:navBtn];
     
     UIButton *searchTeacherBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [searchTeacherBtn setImage:[UIImage imageNamed:@"InviteTeacher"]
+    [searchTeacherBtn setImage:[UIImage imageNamed:@"main_st_normal_btn"]
                       forState:UIControlStateNormal];
-    searchTeacherBtn.frame = [UIView fitCGRect:CGRectMake(20, 360, 280, 40)
+    [searchTeacherBtn setImage:[UIImage imageNamed:@"main_st_hlight_btn"]
+                      forState:UIControlStateHighlighted];
+    searchTeacherBtn.frame = [UIView fitCGRect:CGRectMake(20, 460-48-44, 280, 44)
                                     isBackView:NO];
     [searchTeacherBtn addTarget:self
                          action:@selector(doSearchBtnClicked:)
@@ -122,7 +136,7 @@
                                                object:nil];
 }
 
-- (void) getWebServerAddress
++ (void) getWebServerAddress
 {
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"lb", nil];
@@ -130,7 +144,6 @@
                                                      forKeys:paramsArr];
     
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
-    serverReq.delegate = self;
     NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
                                            paramDic:pDic
                                              urlStr:ServerAddress];
@@ -140,8 +153,8 @@
                                                  encoding:NSUTF8StringEncoding]autorelease];
         NSDictionary *resDic  = [resStr JSONValue];
         NSString *webAddress  = [resDic objectForKey:@"web"];
-        NSString *pushAddress = [self getPushAddress:[resDic objectForKey:@"push"]];
-        NSString *port = [self getPort:[resDic objectForKey:@"push"]];
+        NSString *pushAddress = [MainViewController getPushAddress:[resDic objectForKey:@"push"]];
+        NSString *port = [MainViewController getPort:[resDic objectForKey:@"push"]];
         [[NSUserDefaults standardUserDefaults] setObject:webAddress
                                                   forKey:WEBADDRESS];
         [[NSUserDefaults standardUserDefaults] setObject:pushAddress
@@ -149,9 +162,13 @@
         [[NSUserDefaults standardUserDefaults] setObject:port
                                                   forKey:PORT];
     }
+    else
+    {
+        CLog(@"getWebAddress failed!");
+    }
 }
 
-- (NSString *) getPushAddress:(NSString *) str
++ (NSString *) getPushAddress:(NSString *) str
 {
     NSRange start = [str rangeOfRegex:@"//"];
 //    CLog(@"start:%d %d", start.location, start.length);
@@ -164,7 +181,7 @@
     return pushAddress;
 }
 
-- (NSString *) getPort:(NSString *) str
++ (NSString *) getPort:(NSString *) str
 {
     NSRange start = [str rangeOfRegex:@"//"];
     //    CLog(@"start:%d %d", start.location, start.length);

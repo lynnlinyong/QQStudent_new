@@ -46,6 +46,7 @@
     float height = rect.size.height;
     float currentSize_h = [self currentSize:YES];  //高度当前设备与480x320比例
     float currentSize_w = [self currentSize:NO];   //宽度当前设备与480x320比例
+    CLog(@"h:%f w:%f", currentSize_h, currentSize_w);
     CGRect frame;
     if (!isBackView)
     {

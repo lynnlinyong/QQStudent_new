@@ -179,7 +179,7 @@
 //根据年级列表,年级ID查询名字
 + (NSString *) searchGradeName:(NSString *) gradeID
 {
-    NSString *result  = nil;
+    NSString *result  = @"";
     NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:GRADE_LIST];
     if (gradList)
     {
@@ -191,6 +191,49 @@
                 return [[item objectForKey:@"name"] retain];
             }
         }
+    }
+    else
+    {
+        NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getgrade",ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        NSData *resVal = [request requestSyncWith:kServerPostRequest
+                                         paramDic:pDic
+                                           urlStr:url];
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic   = [resStr JSONValue];
+        NSArray      *keysArr  = [resDic allKeys];
+        NSArray      *valsArr  = [resDic allValues];
+        CLog(@"***********Result****************");
+        for (int i=0; i<keysArr.count; i++)
+        {
+            CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+        }
+        CLog(@"***********Result****************");
+        
+        
+        NSNumber *errorid = [resDic objectForKey:@"errorid"];
+        if (errorid.intValue == 0)
+        {
+            gradList = [[resDic objectForKey:@"grades"] copy];
+        }
+        
+        for (NSDictionary *item in gradList)
+        {
+            NSString *tGdID = [item objectForKey:@"id"];
+            if ([gradeID isEqualToString:tGdID])
+            {
+                CLog(@"[item name]:%@", [[item objectForKey:@"name"] retain]);
+                return [[item objectForKey:@"name"] retain];
+            }
+        }
+
     }
     
     return result;

@@ -12,6 +12,8 @@
 {
     UIPageControl       *uiPctr;
     UIScrollView        *uiSView;
+    UIImageView         *img5;
+    UIImageView         *img4;
 }
 
 @end

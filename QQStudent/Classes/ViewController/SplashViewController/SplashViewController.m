@@ -38,6 +38,8 @@
 
 - (void) dealloc
 {
+    [img4    release];
+    [img5    release];
     [uiPctr  release];
     [uiSView release];
     [super dealloc];
@@ -58,33 +60,63 @@
     uiSView.pagingEnabled = YES;
     uiSView.scrollEnabled = YES;
     CGRect rect   = [UIScreen getCurrentBounds];
+    CLog(@"width:%f height:%f", rect.size.width, rect.size.height);
     uiSView.frame = CGRectMake(0, 0, rect.size.width, rect.size.height);
     uiSView.contentSize = CGSizeMake(rect.size.width*4, rect.size.height);
     
     UIImageView *img1 = [[UIImageView alloc]init];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
+    img1.image = [UIImage imageNamed:@"yd2-568h"];
+#elif
     img1.image = [UIImage imageNamed:@"yd2"];
-    img1.frame = CGRectMake(0, 0, 320, 460);
+#endif
+    img1.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 460)
+                        isBackView:YES];
     [uiSView addSubview:img1];
     
     UIImageView *img2 = [[UIImageView alloc]init];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
+    img2.image = [UIImage imageNamed:@"yd3-568h"];
+#elif
     img2.image = [UIImage imageNamed:@"yd3"];
-    img2.frame = CGRectMake(320, 0, 320, 460);
+#endif
+    img2.frame = [UIView fitCGRect:CGRectMake(320, 0, 320, 460)
+                        isBackView:YES];
     [uiSView addSubview:img2];
     
     UIImageView *img3 = [[UIImageView alloc]init];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
+    img3.image = [UIImage imageNamed:@"yd4-568h"];
+#elif
     img3.image = [UIImage imageNamed:@"yd4"];
-    img3.frame = CGRectMake(640, 0, 320, 460);
+#endif
+    img3.frame = [UIView fitCGRect:CGRectMake(640, 0, 320, 460)
+                        isBackView:YES];
     [uiSView addSubview:img3];
     
-    UIImageView *img4 = [[UIImageView alloc]init];
+    img4 = [[UIImageView alloc]init];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
+    img4.image = [UIImage imageNamed:@"yd6-568h"];
+#elif
     img4.image = [UIImage imageNamed:@"yd6"];
-    img4.frame = CGRectMake(960, 0, 320, 460);
+#endif
+    img4.frame = [UIView fitCGRect:CGRectMake(960, 0, 320, 460)
+                        isBackView:YES];
     [uiSView addSubview:img4];
+    
+    img5 = [[UIImageView alloc]init];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 50000
+    img5.image = [UIImage imageNamed:@"yd5-568h"];
+#elif
+    img5.image = [UIImage imageNamed:@"yd5"];
+#endif
+    img5.frame = [UIView fitCGRect:CGRectMake(960, 0, 320, 460)
+                        isBackView:YES];
+    [uiSView addSubview:img5];
     [self.view addSubview:uiSView];
     [img1 release];
     [img2 release];
     [img3 release];
-    [img4 release];
     
     uiPctr = [[UIPageControl alloc]init];
     uiPctr.currentPage   = 0;
@@ -110,6 +142,14 @@
     CGFloat pageWidth = self.view.frame.size.width;
     int page = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     uiPctr.currentPage = page;
+    
+    if (page==3)
+    {
+        //播放动画
+        [UIView animateWithDuration:1.5 animations:^{
+            img5.alpha = 0.0;
+        }];
+    }
     
     //进入主界面
     CGFloat offset = scrollView.contentOffset.x-(uiPctr.numberOfPages-1)*pageWidth;

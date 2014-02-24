@@ -8,6 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ShareViewController : UIViewController<SinaWeiboDelegate,UIAlertViewDelegate>
+@interface ShareViewController : UIViewController<
+                                                SinaWeiboDelegate,
+                                                UIAlertViewDelegate,
+                                                UITableViewDelegate,
+                                                UITableViewDataSource>
+{
+    UITableView *shareTab;
+}
 
+- (void) getShareContentFromServer;
 @end
