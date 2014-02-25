@@ -12,7 +12,7 @@
                                                     UITextFieldDelegate,
                                                     WeiboRequestDelegate>
 {
-    UIImageView  *shareImgView;
+    TTImageView  *shareImgView;
     UITextField  *shareContentFld;
 }
 @end

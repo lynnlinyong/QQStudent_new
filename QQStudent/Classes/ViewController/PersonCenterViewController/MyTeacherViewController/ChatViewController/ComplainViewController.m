@@ -196,6 +196,8 @@
         {
             contentView = [[UITextField alloc] init];
             contentView.text  = @"";
+            contentView.delegate     = self;
+            contentView.placeholder  = @"其他理由(140字以内)";
             contentView.borderStyle  = UITextBorderStyleLine;
             contentView.frame = CGRectMake(5, 5, 230, 40);
             [cell addSubview:contentView];
@@ -239,9 +241,24 @@
 }
 
 #pragma mark -
-#pragma mark - Custom Action
+#pragma mark - UITextFieldDelegate
+- (BOOL) textFieldShouldReturn:(UITextField *)textField
+{
+    [self repickView:self.view];
+    [textField resignFirstResponder];
+    return YES;
+}
+
+- (void) textFieldDidBeginEditing:(UITextField *)textField
+{
+    [self moveViewWhenViewHidden:textField parent:self.view];
+}
+
+#pragma mark -
+#pragma mark - Control Event
 - (void) doButtonClicked:(id)sender
 {
+    [self repickView:self.view];
     UIButton *btn = sender;
     switch (btn.tag)
     {

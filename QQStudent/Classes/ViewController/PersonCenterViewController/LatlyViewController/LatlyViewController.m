@@ -28,13 +28,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
     msgArray = [[NSMutableArray alloc]init];
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = YES;
     
     //获得新消息
     [self getMessageNewNumber];
@@ -52,6 +55,10 @@
 
 - (void) viewDidDisappear:(BOOL)animated
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = NO;
+    
     [msgArray removeAllObjects];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
@@ -191,10 +198,16 @@
 
 - (void) tapGestureRecongnizer:(UITapGestureRecognizer *) reg
 {
+    TTImageView *headImgView = (TTImageView *)reg.view;
+    NSDictionary *item = [msgArray objectAtIndex:headImgView.tag];
+    Teacher *tObj = [Teacher setTeacherProperty:item];
+    
     //教师详细信息
+    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
     TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
-    [self.navigationController pushViewController:tdVctr
-                                         animated:YES];
+    tdVctr.tObj = tObj;
+    [nav pushViewController:tdVctr animated:YES];
     [tdVctr release];
 }
 
@@ -322,6 +335,7 @@
             UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
                                                                                     action:@selector(tapGestureRecongnizer:)];
             TTImageView *headImgView = [[TTImageView alloc]init];
+            headImgView.tag   = indexPath.row-1;
             headImgView.frame = CGRectMake(5, 15, 50, 50);
             NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
             headImgView.URL   = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"icon"]];
@@ -378,11 +392,14 @@
 
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
     if (indexPath.row == 0)
     {
         SystemMessageViewController *smVctr= [[SystemMessageViewController alloc]init];
-        [self.navigationController pushViewController:smVctr
-                                             animated:YES];
+        [nav pushViewController:smVctr animated:YES];
+//        [self.navigationController pushViewController:smVctr
+//                                             animated:YES];
         [smVctr release];
     }
     else
@@ -400,8 +417,9 @@
 
         ChatViewController *cVctr = [[ChatViewController alloc]init];
         cVctr.tObj = tObj;
-        [self.navigationController pushViewController:cVctr
-                                             animated:YES];
+        [nav pushViewController:cVctr animated:YES];
+//        [self.navigationController pushViewController:cVctr
+//                                             animated:YES];
         [cVctr release];
         [tObj  release];
     }

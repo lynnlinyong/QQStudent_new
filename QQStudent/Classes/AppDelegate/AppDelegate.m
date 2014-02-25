@@ -188,6 +188,11 @@
     return isIn;
 }
 
+- (void) getMessageOutline
+{
+    
+}
+
 #pragma mark - MQtt Callback methods
 - (void)session:(MQTTSession*)sender
      newMessage:(NSData*)data
@@ -340,12 +345,11 @@
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     CLog(@"New APNS Message:%@", userInfo);
-    
-    //提示有一条新消息
-    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
-                                                        ofType:@"wav"];
-    NSData *infoSound = [NSData dataWithContentsOfFile:path];
-    [RecordAudio playWav:infoSound];
+//    //提示有一条新消息
+//    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
+//                                                        ofType:@"wav"];
+//    NSData *infoSound = [NSData dataWithContentsOfFile:path];
+//    [RecordAudio playWav:infoSound];
     
     //清除消息中心消息
     [[UIApplication sharedApplication ] setApplicationIconBadgeNumber:0];

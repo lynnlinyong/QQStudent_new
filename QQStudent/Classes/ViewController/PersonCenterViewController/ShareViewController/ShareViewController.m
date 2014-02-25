@@ -37,16 +37,31 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
+    [super viewDidAppear:animated];
+    
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = YES;
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(getDismissView:)
                                                  name:@"dismissView"
                                                object:nil];
-    [super viewDidAppear:animated];
+}
+
+- (void) viewDidDisappear:(BOOL)animated
+{
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = NO;
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];   
+    
+    [super viewDidDisappear:animated];
 }
 
 - (void) viewDidUnload
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidUnload];
 }
 
@@ -129,6 +144,8 @@
         if (eerid.intValue==0)
         {
             CLog(@"shareContent:%@", resDic);
+            [[NSUserDefaults standardUserDefaults] setObject:resDic
+                                                      forKey:@"ShareContent"];
         }
         else
         {
@@ -179,9 +196,12 @@
     [self setCellBgImage:[UIImage imageNamed:@"sp_content_normal_cell"]
                   sender:sender];
     
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
     ShareAddressBookViewController *shareBook = [[ShareAddressBookViewController alloc]init];
-    [self.navigationController pushViewController:shareBook
-                                         animated:YES];
+    [nav pushViewController:shareBook animated:YES];
+//    [self.navigationController pushViewController:shareBook
+//                                         animated:YES];
     [shareBook release];
 }
 
@@ -214,19 +234,24 @@
     [self setCellBgImage:[UIImage imageNamed:@"sp_content_normal_cell"]
                   sender:sender];
     
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
     SignalSinaWeibo *sgWeibo = [SignalSinaWeibo shareInstance:self];
     if (![sgWeibo.sinaWeibo isAuthValid])
     {
         BoundSinaViewController *bsVctr = [[BoundSinaViewController alloc]init];
-        [self.navigationController pushViewController:bsVctr
-                                             animated:YES];
+        [nav pushViewController:bsVctr animated:YES];
+//        [self.navigationController pushViewController:bsVctr
+//                                             animated:YES];
         [bsVctr release];
     }
     else
     {
+        
         ShareSinaViewController *sVctr = [[ShareSinaViewController alloc]init];
-        [self.navigationController pushViewController:sVctr
-                                             animated:YES];
+        [nav pushViewController:sVctr animated:YES];
+//        [self.navigationController pushViewController:sVctr
+//                                             animated:YES];
         [sVctr release];
     }
 }
@@ -237,18 +262,22 @@
                   sender:sender];
     
     SingleTCWeibo *tcWeibo = [SingleTCWeibo shareInstance];
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
     if (![tcWeibo.tcWeiboApi isAuthValid])
     {
         BoundTecentViewController *btVctr = [[BoundTecentViewController alloc]init];
-        [self.navigationController pushViewController:btVctr
-                                             animated:YES];
+//        [self.navigationController pushViewController:btVctr
+//                                             animated:YES];
+        [nav pushViewController:btVctr animated:YES];
         [btVctr release];
     }
     else
     {
         ShareTecentViewController *stVctr = [[ShareTecentViewController alloc]init];
-        [self.navigationController pushViewController:stVctr
-                                             animated:YES];
+//        [self.navigationController pushViewController:stVctr
+//                                             animated:YES];
+        [nav pushViewController:stVctr animated:YES];
         [stVctr release];
     }
 }
@@ -446,7 +475,7 @@
             [iconImgView release];
             
             UILabel *titleLab = [[UILabel alloc]init];
-            titleLab.text  = @"分享到新浪微博";
+            titleLab.text  = @"分享到腾讯微博";
             titleLab.font  = [UIFont systemFontOfSize:14.f];
             titleLab.backgroundColor = [UIColor clearColor];
             titleLab.frame = CGRectMake(cellBgImg.size.height+10,

@@ -13,7 +13,7 @@
                                                     UITextFieldDelegate,
                                                     SinaWeiboRequestDelegate>
 {
-    UIImageView  *shareImgView;
+    TTImageView  *shareImgView;
     UITextField  *shareContentFld;
 }
 @end

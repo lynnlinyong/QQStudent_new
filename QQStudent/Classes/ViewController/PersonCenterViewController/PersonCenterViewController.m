@@ -27,6 +27,8 @@
 {
     [super viewDidLoad];
     
+    [self checkSessidIsValid];
+    
     //初始化UI
     [self initUI];
 }
@@ -44,13 +46,77 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) checkSessidIsValid
+{
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"updatelogin",ssid, nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    
+    NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url      = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+    ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+    NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
+                                           paramDic:pDic
+                                             urlStr:url];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic  = [resStr JSONValue];
+    NSString *eerid = [[resDic objectForKey:@"errorid"] copy];
+    if (resDic)
+    {
+        if (eerid.intValue==0)
+        {
+            //获得最新个人信息
+            CLog(@"get New Info:%@", resDic);
+            NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
+            
+            //获得Student
+            Student *student    = [[Student alloc]init];
+            student.email       = [stuDic objectForKey:@"email"];
+            student.gender      = [[stuDic objectForKey:@"gender"] copy];
+            student.grade       = [[stuDic objectForKey:@"grade"]  copy];
+            student.icon        = [stuDic objectForKey:@"icon"];
+            student.latltude    = [stuDic objectForKey:@"latitude"];
+            student.longltude   = [stuDic objectForKey:@"longitude"];
+            student.lltime      = [stuDic objectForKey:@"lltime"];
+            student.nickName    = [stuDic objectForKey:@"nickname"];
+            student.phoneNumber = [stuDic objectForKey:@"phone"];
+            student.status      = [[stuDic objectForKey:@"status"] copy];
+            student.phoneStars  = [[stuDic objectForKey:@"phone_stars"] copy];
+            student.locStars    = [[stuDic objectForKey:@"location_stars"] copy];
+            
+            NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
+            [[NSUserDefaults standardUserDefaults] setObject:stuData
+                                                      forKey:STUDENT];
+            [student release];
+        }
+        else
+        {
+            NSString *errorMsg = [resDic objectForKey:@"message"];
+            [self showAlertWithTitle:@"提示"
+                                 tag:4
+                             message:[NSString stringWithFormat:@"错误码%@,%@",eerid,errorMsg]
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+        }
+    }
+    else
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:3
+                         message:@"获取数据失败!"
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+    }
+}
+
 - (void) initUI
 {    
     MyTeacherViewController *mVctr = [[MyTeacherViewController alloc]initWithNibName:nil
                                                                               bundle:nil];
     UINavigationController *navMvctr = [[UINavigationController alloc]initWithRootViewController:mVctr];
-    
-    
     
     LatlyViewController *lVctr = [[LatlyViewController alloc]initWithNibName:nil
                                                                       bundle:nil];
@@ -118,8 +184,11 @@
 	[leveyTabBarController.tabBar setBackgroundImage:[UIImage imageNamed:@"c-2-1.png"]];
 	[leveyTabBarController setTabBarTransparent:YES];
     
+    UINavigationController *nav   = [[UINavigationController alloc]init];
     AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    app.window.rootViewController = leveyTabBarController;
+    app.window.rootViewController = nav;
+    [nav pushViewController:leveyTabBarController
+                   animated:NO];
 }
 
 - (void) doBackBtnClicked:(id)sender

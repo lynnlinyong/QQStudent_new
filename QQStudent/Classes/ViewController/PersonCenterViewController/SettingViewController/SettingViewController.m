@@ -38,6 +38,10 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = YES;
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updateEmailInfoNotice:) name:@"updateEmailInfoNotice"
                                                object:nil];
@@ -67,6 +71,10 @@
 
 - (void) viewDidDisappear:(BOOL)animated
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = NO;
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
@@ -126,12 +134,14 @@
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
     student = [[NSKeyedUnarchiver unarchiveObjectWithData:stuData] copy];
     
-    setTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 420)
+    setTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 398)
                                                       isBackView:NO]
                                          style:UITableViewStyleGrouped];
     setTab.delegate   = self;
     setTab.dataSource = self;
     [self.view addSubview:setTab];
+    
+    updateType = OtherUpdate;
 }
 
 - (void) updateStudentInfo
@@ -144,7 +154,7 @@
     //更新个人资料
     NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phone",@"email", @"grade",@"gender",@"nick",@"phone_stars",@"location_stars",@"sessid",nil];
-    NSArray *valuesArr = [NSArray arrayWithObjects:@"upinfo",student.phoneNumber,student.email,student.grade,student.gender,student.nickName,student.phoneStars, student.locStars, ssid, nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"upinfo",phoneValLab.text,emailValLab.text,[Student searchGradeID:gradeValLab.text],student.gender,student.nickName,student.phoneStars, student.locStars, ssid, nil];
     NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
     CLog(@"Dic:%@", pDic);
@@ -184,7 +194,6 @@
     if (tag == 0)
     {
         gradeValLab.text = [userInfoDic objectForKey:@"name"];
-        student.grade    = [[userInfoDic objectForKey:@"id"] copy];
         
         //更新个人信息
         [self updateStudentInfo];
@@ -201,6 +210,7 @@
         case 0:
         {
             UpdateEmailViewController *ueVctr = [[UpdateEmailViewController alloc]init];
+            ueVctr.email = student.email;
             [self presentPopupViewController:ueVctr
                                animationType:MJPopupViewAnimationFade];
             break;
@@ -216,7 +226,7 @@
     if (tag == 0)
     {
         emailValLab.text = [notice.userInfo objectForKey:@"CONTENT"];
-        student.email = [notice.userInfo objectForKey:@"CONTENT"];
+        updateType = EmailUpdate;
         
         //更新个人信息
         [self updateStudentInfo];
@@ -231,7 +241,7 @@
     if (tag == 0)
     {
         phoneValLab.text    = [notice.userInfo objectForKey:@"CONTENT"];
-        student.phoneNumber = [notice.userInfo objectForKey:@"CONTENT"];
+        updateType = PhoneUpdate;
         
         //更新个人信息
         [self updateStudentInfo];
@@ -266,6 +276,7 @@
         case 0:
         {
             UpdatePhoneViewController *ueVctr = [[UpdatePhoneViewController alloc]init];
+            ueVctr.phone = student.phoneNumber;
             [self presentPopupViewController:ueVctr
                                animationType:MJPopupViewAnimationFade];
             break;
@@ -323,10 +334,13 @@
     
     //显示登录页面
     MainViewController *mVc     = [[MainViewController alloc]init];
+    LoginViewController *lVctr  = [[LoginViewController alloc]init];
     UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:mVc];
     [mVc release];
     AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     app.window.rootViewController = nav;
+    [nav pushViewController:lVctr
+                   animated:YES];
 }
 
 #pragma mark -
@@ -390,7 +404,7 @@
 
 - (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 60;
+    return 50;
 }
 
 - (UITableViewCell *) tableView:(UITableView *)tableView
@@ -408,15 +422,15 @@
                 case 0:         //电话接听
                 {                    
                     UILabel *phoneLab = [[UILabel alloc]init];
-                    phoneLab.text  = @"电话接听";
-                    phoneLab.frame = CGRectMake(10, 12, 80, 20);
+                    phoneLab.text     = @"电话接听";
+                    phoneLab.frame    = CGRectMake(20, 16, 80, 20);
                     phoneLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:phoneLab];
                     [phoneLab release];
                     
                     phoneSw  = [[UISwitch alloc]init];
                     phoneSw.tag   = 0;
-                    phoneSw.frame = CGRectMake(230, 4, 80, 20);
+                    phoneSw.frame = CGRectMake(215, 12, 80, 20);
                     [cell addSubview:phoneSw];
                     if (student.phoneStars.intValue == 1)
                         phoneSw.on = YES;
@@ -431,14 +445,14 @@
                 {
                     UILabel *locLab = [[UILabel alloc]init];
                     locLab.text  = @"定位";
-                    locLab.frame = CGRectMake(10, 12, 80, 20);
+                    locLab.frame = CGRectMake(20, 16, 80, 20);
                     locLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:locLab];
                     [locLab release];
                     
                     locSw = [[UISwitch alloc]init];
                     locSw.tag   = 1;
-                    locSw.frame = CGRectMake(230, 4, 80, 20);
+                    locSw.frame = CGRectMake(215, 12, 80, 20);
                     [cell addSubview:locSw];
                     if (student.locStars.intValue == 1)
                         locSw.on = YES;
@@ -462,7 +476,7 @@
                 {
                     UILabel *emailLab = [[UILabel alloc]init];
                     emailLab.text  = @"邮箱";
-                    emailLab.frame = CGRectMake(10, 12, 80, 20);
+                    emailLab.frame = CGRectMake(20, 16, 80, 20);
                     emailLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:emailLab];
                     [emailLab release];
@@ -471,7 +485,7 @@
                     emailValLab.text   = student.email;
                     emailValLab.textAlignment   = NSTextAlignmentRight;
                     emailValLab.backgroundColor = [UIColor clearColor];
-                    emailValLab.frame  = CGRectMake(320-30-200, 12, 200, 20);
+                    emailValLab.frame  = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:emailValLab];
                     
                     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -481,7 +495,7 @@
                 {
                     UILabel *phoneLab = [[UILabel alloc]init];
                     phoneLab.text  = @"手机";
-                    phoneLab.frame = CGRectMake(10, 12, 80, 20);
+                    phoneLab.frame = CGRectMake(20, 16, 80, 20);
                     phoneLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:phoneLab];
                     [phoneLab release];
@@ -490,7 +504,7 @@
                     phoneValLab.text   = student.phoneNumber;
                     phoneValLab.textAlignment   = NSTextAlignmentRight;
                     phoneValLab.backgroundColor = [UIColor clearColor];
-                    phoneValLab.frame  = CGRectMake(320-30-200, 12, 200, 20);
+                    phoneValLab.frame  = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:phoneValLab];
                     
                     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -500,7 +514,7 @@
                 {
                     UILabel *classLab = [[UILabel alloc]init];
                     classLab.text  = @"年级";
-                    classLab.frame = CGRectMake(10, 12, 80, 20);
+                    classLab.frame = CGRectMake(20, 16, 80, 20);
                     classLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:classLab];
                     [classLab release];
@@ -509,7 +523,7 @@
                     gradeValLab.text   = [Student searchGradeName:student.grade];
                     gradeValLab.textAlignment   = NSTextAlignmentRight;
                     gradeValLab.backgroundColor = [UIColor clearColor];
-                    gradeValLab.frame  = CGRectMake(320-30-200, 12, 200, 20);
+                    gradeValLab.frame  = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:gradeValLab];
                     
                     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -519,7 +533,7 @@
                 {
                     UILabel *sexLab = [[UILabel alloc]init];
                     sexLab.text  = @"性别";
-                    sexLab.frame = CGRectMake(10, 12, 80, 20);
+                    sexLab.frame = CGRectMake(20, 16, 80, 20);
                     sexLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:sexLab];
                     [sexLab release];
@@ -534,7 +548,7 @@
                     sexValLab.text     = gender;
                     sexValLab.textAlignment   = NSTextAlignmentRight;
                     sexValLab.backgroundColor = [UIColor clearColor];
-                    sexValLab.frame  = CGRectMake(320-30-200, 12, 200, 20);
+                    sexValLab.frame  = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:sexValLab];
                     [sexValLab release];
                     
@@ -544,7 +558,7 @@
                 {
                     UILabel *nameLab = [[UILabel alloc]init];
                     nameLab.text  = @"昵称";
-                    nameLab.frame = CGRectMake(10, 12, 80, 20);
+                    nameLab.frame = CGRectMake(20, 16, 80, 20);
                     nameLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:nameLab];
                     [nameLab release];
@@ -553,7 +567,7 @@
                     nameValLab.text     = student.nickName;
                     nameValLab.textAlignment   = NSTextAlignmentRight;
                     nameValLab.backgroundColor = [UIColor clearColor];
-                    nameValLab.frame  = CGRectMake(320-30-200, 12, 200, 20);
+                    nameValLab.frame  = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:nameValLab];
                     [nameValLab release];
                     break;
@@ -562,7 +576,7 @@
                 {
                     UILabel *numberLab = [[UILabel alloc]init];
                     numberLab.text  = @"绑定账号";
-                    numberLab.frame = CGRectMake(10, 12, 80, 20);
+                    numberLab.frame = CGRectMake(20, 16, 80, 20);
                     numberLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:numberLab];
                     [numberLab release];
@@ -583,7 +597,7 @@
                 {
                     UILabel *adviseLab = [[UILabel alloc]init];
                     adviseLab.text  = @"建议反馈";
-                    adviseLab.frame = CGRectMake(10, 12, 80, 20);
+                    adviseLab.frame = CGRectMake(20, 16, 80, 20);
                     adviseLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:adviseLab];
                     [adviseLab release];
@@ -595,7 +609,7 @@
                 {
                     UILabel *aboutLab = [[UILabel alloc]init];
                     aboutLab.text  = @"关于轻轻";
-                    aboutLab.frame = CGRectMake(10, 12, 80, 20);
+                    aboutLab.frame = CGRectMake(20, 16, 80, 20);
                     aboutLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:aboutLab];
                     [aboutLab release];
@@ -607,44 +621,32 @@
                 {
                     UILabel *versionLab = [[UILabel alloc]init];
                     versionLab.text  = @"版本检查";
-                    versionLab.frame = CGRectMake(10, 12, 80, 20);
+                    versionLab.frame = CGRectMake(20, 16, 80, 20);
                     versionLab.backgroundColor = [UIColor clearColor];
                     [cell addSubview:versionLab];
                     [versionLab release];
                     
                     UILabel *versionValLab = [[UILabel alloc]init];
-                    versionValLab.text     = student.nickName;
                     versionValLab.textAlignment   = NSTextAlignmentRight;
                     versionValLab.backgroundColor = [UIColor clearColor];
-                    versionValLab.frame  = CGRectMake(320-30-200, 12, 200, 20);
+                    versionValLab.frame    = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:versionValLab];
                     
                     //对比版本号
-                    NSDictionary *newDic =  [[NSUserDefaults standardUserDefaults] objectForKey:APP_VERSION];
+                    NSDictionary *newDic =  [[NSUserDefaults standardUserDefaults]
+                                                                        objectForKey:APP_VERSION];
                     NSString *newVersion = [newDic objectForKey:@"Version"];
-                    
-                    //当前版本
-                    NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
-                    NSString *oldVersion   = [infoDict objectForKey:@"CFBundleVersion"];
-                    if (newVersion.intValue>oldVersion.intValue)
-                    {
-                        versionValLab.text = [NSString stringWithFormat:@"有新版本v%@,点击更新", newVersion];
-                        cell.userInteractionEnabled = YES;
-                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-                    }
-                    else
-                    {
-                        versionValLab.text = @"最新版本";
-                        cell.userInteractionEnabled = NO;
-                    }
+                    versionValLab.text   = [NSString stringWithFormat:@"当前版本:V%@", newVersion];
+                    cell.userInteractionEnabled = NO;
                     [versionValLab release];
                     break;
                 }
                 case 3:
                 {
                     UIButton *logoutBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-                    [logoutBtn setTitle:@"退出当前账号" forState:UIControlStateNormal];
-                    logoutBtn.frame = CGRectMake(20, 20, 280, 40);
+                    [logoutBtn setTitle:@"退出当前账号"
+                               forState:UIControlStateNormal];
+                    logoutBtn.frame = CGRectMake(20, 5, 280, 40);
                     [logoutBtn addTarget:self
                                   action:@selector(doLogoutBtnClicked:)
                         forControlEvents:UIControlEventTouchUpInside];
@@ -705,6 +707,16 @@
                 }
                 case 5:        //绑定账号
                 {
+                    //跳转分享页面
+                    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+                    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+                    for (UIViewController *vtr in nav.viewControllers)
+                    {
+                        if ([vtr isKindOfClass:[LeveyTabBarController class]])
+                        {
+                            [((LeveyTabBarController *)vtr) setSelectedIndex:3];
+                        }
+                    }
                     break;
                 }
                 default:
@@ -725,17 +737,13 @@
                 }
                 case 1:          //关于轻轻
                 {
+                    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+                    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
                     AboutSoftwareViewController *aboutVctr = [[AboutSoftwareViewController alloc]init];
-                    [self.navigationController pushViewController:aboutVctr
-                                                         animated:YES];
+                    [nav pushViewController:aboutVctr animated:YES];
+//                    [self.navigationController pushViewController:aboutVctr
+//                                                         animated:YES];
                     [aboutVctr release];
-                    break;
-                }
-                case 2:          //版本检查
-                {
-                    NSDictionary *newDic =  [[NSUserDefaults standardUserDefaults] objectForKey:APP_VERSION];
-                    NSString *appUrl = [newDic objectForKey:@"AppURL"];
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:appUrl]];
                     break;
                 }
                 default:
@@ -786,15 +794,35 @@
         if ([action isEqualToString:@"submitProposal"])
         {
             CLog(@"upload suggest success!");
+
         }
         else if ([action isEqualToString:@"upinfo"])
         {
             CLog(@"update infomation success!");
+            student.email = emailValLab.text;
+            student.phoneNumber = phoneValLab.text;
+            student.grade = [Student searchGradeID:gradeValLab.text];
+            
+            //写入保存
+            NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
+            [[NSUserDefaults standardUserDefaults] setObject:stuData
+                                                      forKey:STUDENT];
+            
+            if ((updateType==EmailUpdate) || (updateType==PhoneUpdate))
+            {
+                //退出回到登录页面
+                [self doLogoutBtnClicked:nil];
+            }
+            
             [setTab reloadData];
         }
     }
     else
     {
+        emailValLab.text = student.email;
+        phoneValLab.text = student.phoneNumber;
+        gradeValLab.text = [Student searchGenderName:student.grade];
+        
         NSString *errorMsg = [resDic objectForKey:@"message"];
         [self showAlertWithTitle:@"提示"
                              tag:0

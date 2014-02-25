@@ -31,6 +31,23 @@
     [self initUI];
 }
 
+- (void) viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = NO;
+}
+
+- (void) viewDidAppear:(BOOL)animated
+{
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = YES;
+    [super viewDidAppear:animated];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -317,11 +334,15 @@
 {
     Teacher *tObj = [searchArray objectAtIndex:indexPath.row];
 
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    
     //订单编辑
     SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
     scVctr.tObj = tObj;
-    [self.navigationController pushViewController:scVctr
-                                         animated:YES];
+    [nav pushViewController:scVctr animated:YES];
+    //    [self.navigationController pushViewController:scVctr
+//                                         animated:YES];
     [scVctr release];
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];

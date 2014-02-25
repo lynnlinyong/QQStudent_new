@@ -16,5 +16,8 @@
     UITextField *userNameFld;
     UITextField *phoneFld;
     UIButton    *registBtn;
+    
+    UIImageView *emailImgView;
+    UIImageView *phoneImgView;
 }
 @end

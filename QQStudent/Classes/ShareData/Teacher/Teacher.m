@@ -33,8 +33,11 @@
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic
 {
     Teacher *teacherObj = [[Teacher alloc]init];
-    teacherObj.studentCount = ((NSNumber *)[resDic objectForKey:@"TS"]).intValue;
-    teacherObj.studentCount = ((NSNumber *)[resDic objectForKey:@"students"]).intValue;
+    NSString *stuCount  = [[resDic objectForKey:@"TS"] copy];
+    if (stuCount)
+        teacherObj.studentCount = stuCount.intValue;
+    else
+        teacherObj.studentCount = ((NSNumber *)[resDic objectForKey:@"students"]).intValue;
     teacherObj.deviceId  = [[resDic objectForKey:@"deviceId"] copy];
     teacherObj.expense   = ((NSNumber *)[resDic objectForKey:@"expense"]).intValue;
     teacherObj.sex       = ((NSNumber *)[resDic objectForKey:@"gender"]).intValue;
@@ -47,8 +50,11 @@
         teacherObj.isIos = NO;
     teacherObj.latitude  = [[resDic objectForKey:@"latitude"] copy];
     teacherObj.longitude = [[resDic objectForKey:@"longitude"] copy];
-    teacherObj.name      = [[resDic objectForKey:@"name"] copy];
-    teacherObj.name      = [[resDic objectForKey:@"nickname"] copy];
+    NSString *tmpName    = [[resDic objectForKey:@"name"] copy];
+    if (tmpName)
+        teacherObj.name  = tmpName;
+    else
+        teacherObj.name      = [[resDic objectForKey:@"nickname"] copy];
     int isOnline = ((NSNumber *) [resDic objectForKey:@"online"]).intValue;
     if (isOnline==1)
         teacherObj.isOnline = YES;

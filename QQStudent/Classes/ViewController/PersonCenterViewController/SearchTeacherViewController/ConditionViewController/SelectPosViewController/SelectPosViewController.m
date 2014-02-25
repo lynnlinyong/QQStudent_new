@@ -221,7 +221,43 @@
 #pragma mark -
 #pragma mark - Custom Action
 - (void) initUI
-{    
+{
+    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
+    title.backgroundColor = [UIColor clearColor];
+    title.textAlignment   = UITextAlignmentCenter;
+    title.text = @"选择授课地点";
+    self.navigationItem.titleView = title;
+    [title release];
+    
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0,
+                                   0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
+    
     //显示地图
     self.mapView = [[MAMapView alloc] initWithFrame:CGRectMake(0,
                                                                0,
@@ -335,6 +371,11 @@
     NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [notice.userInfo objectForKey:@"PROVICE"],[notice.userInfo objectForKey:@"CITY"],[notice.userInfo objectForKey:@"DIST"]];
     CLog(@"posAddress:%@", posAddress);
     [self searchGeocode:posAddress];
+}
+
+- (void) doBackBtnClicked:(id)sender
+{
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark -
@@ -530,7 +571,6 @@
 {
     if (self.mapView.showsUserLocation)
     {
-        self.mapView.showsUserLocation = NO;
         [self.mapView setCenterCoordinate:userLocation.coordinate];
         
         //添加个人位置标注,选择地点标注
@@ -550,11 +590,17 @@
         //搜索第三方场地
         [self searchNearOtherPos];
     }
+    self.mapView.showsUserLocation = NO;
 }
 
 - (void) mapView:(MAMapView *)mapView didFailToLocateUserWithError:(NSError *)error
 {
     
+}
+
+- (MAOverlayView *) mapView:(MAMapView *)mapView viewForOverlay:(id<MAOverlay>)overlay
+{
+    return nil;
 }
 
 - (MAAnnotationView *) mapView:(MAMapView *)mapView viewForAnnotation:(id<MAAnnotation>)annotation
@@ -707,6 +753,13 @@
             
             //显示第三方场地
             [self initOtherSitesAnnotation:sites];
+            
+            //删除我的位置标注
+            if (self.mapView.overlays.count>0)
+            {
+                [self.mapView removeAnnotation:self.mapView.userLocation];
+                [self.mapView removeOverlay:self.mapView.overlays[0]];
+            }
         }
     }
 }

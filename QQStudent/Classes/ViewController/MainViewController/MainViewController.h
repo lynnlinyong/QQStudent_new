@@ -18,9 +18,10 @@
     NSMutableArray  *annArray;
     AMapSearchAPI   *search;
     CalloutMapAnnotation *_calloutMapAnnotation;
+    CustomPointAnnotation *meAnn;
 }
-@property (nonatomic, retain) MAMapView *mapView;
 
+@property (nonatomic, retain) MAMapView *mapView;
 + (void) getWebServerAddress;
 + (NSString *) getPort:(NSString *) str;
 + (NSString *) getPushAddress:(NSString *) str;

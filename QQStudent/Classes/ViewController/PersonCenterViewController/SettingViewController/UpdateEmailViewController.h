@@ -12,4 +12,5 @@
 {
     UITextField *txtFld;
 }
+@property (nonatomic, retain) NSString *email;
 @end

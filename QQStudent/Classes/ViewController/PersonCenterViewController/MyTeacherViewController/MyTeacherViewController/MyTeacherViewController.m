@@ -26,6 +26,10 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = YES;
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(doCommentOrderNotice:)
                                                  name:@"commentOrderNotice"
@@ -35,6 +39,10 @@
 
 - (void) viewDidDisappear:(BOOL)animated
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    nav.navigationBarHidden = NO;
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
@@ -321,14 +329,17 @@
 #pragma mark - MyTeacherCellDelegate
 - (void) tableViewCell:(MyTeacherCell *)cell ClickedButton:(int)index
 {
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
     switch (index)
     {
         case 0:     //教师详情
         {
             TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
             tdVctr.tObj = cell.teacher;
-            [self.navigationController pushViewController:tdVctr
-                                                 animated:YES];
+            [nav pushViewController:tdVctr animated:YES];
+//            [self.navigationController pushViewController:tdVctr
+//                                                 animated:YES];
             [tdVctr release];
             break;
         }
@@ -336,8 +347,9 @@
         {
             ChatViewController *cVctr = [[ChatViewController alloc]init];
             cVctr.tObj    = cell.teacher;
-            [self.navigationController pushViewController:cVctr
-                                                 animated:YES];
+            [nav pushViewController:cVctr animated:YES];
+//            [self.navigationController pushViewController:cVctr
+//                                                 animated:YES];
             [cVctr release];
             break;
         }

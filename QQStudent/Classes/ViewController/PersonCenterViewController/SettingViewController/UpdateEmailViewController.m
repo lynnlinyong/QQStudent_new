@@ -13,6 +13,7 @@
 @end
 
 @implementation UpdateEmailViewController
+@synthesize email;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -69,6 +70,7 @@
     [contentLab release];
     
     txtFld = [[UITextField alloc]init];
+    txtFld.text = email;
     txtFld.delegate    = self;
     txtFld.borderStyle = UITextBorderStyleLine;
     txtFld.frame       = CGRectMake(20, 50, 200, 20);
@@ -97,6 +99,11 @@
 
 - (void) doButtonClicked:(id)sender
 {
+    if (![self checkInfo])
+    {
+        return;
+    }
+    
     UIButton *btn      = sender;
     NSNumber *tagNum   = [NSNumber numberWithInt:btn.tag];
     NSDictionary *pDic = [NSDictionary dictionaryWithObjectsAndKeys:tagNum,@"TAG", txtFld.text,@"CONTENT",nil];
@@ -104,6 +111,33 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"updateEmailNotice"
                                                         object:nil
                                                       userInfo:pDic];
+}
+
+- (BOOL) checkInfo
+{
+    if (txtFld.text.length == 0)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"登录信息不完整!"
+                        delegate:self
+               otherButtonTitles:@"确定", nil];
+        
+        return NO;
+    }
+    
+    BOOL isEmailType = [txtFld.text isMatchedByRegex:@"\\b([a-zA-Z0-9%_.+\\-]+)@([a-zA-Z0-9.\\-]+?\\.[a-zA-Z]{2,6})\\b"];
+    if (!isEmailType)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"邮箱格式不正确"
+                        delegate:self
+               otherButtonTitles:@"确定", nil];
+        return NO;
+    }
+    
+    return YES;
 }
 
 #pragma mark -

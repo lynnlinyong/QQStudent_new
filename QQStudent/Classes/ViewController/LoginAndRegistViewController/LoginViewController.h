@@ -17,5 +17,8 @@
     UITextField *phoneFld;
     UIButton    *loginBtn;
     UIButton    *registBtn;
+    
+    UIImageView *emailImgView;
+    UIImageView *phoneImgView;
 }
 @end

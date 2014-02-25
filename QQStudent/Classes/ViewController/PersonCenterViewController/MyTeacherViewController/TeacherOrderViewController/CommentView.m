@@ -49,7 +49,7 @@
     
     UIButton *goodBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     goodBtn.tag = 1;
-    goodBtn.frame = CGRectMake(rect.size.width/2-25, rect.size.height-25, 20, 20);
+    goodBtn.frame = CGRectMake(rect.size.width/2-35, rect.size.height-25, 30, 30);
     [goodBtn setTitle:@"赞" forState:UIControlStateNormal];
     [goodBtn addTarget:self
                 action:@selector(doButtonClicked:)
@@ -58,7 +58,7 @@
 
     UIButton *badBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     badBtn.tag = 2;
-    badBtn.frame = CGRectMake(rect.size.width/2+5, rect.size.height-25, 20, 20);
+    badBtn.frame = CGRectMake(rect.size.width/2+5, rect.size.height-25, 30, 30);
     [badBtn setTitle:@"逊"
             forState:UIControlStateNormal];
     [badBtn addTarget:self

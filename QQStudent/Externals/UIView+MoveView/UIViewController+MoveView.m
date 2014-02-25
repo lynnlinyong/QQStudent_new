@@ -8,6 +8,7 @@
 
 #import "UIViewController+MoveView.h"
 
+static int originY = 0;
 @implementation UIViewController (MoveView)
 
 //恢复视图
@@ -17,7 +18,7 @@
     [UIView beginAnimations:@"ResizeForKeyboard" context:nil];         
     
     [UIView setAnimationDuration:animationDuration];         
-    CGRect rect  = CGRectMake(0.0f, 0.0f, parent.frame.size.width,
+    CGRect rect  = CGRectMake(parent.frame.origin.x, originY, parent.frame.size.width,
                                                 parent.frame.size.height);         
     parent.frame = rect;  
     
@@ -36,13 +37,16 @@
     [UIView beginAnimations:@"ResizeForKeyBoard" context:nil];                 
     [UIView setAnimationDuration:animationDuration];  
     
+    originY = parentView.frame.origin.y;
+    
     float width  = parentView.frame.size.width;                 
     float height = parentView.frame.size.height;         
     if(offset > 0)  
     {
-        CGRect rect      = CGRectMake(0.0f, -offset, width, height);
+        CGRect rect      = CGRectMake(parentView.frame.origin.x,
+                                      -offset, width, height);
         parentView.frame = rect;         
-    }    
+    }
     
     [UIView commitAnimations]; 
 }

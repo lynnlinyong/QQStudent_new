@@ -29,6 +29,9 @@
     
     //初始化UI
     [self initUI];
+    
+    [self searchProvice];
+    [self setGrideView];
 }
 
 - (void)didReceiveMemoryWarning

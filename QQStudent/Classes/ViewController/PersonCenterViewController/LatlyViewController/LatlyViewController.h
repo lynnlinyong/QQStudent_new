@@ -16,7 +16,6 @@
 {
     UITableView     *latlyTab;
     NSDictionary    *sysDic;
-    
     EGORefreshTableHeaderView *_refreshHeaderView;
 	BOOL _reloading;
 }

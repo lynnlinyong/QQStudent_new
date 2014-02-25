@@ -56,6 +56,8 @@
 {
     [phoneFld           release];
     [userNameFld        release];
+    [emailImgView       release];
+    [phoneImgView       release];
     [super dealloc];
 }
 
@@ -129,31 +131,44 @@
     
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
     Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    
     UIImage *normalImg = [UIImage imageNamed:@"normal_fld"];
-    userNameFld = [[UITextField alloc]init];
+    emailImgView = [[UIImageView alloc]initWithImage:normalImg];
+    userNameFld  = [[UITextField alloc]init];
     userNameFld.delegate    = self;
     userNameFld.text        = student.email;
     userNameFld.borderStyle = UITextBorderStyleNone;
     userNameFld.placeholder = @"输入注册邮箱";
-    userNameFld.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2,
-                                                     80,
-                                                     normalImg.size.width,
+    userNameFld.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2+5,
+                                                     70,
+                                                     normalImg.size.width-5,
                                                      normalImg.size.height)
                                isBackView:NO];
-    userNameFld.background  = normalImg;
+    emailImgView.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2,
+                                                      65,
+                                                      normalImg.size.width,
+                                                      normalImg.size.height+10)
+                                isBackView:NO];
+    [self.view addSubview:emailImgView];
     [self.view addSubview:userNameFld];
     
     phoneFld = [[UITextField alloc]init];
+    phoneImgView  = [[UIImageView alloc]initWithImage:normalImg];
     phoneFld.delegate = self;
     phoneFld.text     = student.phoneNumber;
     phoneFld.borderStyle = UITextBorderStyleNone;
     phoneFld.placeholder = @"输入手机号码";
-    phoneFld.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2,
+    phoneFld.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2+5,
                                                   80+normalImg.size.height+10,
-                                                  normalImg.size.width,
+                                                  normalImg.size.width-5,
                                                   normalImg.size.height)
                             isBackView:NO];
-    phoneFld.background  = normalImg;
+    phoneImgView.frame = [UIView fitCGRect:CGRectMake(160-normalImg.size.width/2,
+                                                      80+normalImg.size.height+5,
+                                                      normalImg.size.width,
+                                                      normalImg.size.height+10)
+                                isBackView:NO];
+    [self.view addSubview:phoneImgView];
     [self.view addSubview:phoneFld];
     
     UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
@@ -161,7 +176,7 @@
     [loginBtn setTitle:@"登录"
               forState:UIControlStateNormal];
     [loginBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
-                   forState:UIControlStateHighlighted];
+                   forState:UIControlStateNormal];
     [loginBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
                    forState:UIControlStateHighlighted];
     [loginBtn setBackgroundImage:loginImg
@@ -318,13 +333,13 @@
 {
     if (textField == userNameFld)
     {
-        userNameFld.background = [UIImage imageNamed:@"hight_fld"];
-        phoneFld.background    = [UIImage imageNamed:@"normal_fld"];
+        emailImgView.image    = [UIImage imageNamed:@"hight_fld"];
+        phoneImgView.image    = [UIImage imageNamed:@"normal_fld"];
     }
     else
     {
-        phoneFld.background    = [UIImage imageNamed:@"hight_fld"];
-        userNameFld.background = [UIImage imageNamed:@"normal_fld"];
+        phoneImgView.image    = [UIImage imageNamed:@"hight_fld"];
+        emailImgView.image    = [UIImage imageNamed:@"normal_fld"];
     }
     
     [self moveViewWhenViewHidden:loginBtn parent:self.view];

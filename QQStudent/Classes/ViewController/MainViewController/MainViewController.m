@@ -39,15 +39,17 @@
     //初始化UI
     [self initUI];
     
+    //获取终端设置属性
+    [self setTerminalMapProperty];
+    
     //获得Web服务器地址
     [MainViewController getWebServerAddress];
     
     //获得帮助电话
     [self getHelpPhone];
 
-    //版本检测
-    [self checkNewVersion];
-
+//    //版本检测
+//    [self checkNewVersion];
 }
 
 - (void)didReceiveMemoryWarning
@@ -90,12 +92,33 @@
     [title release];
     
     //显示地图
-    self.mapView=[[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 480)
+    NSDictionary *tpDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
+    int updateMeters = 10;
+    float zooms = 13;
+    if (tpDic)
+    {
+        zooms = ((NSNumber *)[tpDic objectForKey:@"mapzoom"]).floatValue;
+        updateMeters = ((NSNumber *)[tpDic objectForKey:@"uplocationNumber"]).intValue;
+    }
+    
+    self.mapView = [[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0,
+                                                                                 320, 480)
                                                          isBackView:YES]];
     self.mapView.showsScale = NO;
     self.mapView.delegate   = self;
-    [self.view addSubview:self.mapView];
+    self.mapView.distanceFilter  = updateMeters;//10米位置更新到服务器
+    self.mapView.headingFilter   = 180;
+    if (updateMeters<100)
+        self.mapView.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
+    else if (updateMeters>100 && updateMeters<1000)
+        self.mapView.desiredAccuracy = kCLLocationAccuracyHundredMeters;
+    else if (updateMeters>1000 && updateMeters<3000)
+        self.mapView.desiredAccuracy = kCLLocationAccuracyKilometer;
+    else
+        self.mapView.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
+    [self.mapView setZoomLevel:zooms];
     self.mapView.showsUserLocation = YES;
+    [self.view addSubview:self.mapView];
     
     UIImage *navImg   = [UIImage imageNamed:@"main_nav_normal_btn@2x"];
     UIButton *navBtn  = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -134,6 +157,56 @@
                                              selector:@selector(cancelDownLoad:)
                                                  name:@"cancelDownLoad"
                                                object:nil];
+}
+
+- (void) setTerminalMapProperty
+{
+    NSDictionary *tpDic= [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
+    if (!tpDic)
+    {
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getMapZoom", nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        
+        NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url      = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+        ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+        NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
+                                               paramDic:pDic
+                                                 urlStr:url];
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic  = [resStr JSONValue];
+        if (resDic)
+        {
+            CLog(@"Map ResDic:%@", resDic);
+            
+            //保存终端设置
+            [[NSUserDefaults standardUserDefaults] setObject:resDic
+                                                      forKey:@"TERMINAL_PROPERTY"];
+            
+            //显示默认中心
+            NSString *lg = [tpDic objectForKey:@"longitude"];
+            NSString *la = [tpDic objectForKey:@"latitude"];
+            self.mapView.centerCoordinate = CLLocationCoordinate2DMake(la.floatValue,
+                                                                       lg.floatValue);
+            //更新个人位置服务器
+            [self searchReGeocode:self.mapView.centerCoordinate];
+            meAnn.coordinate = self.mapView.centerCoordinate;
+            
+            //搜索附近老师
+            [self searchNearTeacher];
+        }
+        else
+        {
+            CLog(@"setTerminalProperty failed!");
+        }
+    }
+    else
+    {
+        CLog(@"setTerminalProperty Haved Success!");
+    }
 }
 
 + (void) getWebServerAddress
@@ -251,9 +324,9 @@
 
 - (void) searchNearTeacher
 {
-    CLLocationCoordinate2D  loc = self.mapView.userLocation.coordinate;
-    NSString *log = [NSString stringWithFormat:@"%f", loc.longitude];
-    NSString *la  = [NSString stringWithFormat:@"%f", loc.latitude];
+    CLLocationCoordinate2D  loc = self.mapView.centerCoordinate;
+    NSString *log  = [NSString stringWithFormat:@"%f", loc.longitude];
+    NSString *la   = [NSString stringWithFormat:@"%f", loc.latitude];
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     if (ssid)
     {
@@ -262,7 +335,7 @@
                               @"kcbzIndex",@"zoom",@"sessid", nil];
         NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",la,log,
                               @"0",@"0",@"0",
-                              @"0",@"0",ssid, nil];
+                              @"0",[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
         
@@ -273,6 +346,11 @@
         [request requestASyncWith:kServerPostRequest
                          paramDic:pDic
                            urlStr:url];
+    }
+    else
+    {
+        [self.mapView removeAnnotation:self.mapView.userLocation];
+        [self.mapView removeOverlays:self.mapView.overlays];
     }
     
     _calloutMapAnnotation = [[CalloutMapAnnotation alloc]init];
@@ -340,7 +418,8 @@
     else
     {
         PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
-        [self.navigationController pushViewController:pcVctr animated:YES];
+        [self.navigationController pushViewController:pcVctr
+                                             animated:YES];
         [pcVctr release];
     }
 }
@@ -428,7 +507,6 @@
                                              appurl,@"AppURL", nil];
             [[NSUserDefaults standardUserDefaults] setObject:versionDic
                                                       forKey:APP_VERSION];
-            
         }
         else if ([action isEqualToString:@"findNearbyTeacher"])
         {
@@ -443,6 +521,13 @@
             
             //添加老师地图标注
             [self initTeachersAnnotation];
+            
+            //删除我的位置标注
+            if (self.mapView.overlays.count>0)
+            {
+                [self.mapView removeAnnotation:self.mapView.userLocation];
+                [self.mapView removeOverlay:self.mapView.overlays[0]];
+            }
         }
         else if ([action isEqualToString:@"uplocation"])
         {
@@ -487,10 +572,19 @@
 #pragma mark - MAMapViewDelegate
 - (void) mapView:(MAMapView *)mapView didUpdateUserLocation:(MAUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
-    [self.mapView setCenterCoordinate:userLocation.coordinate];
-    
-    if (self.mapView.showsUserLocation)
+    //添加个人位置标注,选择地点标注
+    if (!meAnn)
     {
+        meAnn = [[[CustomPointAnnotation alloc] init]autorelease];
+        meAnn.tag = 1000;
+        [self.mapView addAnnotation:meAnn];
+    }
+    
+    if (updatingLocation)
+    {
+        [self.mapView setCenterCoordinate:userLocation.coordinate];
+        meAnn.coordinate = userLocation.location.coordinate;
+        
         //保存个人位置
         NSString *log = [NSString stringWithFormat:@"%f",userLocation.coordinate.longitude];
         NSString *la  = [NSString stringWithFormat:@"%f", userLocation.coordinate.latitude];
@@ -498,19 +592,76 @@
                                                   forKey:@"LONGITUDE"];
         [[NSUserDefaults standardUserDefaults] setObject:la
                                                   forKey:@"LATITUDE"];
-        
+
+        CLog(@"New Loc:%@,%@", log, la);
         //更新个人位置服务器
         [self searchReGeocode:userLocation.coordinate];
-        
+    
         //搜索附近老师
         [self searchNearTeacher];
     }
-    self.mapView.showsUserLocation = NO;
 }
 
 - (void) mapView:(MAMapView *)mapView didFailToLocateUserWithError:(NSError *)error
 {
     CLog(@"Locate User Failed");
+    
+    //显示默认中心
+    NSDictionary *tpDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
+    if (tpDic)
+    {
+        NSString *lg = [tpDic objectForKey:@"longitude"];
+        NSString *la = [tpDic objectForKey:@"latitude"];
+        self.mapView.centerCoordinate = CLLocationCoordinate2DMake(la.floatValue,
+                                                                   lg.floatValue);
+    }
+    
+    //更新个人位置服务器
+    [self searchReGeocode:self.mapView.centerCoordinate];
+    meAnn.coordinate = self.mapView.centerCoordinate;
+    
+    //搜索附近老师
+    [self searchNearTeacher];
+}
+
+- (void) mapView:(MAMapView *)mapView regionDidChangeAnimated:(BOOL)animated
+{   
+    //获得市、区、街道的缩放级别
+    NSDictionary *tpDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
+    if (tpDic)
+    {
+        float cityZooms   = ((NSNumber *)[tpDic objectForKey:@"cityZoom"]).floatValue;
+        float distZooms   = ((NSNumber *)[tpDic objectForKey:@"districtZoom"]).floatValue;
+        float streatZooms = ((NSNumber *)[tpDic objectForKey:@"streetZoom"]).floatValue;
+        
+        float cityFilter  = ((NSNumber *)[tpDic objectForKey:@"mapCityDistance"]).floatValue;
+        float distFilter  = ((NSNumber *)[tpDic objectForKey:@"mapDistrictDistance"]).floatValue;
+        float streatFilter= ((NSNumber *)[tpDic objectForKey:@"mapStreetDistance"]).floatValue;
+        CLog(@"city:%f dist:%f streat:%f", cityZooms, distZooms, streatZooms);
+        
+        //重新设置地图的缩放级别
+        if (self.mapView.zoomLevel<cityZooms)
+            self.mapView.distanceFilter = cityFilter;
+        else if ((self.mapView.zoomLevel>cityZooms)&&(self.mapView.zoomLevel<streatZooms))
+            self.mapView.distanceFilter = distFilter;
+        else
+            self.mapView.distanceFilter = streatFilter;
+        
+        float updateMeters = self.mapView.distanceFilter;
+        if (updateMeters<100)
+            self.mapView.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
+        else if (updateMeters>100 && updateMeters<1000)
+            self.mapView.desiredAccuracy = kCLLocationAccuracyHundredMeters;
+        else if (updateMeters>1000 && updateMeters<3000)
+            self.mapView.desiredAccuracy = kCLLocationAccuracyKilometer;
+        else
+            self.mapView.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
+    }
+    //搜索附近老师
+    [self searchNearTeacher];
+    
+    [self.mapView removeAnnotation:self.mapView.userLocation];
+    [self.mapView removeOverlays:self.mapView.overlays];
 }
 
 - (MAAnnotationView*)mapView:(MAMapView *)mapView viewForAnnotation:(id<MAAnnotation>)annotation
@@ -518,15 +669,30 @@
     if ([annotation isKindOfClass:[MAPointAnnotation class]])
     {
         static NSString *pointReuseIndetifier = @"pointReuseIndetifier";
-        TTCustomAnnotationView *annView = (TTCustomAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
-        if (annView == nil)
+        CustomPointAnnotation *cpAnn = (CustomPointAnnotation *) annotation;
+        if (cpAnn.tag == 1000)
         {
-            annView = [[TTCustomAnnotationView alloc] initWithAnnotation:annotation
-                                                         reuseIdentifier:pointReuseIndetifier];
-//            annView.canShowCallout = YES;    //设置气泡可以弹出,默认为NO
-//            annView.draggable      = YES;    //设置标注可以拖动,默认为NO
+            MAAnnotationView *annView = (MAAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
+            if (annView == nil)
+            {
+                annView = [[MAAnnotationView alloc] initWithAnnotation:annotation
+                                                       reuseIdentifier:pointReuseIndetifier];
+            }
+            annView.image = [UIImage imageNamed:@"my_location_icon"];
+            return annView;
         }
-        return annView;
+        else
+        {
+            TTCustomAnnotationView *annView = (TTCustomAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
+            if (annView == nil)
+            {
+                annView = [[TTCustomAnnotationView alloc] initWithAnnotation:annotation
+                                                             reuseIdentifier:pointReuseIndetifier];
+    //            annView.canShowCallout = YES;    //设置气泡可以弹出,默认为NO
+    //            annView.draggable      = YES;    //设置标注可以拖动,默认为NO
+            }
+            return annView;
+        }
     }
     else if ([annotation isKindOfClass:[CalloutMapAnnotation class]])
     {
@@ -564,6 +730,9 @@
 - (void) mapView:(MAMapView *)mapView didSelectAnnotationView:(MAAnnotationView *)view
 {
     CustomPointAnnotation *annn = (CustomPointAnnotation*)view.annotation;
+    if (annn.tag == 1000)   //我的位置
+        return;
+    
     if ([view.annotation isKindOfClass:[MAPointAnnotation class]]) {
         //如果点到了这个marker点，什么也不做
         if (_calloutMapAnnotation.coordinate.latitude == view.annotation.coordinate.latitude&&
@@ -591,7 +760,6 @@
 - (void) mapView:(MAMapView *)mapView didDeselectAnnotationView:(MAAnnotationView *)view
 {
     if (_calloutMapAnnotation&&![view isKindOfClass:[CallOutAnnotationView class]]) {
-        
         if (_calloutMapAnnotation.coordinate.latitude == view.annotation.coordinate.latitude&&
             _calloutMapAnnotation.coordinate.longitude == view.annotation.coordinate.longitude) {
             [self.mapView removeAnnotation:_calloutMapAnnotation];

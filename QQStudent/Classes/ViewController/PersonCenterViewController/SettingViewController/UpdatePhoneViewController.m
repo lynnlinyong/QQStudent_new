@@ -13,6 +13,7 @@
 @end
 
 @implementation UpdatePhoneViewController
+@synthesize phone;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -69,6 +70,7 @@
     [contentLab release];
     
     txtFld = [[UITextField alloc]init];
+    txtFld.text = phone;
     txtFld.delegate = self;
     txtFld.borderStyle = UITextBorderStyleLine;
     txtFld.frame    = CGRectMake(20, 50, 200, 20);
@@ -99,6 +101,12 @@
 #pragma mark - Control Event
 - (void) doButtonClicked:(id)sender
 {
+    //检查格式
+    if (![self checkInfo])
+    {
+        return;
+    }
+    
     UIButton *btn      = sender;
     NSNumber *tagNum   = [NSNumber numberWithInt:btn.tag];
     NSDictionary *pDic = [NSDictionary dictionaryWithObjectsAndKeys:tagNum,@"TAG", txtFld.text,@"CONTENT",nil];
@@ -106,6 +114,33 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"updatePhoneNotice"
                                                         object:nil
                                                       userInfo:pDic];
+}
+
+- (BOOL) checkInfo
+{
+    if (txtFld.text.length == 0)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"登录信息不完整!"
+                        delegate:self
+               otherButtonTitles:@"确定", nil];
+        
+        return NO;
+    }
+    
+    BOOL isPhone = [txtFld.text isMatchedByRegex:@"^(13[0-9]|15[0-9]|18[0-9])\\d{8}$"];
+    if (!isPhone)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:1
+                         message:@"手机号格式不正确"
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+        return NO;
+    }
+    
+    return YES;
 }
 
 #pragma mark -

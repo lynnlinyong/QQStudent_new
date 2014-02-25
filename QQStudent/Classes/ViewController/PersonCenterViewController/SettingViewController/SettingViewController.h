@@ -8,6 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
+typedef enum _tagUpdateType
+{
+    EmailUpdate=0,
+    PhoneUpdate,
+    OtherUpdate
+}UpdateType;
+
 @interface SettingViewController : UIViewController<
                                                     ServerRequestDelegate,
                                                     UITableViewDataSource,
@@ -24,6 +31,8 @@
     UILabel       *accountValLab;
     
     Student       *student;
+    
+    UpdateType    updateType;
 }
 
 @end

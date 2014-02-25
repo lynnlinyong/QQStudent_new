@@ -48,6 +48,26 @@
     [super viewDidUnload];
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(showTeacherDetailNotice:)
+                                                 name:@"showTeacherDetailNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(dismissComplainNotice:)
+                                                 name:@"dismissComplainNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(refreshNewData:)
+                                                 name:@"refreshNewData"
+                                               object:nil];
+}
+
 - (void) viewDidDisappear:(BOOL)animated
 {
     [listenBtn removeFromSuperview];
@@ -55,6 +75,8 @@
     
     [employBtn removeFromSuperview];
     employBtn = nil;
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     [super viewDidDisappear:animated];
 }
@@ -76,10 +98,44 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
+    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
+    title.backgroundColor = [UIColor clearColor];
+    title.textAlignment   = UITextAlignmentCenter;
+    title.text = @"和老师沟通";
+    self.navigationItem.titleView = title;
+    [title release];
+    
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0,
+                                   0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
+    
     self.delegate = self;
     self.dataSource = self;
-    
-    self.title = @"Messages";
     self.messages   = [[NSMutableArray alloc]init];
 
     listenBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
@@ -105,21 +161,6 @@
     [self isShowListenBtn];
     if (!order)
         [self isShowEmployBtn];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(showTeacherDetailNotice:)
-                                                 name:@"showTeacherDetailNotice"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(dismissComplainNotice:)
-                                                 name:@"dismissComplainNotice"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(refreshNewData:)
-                                                 name:@"refreshNewData"
-                                               object:nil];
 }
 
 - (void) initPullView
@@ -385,6 +426,11 @@
     }
 }
 
+- (void) doBackBtnClicked:(id)sender
+{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
 #pragma mark -
 #pragma mark - UILongPressButtonDelegate
 - (void) longPressButton:(UILongPressButton *)btn status:(ButtonStatus)status
@@ -465,10 +511,14 @@
             //跳转到
             if (order)
             {
+                AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+                UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
                 UpdateOrderViewController *upVctr = [[UpdateOrderViewController alloc]init];
                 upVctr.order = [order copy];
-                [self.navigationController pushViewController:upVctr
-                                                     animated:YES];
+                [nav pushViewController:upVctr
+                               animated:YES];
+//                [self.navigationController pushViewController:upVctr
+//                                                     animated:YES];
                 [upVctr release];
             }
             break;
@@ -570,10 +620,14 @@
 #pragma mark - Notice
 - (void) showTeacherDetailNotice:(NSNotification *) notice
 {
+    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
     TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
     tdVctr.tObj = tObj;
-    [self.navigationController pushViewController:tdVctr
-                                         animated:YES];
+    [nav pushViewController:tdVctr
+                   animated:YES];
+//    [self.navigationController pushViewController:tdVctr
+//                                         animated:YES];
     [tdVctr release];
 }
 
