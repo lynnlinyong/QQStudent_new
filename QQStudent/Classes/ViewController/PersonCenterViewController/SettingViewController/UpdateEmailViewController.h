@@ -11,6 +11,7 @@
 @interface UpdateEmailViewController : UIViewController<UITextFieldDelegate>
 {
     UITextField *txtFld;
+    UIButton    *okBtn;
 }
 @property (nonatomic, retain) NSString *email;
 @end

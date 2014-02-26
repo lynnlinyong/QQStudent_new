@@ -35,7 +35,7 @@
     {
         self.backgroundColor = [UIColor clearColor];
         self.canShowCallout = NO;
-        self.centerOffset = CGPointMake(0, -55);
+        self.centerOffset = CGPointMake(0, -58);
         self.frame = CGRectMake(0, 0, 240, 80);
         
         contentView     =      [[UIView alloc] initWithFrame:CGRectMake(5,

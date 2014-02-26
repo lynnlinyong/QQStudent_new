@@ -17,13 +17,26 @@
     self = [super initWithFrame:frame];
     if (self) {
         isRecord    = NO;
-        pressButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        
+        UIImage *btnImg   = [UIImage imageNamed:@"normal_btn"];
+        UIImage *micImg   = [UIImage imageNamed:@"sd_mic_btn"];
+        UIImageView *micImgView = [[UIImageView alloc]initWithImage:micImg];
+        micImgView.frame = CGRectMake(20, btnImg.size.height/2-micImg.size.height/2,
+                                              micImg.size.width, micImg.size.height);
+        
+        pressButton = [UIButton buttonWithType:UIButtonTypeCustom];
         pressButton.frame = CGRectMake(0,
                                        0,
-                                       frame.size.width,
-                                       frame.size.height);
-        [pressButton setTitle:@"长按 说话"
+                                       btnImg.size.width,
+                                       btnImg.size.height);
+        pressButton.titleLabel.font = [UIFont systemFontOfSize:14.f];
+        [pressButton addSubview:micImgView];
+        [pressButton setTitleColor:[UIColor blackColor]
+                          forState:UIControlStateNormal];
+        [pressButton setTitle:@"按住 说话"
                      forState:UIControlStateNormal];
+        [pressButton setBackgroundImage:btnImg
+                               forState:UIControlStateNormal];
         [pressButton addTarget:self
                         action:@selector(longPressDown:)
               forControlEvents:UIControlEventTouchDown];

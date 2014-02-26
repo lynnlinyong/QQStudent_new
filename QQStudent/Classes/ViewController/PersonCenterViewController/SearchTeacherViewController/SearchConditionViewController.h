@@ -29,6 +29,7 @@
     
     NSDictionary *salaryDic;
     
+    UIButton *orderBtn;
     UIButton *recordBtn;
     UIButton *keyBoardBtn;
     

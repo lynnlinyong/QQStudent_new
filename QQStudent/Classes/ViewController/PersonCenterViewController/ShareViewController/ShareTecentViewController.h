@@ -9,10 +9,10 @@
 #import <UIKit/UIKit.h>
 
 @interface ShareTecentViewController : UIViewController<
-                                                    UITextFieldDelegate,
-                                                    WeiboRequestDelegate>
+                                                    WeiboRequestDelegate,
+                                                    CustomNavigationDataSource>
 {
     TTImageView  *shareImgView;
-    UITextField  *shareContentFld;
+    UITextView   *shareContentFld;
 }
 @end

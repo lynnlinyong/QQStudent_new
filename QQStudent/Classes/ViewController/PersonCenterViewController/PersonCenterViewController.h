@@ -8,8 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface PersonCenterViewController : UITabBarController
+@interface PersonCenterViewController : LeveyTabBarController
 {
-    UITabBarController    *pTabBarCtr;
+//    UITabBarController    *pTabBarCtr;
 }
+
 @end

@@ -9,10 +9,11 @@
 #import <UIKit/UIKit.h>
 
 @interface SelectSexViewController : UIViewController<
-                                                    UIGridViewDelegate,
+                                                    UITableViewDelegate,
+                                                    UITableViewDataSource,
                                                     QRadioButtonDelegate>
 {
-    UIGridView  *gdView;
+    UITableView *gdView;
     int         selectRadioIndex;
 }
 

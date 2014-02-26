@@ -10,10 +10,10 @@
 
 @interface ShareSinaViewController : UIViewController<
                                                     SinaWeiboDelegate,
-                                                    UITextFieldDelegate,
-                                                    SinaWeiboRequestDelegate>
+                                                    SinaWeiboRequestDelegate,
+                                                    CustomNavigationDataSource>
 {
     TTImageView  *shareImgView;
-    UITextField  *shareContentFld;
+    UITextView   *shareContentFld;
 }
 @end

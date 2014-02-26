@@ -13,6 +13,8 @@
 @synthesize tsLab;
 @synthesize sImgView;
 @synthesize headImgView;
+@synthesize delegate;
+@synthesize tObj;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -21,9 +23,13 @@
         
         float width = self.frame.size.width;
         
+//        UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
+//                                                                                action:@selector(tapGestureRecongnizer:)];
         headImgView = [[TTImageView alloc]init];
         headImgView.frame = CGRectMake(0, 0, 50, 50);
         [self addSubview:headImgView];
+//        [headImgView addGestureRecognizer:tapReg];
+//        [tapReg release];
         
         introLab = [[UILabel alloc]init];
         introLab.frame = CGRectMake(55, 0, width-55, 20);
@@ -45,11 +51,30 @@
 
 - (void) dealloc
 {
+    [tObj release];
     [tsLab release];
     [sImgView release];
     [introLab release];
     [headImgView release];
     [super dealloc];
+}
+
+- (void) setTObj:(Teacher *)obj
+{
+    tObj = nil;
+    tObj = [obj copy];
+    
+    self.headImgView.URL = tObj.headUrl;
+    if (tObj.sex == 1)
+    {
+        self.introLab.text = [NSString stringWithFormat:@"%@ 男", tObj.name];
+    }
+    else
+    {
+        self.introLab.text = [NSString stringWithFormat:@"%@ 女", tObj.name];
+    }
+    self.tsLab.text = [NSString stringWithFormat:@"已辅导%d位学生", tObj.studentCount];
+    [self.sImgView setHlightStar:tObj.comment];
 }
 
 @end

@@ -194,6 +194,13 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    [MainViewController setNavTitle:@"选择授课地点"];
+}
+
 - (void) viewDidUnload
 {
     [self.locatePicker removeObserver:self
@@ -222,42 +229,6 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment   = UITextAlignmentCenter;
-    title.text = @"选择授课地点";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0,
-                                   0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
     //显示地图
     self.mapView = [[MAMapView alloc] initWithFrame:CGRectMake(0,
                                                                0,
@@ -371,11 +342,6 @@
     NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [notice.userInfo objectForKey:@"PROVICE"],[notice.userInfo objectForKey:@"CITY"],[notice.userInfo objectForKey:@"DIST"]];
     CLog(@"posAddress:%@", posAddress);
     [self searchGeocode:posAddress];
-}
-
-- (void) doBackBtnClicked:(id)sender
-{
-    [self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark -
@@ -541,8 +507,19 @@
     CLog(@"Postation:%@ %@ %@ %@", response.regeocode.addressComponent.province, response.regeocode.addressComponent.city,response.regeocode.addressComponent.district,response.regeocode.addressComponent.neighborhood);
     
     NSString *provice = response.regeocode.addressComponent.province;
-    NSString *city = response.regeocode.addressComponent.city;
-    NSString *dist = response.regeocode.addressComponent.district;
+    if (!provice)
+        provice = @"";
+    
+    NSString *city    = response.regeocode.addressComponent.city;
+    if (!city)
+        city = @"";
+    
+    NSString *dist    = response.regeocode.addressComponent.district;
+    if (!dist)
+        dist = @"";
+    
+    if (!posName)
+        posName = @"";
     
     [posDic setObject:provice forKey:@"PROVICE"];
     [posDic setObject:city forKey:@"CITY"];
@@ -551,6 +528,13 @@
     
     toolBar.posFld.text = posName;
     toolBar.posFld.font = [UIFont systemFontOfSize:10.f];
+    
+    //删除我的位置标注
+    if (self.mapView.overlays.count>0)
+    {
+        [self.mapView removeAnnotation:self.mapView.userLocation];
+        [self.mapView removeOverlay:self.mapView.overlays[0]];
+    }
 }
 
 - (void)onGeocodeSearchDone:(AMapGeocodeSearchRequest *)request
@@ -684,15 +668,31 @@
         _calloutMapAnnotation = [[[CalloutMapAnnotation alloc] initWithLatitude:view.annotation.coordinate.latitude andLongitude:view.annotation.coordinate.longitude]autorelease];
         _calloutMapAnnotation.site =annn.siteObj;
 
+        NSString *provice = annn.siteObj.proviceName;
+        if (!provice)
+            provice = @"";
+        
+        NSString *city    = annn.siteObj.cityName;
+        if (!city)
+            city = @"";
+        
+        NSString *dist    = annn.siteObj.districtName;
+        if (!dist)
+            dist = @"";
+        
+        NSString *address = annn.siteObj.address;
+        if (!address)
+            address = @"";
+        
         //显示地址
-        toolBar.posFld.text = annn.siteObj.address;
-        [posDic setObject:annn.siteObj.proviceName
+        toolBar.posFld.text = address;
+        [posDic setObject:provice
                    forKey:@"PROVICE"];
-        [posDic setObject:annn.siteObj.cityName
+        [posDic setObject:city
                    forKey:@"CITY"];
-        [posDic setObject:annn.siteObj.districtName
+        [posDic setObject:dist
                    forKey:@"DIST"];
-        [posDic setObject:annn.siteObj.address
+        [posDic setObject:address
                    forKey:@"ADDRESS"];
         
         [self.mapView addAnnotation:_calloutMapAnnotation];
@@ -704,7 +704,6 @@
 - (void) mapView:(MAMapView *)mapView didDeselectAnnotationView:(MAAnnotationView *)view
 {
     if (_calloutMapAnnotation && ![view isKindOfClass:[CallOutAnnotationView class]]) {
-        CLog(@"Deselect");
         if (_calloutMapAnnotation.coordinate.latitude == view.annotation.coordinate.latitude&&
             _calloutMapAnnotation.coordinate.longitude == view.annotation.coordinate.longitude) {
             [self.mapView removeAnnotation:_calloutMapAnnotation];
@@ -753,13 +752,6 @@
             
             //显示第三方场地
             [self initOtherSitesAnnotation:sites];
-            
-            //删除我的位置标注
-            if (self.mapView.overlays.count>0)
-            {
-                [self.mapView removeAnnotation:self.mapView.userLocation];
-                [self.mapView removeOverlay:self.mapView.overlays[0]];
-            }
         }
     }
 }

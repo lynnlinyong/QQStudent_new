@@ -9,8 +9,8 @@
 #import "CalloutMapAnnotation.h"
 
 @implementation CalloutMapAnnotation
-@synthesize latitude;
-@synthesize longitude;
+@synthesize latitude = _latitude;
+@synthesize longitude = _longitude;
 @synthesize teacherObj;
 @synthesize site;
 
@@ -18,19 +18,18 @@
           andLongitude:(CLLocationDegrees)lon
 {
     if (self = [super init]) {
-        self.latitude = lat;
-        self.longitude = lon;
+
+        CLog(@"cur:%f,%f", lat,lon);
+        _latitude  = lat;
+        _longitude = lon;
+        CLog(@"cur1:%f,%f", _latitude,_longitude);
     }
     return self;
 }
 
-
--(CLLocationCoordinate2D)coordinate
+- (CLLocationCoordinate2D)coordinate
 {
-    CLLocationCoordinate2D coordinate;
-    coordinate.latitude = self.latitude;
-    coordinate.longitude = self.longitude;
-    return coordinate;
+    return CLLocationCoordinate2DMake(self.latitude, self.longitude);
 }
 
 @end

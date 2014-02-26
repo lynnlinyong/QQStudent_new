@@ -38,16 +38,17 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = YES;
+    self.navigationController.navigationBarHidden = YES;
+    
+    [MainViewController setNavTitle:@"个人中心"];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updateEmailInfoNotice:) name:@"updateEmailInfoNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(updateEmailNotice:) name:@"updateEmailNotice"
+                                             selector:@selector(updateEmailNotice:)
+                                                 name:@"updateEmailNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -55,7 +56,8 @@
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(updatePhoneNotice:) name:@"updatePhoneNotice"
+                                             selector:@selector(updatePhoneNotice:)
+                                                 name:@"updatePhoneNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -71,10 +73,6 @@
 
 - (void) viewDidDisappear:(BOOL)animated
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = NO;
-    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
@@ -96,41 +94,6 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment = UITextAlignmentCenter;
-    title.text = @"个人中心";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0, 0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
     student = [[NSKeyedUnarchiver unarchiveObjectWithData:stuData] copy];
     
@@ -198,12 +161,15 @@
         //更新个人信息
         [self updateStudentInfo];
     }
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) updateEmailInfoNotice:(NSNotification *) notice
 {
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
     int tag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
     switch (tag)
     {
@@ -211,8 +177,8 @@
         {
             UpdateEmailViewController *ueVctr = [[UpdateEmailViewController alloc]init];
             ueVctr.email = student.email;
-            [self presentPopupViewController:ueVctr
-                               animationType:MJPopupViewAnimationFade];
+            [nav presentPopupViewController:ueVctr
+                              animationType:MJPopupViewAnimationFade];
             break;
         }
         default:
@@ -232,7 +198,8 @@
         [self updateStudentInfo];
     }
     
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) updatePhoneNotice:(NSNotification *) notice
@@ -246,12 +213,14 @@
         //更新个人信息
         [self updateStudentInfo];
     }
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) suggestNotice:(NSNotification *) notice
 {
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
     int tag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
     switch (tag)
     {
@@ -268,8 +237,8 @@
 
 - (void) updatePhoneInfoNotice:(NSNotification *) notice
 {
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
-    
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
     int tag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
     switch (tag)
     {
@@ -277,7 +246,7 @@
         {
             UpdatePhoneViewController *ueVctr = [[UpdatePhoneViewController alloc]init];
             ueVctr.phone = student.phoneNumber;
-            [self presentPopupViewController:ueVctr
+            [nav presentPopupViewController:ueVctr
                                animationType:MJPopupViewAnimationFade];
             break;
         }
@@ -288,15 +257,6 @@
 
 #pragma mark -
 #pragma mark - Controller Event
-- (void) doBackBtnClicked:(id)sender
-{
-    MainViewController *mVctr   = [[MainViewController alloc]init];
-    UINavigationController *nvc = [[UINavigationController alloc]initWithRootViewController:mVctr];
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    app.window.rootViewController = nvc;
-    [mVctr release];
-}
-
 - (void) doValueChanged:(id)sender
 {
     UISwitch *sw = sender;
@@ -334,13 +294,14 @@
     
     //显示登录页面
     MainViewController *mVc     = [[MainViewController alloc]init];
-    LoginViewController *lVctr  = [[LoginViewController alloc]init];
-    UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:mVc];
-    [mVc release];
+    CustomNavigationViewController *nav = [[CustomNavigationViewController alloc]initWithRootViewController:mVc];
     AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     app.window.rootViewController = nav;
+    
+    LoginViewController *lVctr  = [[LoginViewController alloc]init];
     [nav pushViewController:lVctr
                    animated:YES];
+    [mVc release];
 }
 
 #pragma mark -
@@ -665,6 +626,7 @@
 
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     switch (indexPath.section)
     {
         case 0:      //开关设置
@@ -678,14 +640,14 @@
                 case 0:        //邮箱
                 {
                     UpdateEmailInfoViewController *uiVctr = [[UpdateEmailInfoViewController alloc]init];
-                    [self presentPopupViewController:uiVctr
-                                       animationType:MJPopupViewAnimationFade];
+                    [nav presentPopupViewController:uiVctr
+                                      animationType:MJPopupViewAnimationFade];
                     break;
                 }
                 case 1:        //电话
                 {
                     UpdatePhoneInfoViewController *upVctr = [[UpdatePhoneInfoViewController alloc]init];
-                    [self presentPopupViewController:upVctr
+                    [nav presentPopupViewController:upVctr
                                        animationType:MJPopupViewAnimationFade];
 
                     break;
@@ -693,7 +655,7 @@
                 case 2:        //年级
                 {
                     SetGradeViewController *sgVctr = [[SetGradeViewController alloc]init];
-                    [self presentPopupViewController:sgVctr
+                    [nav presentPopupViewController:sgVctr
                                        animationType:MJPopupViewAnimationFade];
                     break;
                 }
@@ -708,8 +670,6 @@
                 case 5:        //绑定账号
                 {
                     //跳转分享页面
-                    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-                    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
                     for (UIViewController *vtr in nav.viewControllers)
                     {
                         if ([vtr isKindOfClass:[LeveyTabBarController class]])
@@ -731,18 +691,14 @@
                 case 0:          //建议反馈
                 {
                     SuggestViewController *sVctr = [[SuggestViewController alloc]init];
-                    [self presentPopupViewController:sVctr
+                    [nav presentPopupViewController:sVctr
                                        animationType:MJPopupViewAnimationFade];
                     break;
                 }
                 case 1:          //关于轻轻
                 {
-                    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-                    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
                     AboutSoftwareViewController *aboutVctr = [[AboutSoftwareViewController alloc]init];
                     [nav pushViewController:aboutVctr animated:YES];
-//                    [self.navigationController pushViewController:aboutVctr
-//                                                         animated:YES];
                     [aboutVctr release];
                     break;
                 }

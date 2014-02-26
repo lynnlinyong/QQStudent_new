@@ -26,23 +26,17 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = YES;
-    
+    [super viewDidAppear:animated];
+    [MainViewController setNavTitle:@"个人中心"];
+    self.navigationController.navigationBarHidden = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(doCommentOrderNotice:)
                                                  name:@"commentOrderNotice"
                                                object:nil];
-    [super viewDidAppear:animated];
 }
 
 - (void) viewDidDisappear:(BOOL)animated
-{
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = NO;
-    
+{    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
@@ -125,43 +119,6 @@
 
 - (void) initUI
 {
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0,
-                                                                      0,
-                                                                      100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment   = UITextAlignmentCenter;
-    title.text = @"个人中心";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0, 0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
     self.retractableControllers = [[NSMutableArray alloc]init];
     
     for (NSDictionary *item in teacherArray)
@@ -197,15 +154,6 @@
                          urlStr:url];
 }
 
-- (void) doBackBtnClicked:(id)sender
-{
-    MainViewController *mVctr = [[MainViewController alloc]init];
-    UINavigationController *nvc = [[UINavigationController alloc]initWithRootViewController:mVctr];
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    app.window.rootViewController = nvc;
-    [mVctr release];
-}
-
 #pragma mark -
 #pragma mark - UITableViewDelegate and UITableDataSource
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -237,7 +185,8 @@
     return [sectionController cellForRow:indexPath.row];
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
     GCRetractableSectionController* sectionController = [self.retractableControllers objectAtIndex:indexPath.section];
     return [sectionController didSelectCellAtRow:indexPath.row];
 }
@@ -338,8 +287,6 @@
             TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
             tdVctr.tObj = cell.teacher;
             [nav pushViewController:tdVctr animated:YES];
-//            [self.navigationController pushViewController:tdVctr
-//                                                 animated:YES];
             [tdVctr release];
             break;
         }
@@ -348,8 +295,6 @@
             ChatViewController *cVctr = [[ChatViewController alloc]init];
             cVctr.tObj    = cell.teacher;
             [nav pushViewController:cVctr animated:YES];
-//            [self.navigationController pushViewController:cVctr
-//                                                 animated:YES];
             [cVctr release];
             break;
         }
@@ -369,7 +314,7 @@
                 MFMessageComposeViewController * controller = [[MFMessageComposeViewController alloc]init];
                 controller.body = @"轻轻家教赶快去下载哦!!!www.baidu.com";
                 controller.messageComposeDelegate = self;
-                [self presentModalViewController:controller animated:YES];
+                [nav presentModalViewController:controller animated:YES];
                 [[[[controller viewControllers] lastObject] navigationItem] setTitle:@"测试短信"];//修改短信界面标题
             }else
             {

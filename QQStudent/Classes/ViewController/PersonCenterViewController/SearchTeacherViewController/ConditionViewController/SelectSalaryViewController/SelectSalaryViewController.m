@@ -34,6 +34,13 @@
     [self getSalarys];
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    [MainViewController setNavTitle:@"选择小时课酬"];
+}
+
 - (void) viewDidDisappear:(BOOL)animated
 {
     NSDictionary *salaryDic = [potMoney objectAtIndex:selIndex];
@@ -53,48 +60,12 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment   = UITextAlignmentCenter;
-    title.text = @"选择小时课酬";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0,
-                                   0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
     UILabel *infoLab = [[UILabel alloc]init];
     infoLab.font = [UIFont systemFontOfSize:12.f];
     infoLab.text = @"注意:课酬标准中已包含教师交通费";
     infoLab.textColor = [UIColor whiteColor];
     infoLab.backgroundColor = [UIColor colorWithHexString:@"#009f66"];
-    infoLab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 20)
+    infoLab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 20)
                            isBackView:NO];
     [self.view addSubview:infoLab];
     [infoLab release];
@@ -104,18 +75,19 @@
     [navgBtn addTarget:self
                 action:@selector(doNavgBtnClicked:)
       forControlEvents:UIControlEventTouchUpInside];
-    navgBtn.frame = [UIView fitCGRect:CGRectMake(320-105, 0, 100, 20) isBackView:NO];
+    navgBtn.frame = [UIView fitCGRect:CGRectMake(320-105, 5, 100, 20)
+                           isBackView:NO];
     [self.view addSubview:navgBtn];
     
     UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"xc_bg.9.png"]];
-    bgView.frame = [UIView fitCGRect:CGRectMake(0, 20,
-                                                self.view.frame.size.width,
+    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 23,
+                                                self.view.frame.size.width+4,
                                                 self.view.frame.size.height)
                           isBackView:NO];
     [self.view addSubview:bgView];
 
     scrollView = [[UIScrollView alloc]init];
-    scrollView.frame = [UIView fitCGRect:CGRectMake(0, 20,
+    scrollView.frame = [UIView fitCGRect:CGRectMake(0, 25,
                                   self.view.frame.size.width,
                                   self.view.frame.size.height-20)
                               isBackView:NO];
@@ -128,7 +100,8 @@
     botomLab.text = @"                               更高课酬, 更多品牌认证老师!";
     botomLab.textColor = [UIColor whiteColor];
     botomLab.backgroundColor = [UIColor colorWithHexString:@"#009f66"];
-    botomLab.frame = [UIView fitCGRect:CGRectMake(0, self.view.frame.size.height-27-44, 320, 20)
+    botomLab.frame = [UIView fitCGRect:CGRectMake(0, self.view.frame.size.height-20-44-9,
+                                                  320, 20)
                             isBackView:NO];
     [self.view addSubview:botomLab];
     [botomLab release];
@@ -156,11 +129,6 @@
 - (void) doNavgBtnClicked:(id)sender
 {
     selIndex = 0;
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
-- (void) doBackBtnClicked:(id)sender
-{
     [self.navigationController popViewControllerAnimated:YES];
 }
 

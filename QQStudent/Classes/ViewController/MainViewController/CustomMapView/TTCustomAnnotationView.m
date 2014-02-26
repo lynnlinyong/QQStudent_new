@@ -28,9 +28,6 @@
         self.backgroundColor   = [UIColor clearColor];
         
         //大头针的图片
-//        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
-//        [imageView setImage:[UIImage imageNamed:@"itop.png"]];
-//        [self addSubview:imageView];
         self.image = [UIImage imageNamed:@"itop.png"];
     }
     

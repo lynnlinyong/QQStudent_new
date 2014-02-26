@@ -17,4 +17,6 @@
     UIImageView  *star5ImgView;
     UIImageView  *star6ImgView;
 }
+
+- (void) setHlightStar:(int) count;
 @end

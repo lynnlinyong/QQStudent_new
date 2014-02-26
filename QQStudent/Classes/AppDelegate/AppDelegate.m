@@ -40,7 +40,7 @@
     else
     {
         MainViewController *mVctr     = [[MainViewController alloc]init];
-        UINavigationController *nVctr = [[UINavigationController alloc]initWithRootViewController:mVctr];
+        CustomNavigationViewController *nVctr = [[CustomNavigationViewController alloc]initWithRootViewController:mVctr];
         pVctr = nVctr;
     }
     
@@ -50,7 +50,6 @@
     self.window.rootViewController = pVctr;
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
-    [pVctr release];
     return YES;
 }
 

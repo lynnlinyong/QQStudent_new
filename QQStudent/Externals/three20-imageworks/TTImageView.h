@@ -38,4 +38,5 @@
 - (void)imageView:(TTImageView*)imageView didLoadImage:(UIImage*)image;
 - (void)imageView:(TTImageView*)imageView didFailLoadWithError:(NSError*)error;
 
+
 @end

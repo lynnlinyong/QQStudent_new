@@ -34,17 +34,11 @@
 - (void) viewDidDisappear:(BOOL)animated
 {
     [super viewDidDisappear:animated];
-    
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = NO;
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = YES;
+    self.navigationController.navigationBarHidden = YES;
     [super viewDidAppear:animated];
 }
 
@@ -87,47 +81,11 @@
 {
     self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
     
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment   = UITextAlignmentCenter;
-    title.text = @"个人中心";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0,
-                                   0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
     searchTab = [[UITableView alloc]init];
     searchTab.delegate   = self;
     searchTab.dataSource = self;
     searchTab.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
-    searchTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 300)
+    searchTab.frame = [UIView fitCGRect:CGRectMake(0, 10, 320, 300)
                              isBackView:NO];
     [self.view addSubview:searchTab];
     
@@ -154,24 +112,39 @@
     
     searchLab = [[UILabel alloc]init];
     searchLab.text  = @"搜索:";
+    searchLab.font  = [UIFont systemFontOfSize:14];
     searchLab.backgroundColor = [UIColor clearColor];
-    searchLab.frame = [UIView fitCGRect:CGRectMake(0, 372-44, 40, 20)
+    searchLab.frame = [UIView fitCGRect:CGRectMake(0, 372-50, 40, 20)
                              isBackView:NO];
     [self.view addSubview:searchLab];
     
+    UIImage *okImg  = [UIImage imageNamed:@"sp_search_btn_normal"];
+    UIImageView *fldBgImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"normal_fld"]];
+    fldBgImgView.frame = [UIView fitCGRect:CGRectMake(33, 372-55, 230, okImg.size.height-3)
+                                isBackView:NO];
+    [self.view addSubview:fldBgImgView];
+    [fldBgImgView release];
+    
     searchFld = [[UITextField alloc]init];
     searchFld.delegate = self;
-    searchFld.font = [UIFont systemFontOfSize:12];
+    searchFld.font  = [UIFont systemFontOfSize:14];
     searchFld.placeholder = @"输入手机号/前14位身份证号/9位搜索码";
-    searchFld.borderStyle = UITextBorderStyleLine;
-    searchFld.frame = [UIView fitCGRect:CGRectMake(40, 372-44, 240, 20)
+    searchFld.frame = [UIView fitCGRect:CGRectMake(38, 372-48, 225, okImg.size.height-3)
                              isBackView:NO];
     [self.view addSubview:searchFld];
     
-    UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [okBtn setTitle:@"确定"
            forState:UIControlStateNormal];
-    okBtn.frame = [UIView fitCGRect:CGRectMake(280, 372-44, 40, 30)
+    [okBtn setTitleColor:[UIColor blackColor]
+                forState:UIControlStateNormal];
+    okBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    [okBtn setBackgroundImage:okImg
+                     forState:UIControlStateNormal];
+    okBtn.frame = [UIView fitCGRect:CGRectMake(320-10-okImg.size.width,
+                                               372-55,
+                                               okImg.size.width,
+                                               okImg.size.height-3)
                          isBackView:NO];
     [okBtn addTarget:self
               action:@selector(doOkBtnClicked:)
@@ -201,15 +174,6 @@
     
     //搜索老师
     [self searchTeacherFromServer];
-}
-
-- (void) doBackBtnClicked:(id)sender
-{
-    MainViewController *mVctr = [[MainViewController alloc]init];
-    UINavigationController *nvc = [[UINavigationController alloc]initWithRootViewController:mVctr];
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    app.window.rootViewController = nvc;
-    [mVctr release];
 }
 
 - (void) searchTeacherFromServer
@@ -275,29 +239,31 @@
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *idString = @"idString";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:idString];
-    if (!cell)
+    UITableViewCell *cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
+                                                   reuseIdentifier:idString]autorelease];
+    if (cell)
     {
-        cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
-                                     reuseIdentifier:idString]autorelease];
-        
-        NSString *webAddress  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
         Teacher *tObj = [searchArray objectAtIndex:indexPath.row];
-        NSString *imgUrl = [NSString stringWithFormat:@"%@/%@",webAddress,tObj.headUrl];
+        NSString *webAddress  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *imgUrl = [NSString stringWithFormat:@"%@%@",webAddress,tObj.headUrl];
         
-        TTImageView *headImgView = [[TTImageView alloc]init];
-        headImgView.URL   = imgUrl;
-        headImgView.frame = CGRectMake(10, 10, 60, 60);
-        [cell addSubview:headImgView];
-        [headImgView release];
+        headBtn = [UIButton buttonWithType:UIButtonTypeCustom];//[[UIImageView alloc]init];
+        headBtn.frame = CGRectMake(10, 10, 60, 60);
+        [cell addSubview:headBtn];
+        
+        TTImageView *hImgView = [[[TTImageView alloc]init]autorelease];
+        hImgView.delegate = self;
+        hImgView.URL      = imgUrl;
         
         UILabel *itrLab = [[UILabel alloc]init];
         if (tObj.sex==1)
         {
+//            headImgView.image = [UIImage imageNamed:@"sp_abook_btn"];
             itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",tObj.name,@"男",tObj.pf];
         }
         else
         {
+//            headImgView.image = [UIImage imageNamed:@"sp_head_img"];
             itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",tObj.name,@"女",tObj.pf];
         }
         itrLab.backgroundColor = [UIColor clearColor];
@@ -323,6 +289,7 @@
         [idLab release];
         
         UIStartsImageView *sImgView = [[UIStartsImageView alloc]initWithFrame:CGRectMake(80, 60, 100, 20)];
+        [sImgView setHlightStar:tObj.comment];
         [cell addSubview:sImgView];
         [sImgView release];
     }
@@ -346,6 +313,20 @@
     [scVctr release];
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+#pragma mark -
+#pragma mark - TTImageViewDelegate
+- (void)imageView:(TTImageView*)imageView didLoadImage:(UIImage*)image
+{
+    CLog(@"Enter LoadImage");
+    [headBtn setImage:[UIImage circleImage:image withParam:0]
+             forState:UIControlStateNormal];
+}
+
+- (void)imageView:(TTImageView*)imageView didFailLoadWithError:(NSError*)error
+{
+    
 }
 
 #pragma mark -

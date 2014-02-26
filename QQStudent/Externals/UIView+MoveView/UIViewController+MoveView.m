@@ -28,9 +28,8 @@ static int originY = 0;
 //检查是否软键盘挡住编辑框,挡住编辑框后只能移动界面
 - (void) moveViewWhenViewHidden:(UIView *)view parent:(UIView *) parentView
 {
-    CGRect frame = view.frame;  
-    
-    //键盘高度216  
+    //键盘高度216
+    CGRect frame = view.frame;
     int offset = frame.origin.y + 37 - (parentView.frame.size.height - 250.0);
     NSTimeInterval animationDuration = 0.30f;   
     
@@ -43,6 +42,7 @@ static int originY = 0;
     float height = parentView.frame.size.height;         
     if(offset > 0)  
     {
+        CLog(@"offset:%d", offset);
         CGRect rect      = CGRectMake(parentView.frame.origin.x,
                                       -offset, width, height);
         parentView.frame = rect;         

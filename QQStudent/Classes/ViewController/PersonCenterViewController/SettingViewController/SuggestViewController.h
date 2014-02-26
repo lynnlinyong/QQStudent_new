@@ -8,6 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SuggestViewController : UIViewController<UITextFieldDelegate>
-
+@interface SuggestViewController : UIViewController<UITextViewDelegate>
+{
+    UIButton *okBtn;
+    int      originY;
+}
 @end

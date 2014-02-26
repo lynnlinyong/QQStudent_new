@@ -38,10 +38,7 @@
 - (void) viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = YES;
+    self.navigationController.navigationBarHidden = YES;
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(getDismissView:)
@@ -51,10 +48,6 @@
 
 - (void) viewDidDisappear:(BOOL)animated
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
-    nav.navigationBarHidden = NO;
-    
     [[NSNotificationCenter defaultCenter] removeObserver:self];   
     
     [super viewDidDisappear:animated];
@@ -75,33 +68,6 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0, 0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
     UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
     title.textColor       = [UIColor colorWithHexString:@"#009f66"];
     title.backgroundColor = [UIColor clearColor];
@@ -182,15 +148,6 @@
 
 #pragma mark -
 #pragma mark - Control Event
-- (void) doBackBtnClicked:(id)sender
-{
-    MainViewController *mVctr = [[MainViewController alloc]init];
-    UINavigationController *nvc = [[UINavigationController alloc]initWithRootViewController:mVctr];
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    app.window.rootViewController = nvc;
-    [mVctr release];
-}
-
 - (void) doShareFrdBtnClicked:(id)sender
 {
     [self setCellBgImage:[UIImage imageNamed:@"sp_content_normal_cell"]
@@ -223,9 +180,10 @@
     else
     {
         CLog(@"YES Installed");
-        ShareWeixinViewController *swVctr = [[ShareWeixinViewController alloc]init];
-        [self presentPopupViewController:swVctr
-                           animationType:MJPopupViewAnimationFade];
+        ShareWeixinViewController *swVctr   = [[ShareWeixinViewController alloc]init];
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        [nav presentPopupViewController:swVctr
+                          animationType:MJPopupViewAnimationFade];
     }
 }
 
@@ -531,6 +489,7 @@
 #pragma mark - Notice
 - (void) getDismissView:(NSNotification *) notice
 {
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 @end

@@ -17,9 +17,9 @@
 @class Order;
 @class Teacher;
 @class UIStartsImageView;
-@interface MyTeacherCell : UITableViewCell
+@interface MyTeacherCell : UITableViewCell<TTImageViewDelegate>
 {
-    TTImageView         *headImgView;
+    UIButton            *headBtn;
     UILabel             *introduceLab;
     UIButton            *commBtn;
     UIButton            *compBtn;

@@ -48,7 +48,7 @@ static LeveyTabBarController *leveyTabBarController;
 		_transitionView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, _containerView.frame.size.height - kTabBarHeight)];
 		_transitionView.backgroundColor =  [UIColor groupTableViewBackgroundColor];
 		
-		_tabBar = [[LeveyTabBar alloc] initWithFrame:CGRectMake(0, _containerView.frame.size.height - kTabBarHeight, 320.0f, kTabBarHeight) buttonImages:arr];
+		_tabBar = [[LeveyTabBar alloc] initWithFrame:CGRectMake(0, _containerView.frame.size.height - kTabBarHeight - 44, 320.0f, kTabBarHeight) buttonImages:arr];
 		_tabBar.delegate = self;
 		
         leveyTabBarController = self;
@@ -303,6 +303,7 @@ static LeveyTabBarController *leveyTabBarController;
 #pragma mark - Private methods
 - (void)displayViewAtIndex:(NSUInteger)index
 {
+    CLog(@"before display View at Index");
     // Before change index, ask the delegate should change the index.
     if ([_delegate respondsToSelector:@selector(tabBarController:shouldSelectViewController:)]) 
     {

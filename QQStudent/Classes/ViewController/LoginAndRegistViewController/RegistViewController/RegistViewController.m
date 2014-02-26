@@ -23,6 +23,12 @@
     return self;
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [MainViewController setNavTitle:@"注册中"];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -60,43 +66,7 @@
 #pragma mark -
 #pragma mark - Custom Action
 - (void) initUI
-{
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment = UITextAlignmentCenter;
-    title.text = @"注册中";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮    
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0, 0,
-                                   backImg.size.width+15,
-                                   backImg.size.height+10);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(12, 4,
-                                backImg.size.width,
-                                backImg.size.height);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
-    
+{    
     UIImage *normalImg = [UIImage imageNamed:@"normal_fld"];
     emailImgView = [[UIImageView alloc]initWithImage:normalImg];
     userNameFld  = [[UITextField alloc]init];
@@ -208,11 +178,6 @@
     }
     
     return YES;
-}
-
-- (void) doBackBtnClicked:(id)sender
-{
-    [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
 - (void) doRegistBtnClicked:(id)sender

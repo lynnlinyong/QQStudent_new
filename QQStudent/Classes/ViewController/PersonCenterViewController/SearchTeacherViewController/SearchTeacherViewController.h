@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface SearchTeacherViewController : UIViewController<
+                                                        TTImageViewDelegate,
                                                         ServerRequestDelegate,
                                                         UITextFieldDelegate,
                                                         UITableViewDelegate,
@@ -22,5 +23,7 @@
     
     UIImageView    *bgImgView;
     UILabel        *bgInfoLab;
+    
+    UIButton       *headBtn;
 }
 @end

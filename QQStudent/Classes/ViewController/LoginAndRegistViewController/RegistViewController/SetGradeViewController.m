@@ -27,11 +27,9 @@
 {
     [super viewDidLoad];
     
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 360)
-                             isBackView:NO];
-    self.view.backgroundColor = [UIColor whiteColor];
-    
     gradeArr = [[NSMutableArray alloc]initWithCapacity:0];
+    
+    [self initUI];
     
     //获得年级
     [self getGrade];
@@ -53,33 +51,100 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UILabel *infoLab = [[UILabel alloc]init];
-    infoLab.text  = @"选择年级";
-    infoLab.frame = CGRectMake(45, 0, 150, 20);
-    infoLab.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:infoLab];
-    [infoLab release];
+    UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
+    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0,
+                                                   titleImg.size.width,
+                                                   358)
+                             isBackView:NO];
+    self.view.backgroundColor = [UIColor whiteColor];
     
+    LBorderView *groupView = [[LBorderView alloc]initWithFrame:CGRectMake(-10, -5,
+                                                                          self.view.frame.size.width+20,
+                                                                          self.view.frame.size.height+10)];
+    groupView.borderType   = BorderTypeSolid;
+    groupView.dashPattern  = 8;
+    groupView.spacePattern = 8;
+    groupView.borderWidth  = 1;
+    groupView.cornerRadius = 5;
+    groupView.borderColor  = [UIColor whiteColor];
+    groupView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:groupView];
+    
+    UIImageView *titleImgView = [[UIImageView alloc]init];
+    titleImgView.frame = [UIView fitCGRect:CGRectMake(-2.5, -2,
+                                                      groupView.frame.size.width+5, titleImg.size.height)
+                                isBackView:NO];
+    titleImgView.image = titleImg;
+    [groupView addSubview:titleImgView];
+    [titleImgView release];
+    
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text  = @"选择年级";
+    titleLab.textColor = [UIColor whiteColor];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame= [UIView fitCGRect:CGRectMake(-2.5, -2,
+                                                 groupView.frame.size.width+5, titleImg.size.height)
+                           isBackView:NO];
+    titleLab.backgroundColor = [UIColor clearColor];
+    titleLab.textAlignment   = NSTextAlignmentCenter;
+    [groupView addSubview:titleLab];
+    [titleLab release];
+    
+    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
     gdView = [[UIGridView alloc]init];
     gdView.uiGridViewDelegate = self;
-    gdView.frame = CGRectMake(0, 20, 240, 320);
+    gdView.scrollEnabled = NO;
+    gdView.frame = [UIView fitCGRect:CGRectMake(0, 20, 240, 338-bottomImg.size.height)
+                          isBackView:NO];
     [self.view addSubview:gdView];
     
-    UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    okBtn.tag = 0;
-    okBtn.frame = CGRectMake(60, 360-30, 40, 30);
+    UIImageView *bottomImgView = [[UIImageView alloc]init];
+    bottomImgView.image = bottomImg;
+    bottomImgView.frame = [UIView fitCGRect:CGRectMake(-11,
+                                                       self.view.frame.size.height-bottomImg.size.height+6,
+                                                       self.view.frame.size.width+23, bottomImg.size.height)
+                                 isBackView:NO];
+    [self.view addSubview:bottomImgView];
+    [bottomImgView release];
+    
+    UIImage *okBtnImg = [UIImage imageNamed:@"dialog_ok_normal_btn"];
+    UIButton *okBtn   = [UIButton buttonWithType:UIButtonTypeCustom];
+    okBtn.tag   = 0;
+    [okBtn setTitleColor:[UIColor blackColor]
+                forState:UIControlStateNormal];
+    okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
+                             self.view.frame.size.height-okBtnImg.size.height+3,
+                             okBtnImg.size.width,
+                             okBtnImg.size.height);
     [okBtn setTitle:@"确定"
            forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_normal_btn"]
+                     forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_hlight_btn"]
+                     forState:UIControlStateHighlighted];
     [okBtn addTarget:self
               action:@selector(doButtonClicked:)
     forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:okBtn];
     
-    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    cancelBtn.tag   = 1;
-    cancelBtn.frame = CGRectMake(160, 360-30, 40, 30);
+    UIImage *cancelImg  = [UIImage imageNamed:@"dialog_cancel_normal_btn"];
+    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    cancelBtn.tag = 1;
+    [cancelBtn setTitleColor:[UIColor blackColor]
+                    forState:UIControlStateNormal];
+    cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
+                                 self.view.frame.size.height-cancelImg.size.height+3,
+                                 cancelImg.size.width,
+                                 cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
                forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_normal_btn"]
+                         forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_hlight_btn"]
+                         forState:UIControlStateHighlighted];
     [cancelBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
@@ -108,8 +173,8 @@
 {
     UIButton *button = sender;
     NSDictionary *gradDic = [gradeArr objectAtIndex:index];
-    NSDictionary *userDic = [NSDictionary dictionaryWithObjectsAndKeys:gradDic,@"UserInfo",[NSNumber numberWithInt:button.tag],@"TAG", nil];
-    
+    NSDictionary *userDic = [NSDictionary dictionaryWithObjectsAndKeys:gradDic,@"UserInfo",
+                             [NSNumber numberWithInt:button.tag],@"TAG", nil];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"setGradeNotice"
                                                         object:nil
                                                       userInfo:userDic];
@@ -221,8 +286,8 @@
         [[NSUserDefaults standardUserDefaults] setObject:gradeArr
                                                   forKey:GRADE_LIST];
         
-        //显示UI
-        [self initUI];
+        
+        [gdView reloadData];
     }
     else
     {

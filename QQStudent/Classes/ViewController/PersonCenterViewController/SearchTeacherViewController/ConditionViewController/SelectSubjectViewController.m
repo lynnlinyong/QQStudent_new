@@ -26,10 +26,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 260)
-                             isBackView:NO];
-    self.view.backgroundColor = [UIColor whiteColor];
+
+    [self initUI];
     
     subArr = [[NSMutableArray alloc]init];
     //获得课程
@@ -51,34 +49,99 @@
 #pragma mark -
 #pragma mark - Custom Action
 - (void) initUI
-{    
-    UILabel *infoLab = [[UILabel alloc]init];
-    infoLab.text  = @"选择辅导科目";
-    infoLab.frame = CGRectMake(45, 0, 150, 20);
-    infoLab.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:infoLab];
-    [infoLab release];
+{
+    UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
+    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0,
+                                                   titleImg.size.width,
+                                                   270)
+                             isBackView:NO];
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    LBorderView *groupView = [[LBorderView alloc]initWithFrame:CGRectMake(-10, -5,
+                                                                          self.view.frame.size.width+20,
+                                                                          self.view.frame.size.height+10)];
+    groupView.borderType   = BorderTypeSolid;
+    groupView.dashPattern  = 8;
+    groupView.spacePattern = 8;
+    groupView.borderWidth  = 1;
+    groupView.cornerRadius = 5;
+    groupView.borderColor  = [UIColor whiteColor];
+    groupView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:groupView];
+    
+    UIImageView *titleImgView = [[UIImageView alloc]init];
+    titleImgView.frame = [UIView fitCGRect:CGRectMake(-2.5, -2,
+                                                      groupView.frame.size.width+5, titleImg.size.height)
+                                isBackView:NO];
+    titleImgView.image = titleImg;
+    [groupView addSubview:titleImgView];
+    [titleImgView release];
+
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text  = @"选择辅导科目";
+    titleLab.textColor = [UIColor whiteColor];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame= [UIView fitCGRect:CGRectMake(-2.5, -2,
+                                                 groupView.frame.size.width+5, titleImg.size.height)
+                           isBackView:NO];
+    titleLab.backgroundColor = [UIColor clearColor];
+    titleLab.textAlignment   = NSTextAlignmentCenter;
+    [groupView addSubview:titleLab];
+    [titleLab release];
     
     gdView = [[UIGridView alloc]init];
     gdView.uiGridViewDelegate = self;
     gdView.frame = CGRectMake(0, 20, 240, 210);
     [self.view addSubview:gdView];
     
-    UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    okBtn.tag = 0;
-    okBtn.frame = CGRectMake(60, 230, 40, 30);
+    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
+    UIImageView *bottomImgView = [[UIImageView alloc]init];
+    bottomImgView.image = bottomImg;
+    bottomImgView.frame = [UIView fitCGRect:CGRectMake(-11,
+                                                       self.view.frame.size.height-bottomImg.size.height+6,
+                                                       self.view.frame.size.width+23, bottomImg.size.height)
+                                 isBackView:NO];
+    [self.view addSubview:bottomImgView];
+    [bottomImgView release];
+    
+    UIImage *okBtnImg = [UIImage imageNamed:@"dialog_ok_normal_btn"];
+    UIButton *okBtn   = [UIButton buttonWithType:UIButtonTypeCustom];
+    okBtn.tag   = 0;
+    [okBtn setTitleColor:[UIColor blackColor]
+                forState:UIControlStateNormal];
+    okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
+                             self.view.frame.size.height-okBtnImg.size.height+3,
+                             okBtnImg.size.width,
+                             okBtnImg.size.height);
     [okBtn setTitle:@"确定"
            forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_normal_btn"]
+                     forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_hlight_btn"]
+                     forState:UIControlStateHighlighted];
     [okBtn addTarget:self
               action:@selector(doButtonClicked:)
     forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:okBtn];
     
-    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    cancelBtn.tag   = 1;
-    cancelBtn.frame = CGRectMake(160, 230, 40, 30);
+    UIImage *cancelImg  = [UIImage imageNamed:@"dialog_cancel_normal_btn"];
+    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    cancelBtn.tag = 1;
+    [cancelBtn setTitleColor:[UIColor blackColor]
+                    forState:UIControlStateNormal];
+    cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
+                                 self.view.frame.size.height-cancelImg.size.height+3,
+                                 cancelImg.size.width,
+                                 cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
                forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_normal_btn"]
+                         forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_hlight_btn"]
+                         forState:UIControlStateHighlighted];
     [cancelBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
@@ -87,18 +150,23 @@
 
 - (void) getSubjects
 {
-    NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
-    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
-    NSArray *valuesArr = [NSArray arrayWithObjects:@"getsubjects",ssid, nil];
-    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
-                                                     forKeys:paramsArr];
-    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
-    ServerRequest *request = [ServerRequest sharedServerRequest];
-    request.delegate = self;
-    [request requestASyncWith:kServerPostRequest
-                     paramDic:pDic
-                       urlStr:url];
+    subArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+    if (!subArr)
+    {
+        NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getsubjects",ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        request.delegate = self;
+        [request requestASyncWith:kServerPostRequest
+                         paramDic:pDic
+                           urlStr:url];
+    }
+    [gdView reloadData];
 }
 
 - (void) doButtonClicked:(id)sender
@@ -145,13 +213,7 @@
 
 - (UIGridViewCell *) gridView:(UIGridView *)grid cellForRowAt:(int)rowIndex AndColumnAt:(int)columnIndex
 {
-    NSString *idString = @"idString";
-    UIGridViewCell *cell = [grid dequeueReusableCellWithIdentifier:idString];
-    if (!cell)
-    {
-        cell = [[[UIGridViewCell alloc]init]autorelease];
-    }
-    
+    UIGridViewCell *cell = [[[UIGridViewCell alloc]init]autorelease];
     int indexTag = rowIndex*2+columnIndex;
     NSDictionary *subDic= [subArr objectAtIndex:indexTag];
     
@@ -164,7 +226,6 @@
                 forState:UIControlStateNormal];
     qrBtn.frame = CGRectMake(0, 0, 80, 30);
     [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
-    [qrBtn setChecked:YES];
     [cell addSubview:qrBtn];
     qrBtn.exclusiveTouch = YES;
     qrBtn.userInteractionEnabled = YES;
@@ -212,9 +273,7 @@
         //保存科目列表
         [[NSUserDefaults standardUserDefaults] setObject:subArr
                                                   forKey:SUBJECT_LIST];
-        
-        //显示UI
-        [self initUI];
+        [gdView reloadData];
     }
     else
     {

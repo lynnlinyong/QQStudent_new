@@ -26,6 +26,12 @@
     return self;
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [MainViewController setNavTitle:@"轻轻家教"];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -72,57 +78,32 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment   = UITextAlignmentCenter;
-    title.text = @"轻轻家教";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.tag       = 0;
-    backBtn.frame     = CGRectMake(0, 0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doButtonClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
+    UIImage *titleImg = [UIImage imageNamed:@"sd_title"];
+    UIImageView *titleImgView = [[UIImageView alloc]init];
+    titleImgView.image = titleImg;
+    titleImgView.frame = CGRectMake(20, 10,
+                                    titleImg.size.width, titleImg.size.height);
+    [self.view addSubview:titleImgView];
     
     orderTab = [[UITableView alloc]init];
     orderTab.delegate = self;
     orderTab.dataSource = self;
-    orderTab.frame = [UIView fitCGRect:CGRectMake(20, 20, 280, 340)
+    orderTab.scrollEnabled = NO;
+    orderTab.frame = [UIView fitCGRect:CGRectMake(20, titleImg.size.height+10,
+                                                  titleImg.size.width, 340)
                             isBackView:NO];
+    orderTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.view addSubview:orderTab];
     
-    UIButton *orderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    orderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     orderBtn.tag   = 1;
-    UIImage *img   = [UIImage imageNamed:@"main_invit_normal_btn"];
+    UIImage *img   = [UIImage imageNamed:@"main_invit_invide_btn"];
     orderBtn.frame = [UIView fitCGRect:CGRectMake(160-img.size.width/2,
                                                   460-54-img.size.height,
                                                   img.size.width,
                                                   img.size.height)
                             isBackView:NO];
+    orderBtn.enabled = NO;
     [orderBtn setImage:img
               forState:UIControlStateNormal];
     [orderBtn setImage:[UIImage imageNamed:@"main_invit_hlight_btn"]
@@ -209,6 +190,20 @@
     }
 }
 
+- (void) checkConditionIsFinish
+{
+    if (dateValLab.text.length!=0 && subValLab.text.length!=0 &&
+         sexValLab.text.length!=0 && salaryValLab.text.length!=0 &&
+            timeValueLab.text.length!=0 && posValLab.text.length!=0)
+    {
+        orderBtn.enabled = YES;
+        [orderBtn setImage:[UIImage imageNamed:@"main_invit_normal_btn"]
+                  forState:UIControlStateNormal];
+        [orderBtn setImage:[UIImage imageNamed:@"main_invit_hlight_btn"]
+                  forState:UIControlStateHighlighted];
+    }
+}
+
 #pragma mark -
 #pragma mark - Control Event
 - (void) longPressButton:(UILongPressButton *)button status:(ButtonStatus)status
@@ -253,10 +248,19 @@
     }
 }
 
+#pragma mark -
+#pragma mark - Control Event
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
 {
     [textField resignFirstResponder];
+    [self repickView:self.view];
     return YES;
+}
+
+- (void) textFieldDidBeginEditing:(UITextField *)textField
+{
+    [self moveViewWhenViewHidden:orderBtn
+                          parent:self.view];
 }
 
 - (void) doButtonClicked:(id)sender
@@ -380,6 +384,8 @@
     NSString *city    = [notice.userInfo objectForKey:@"CITY"];
     NSString *dist    = [notice.userInfo objectForKey:@"DIST"];
     posValLab.text    = [notice.userInfo objectForKey:@"ADDRESS"];
+    
+    [self checkConditionIsFinish];
 }
 
 - (void) setSalaryFromNotice:(NSNotification *) notice
@@ -393,6 +399,8 @@
     
     salaryValLab.text = salary;
     salaryDic = [notice.userInfo copy];
+    
+    [self checkConditionIsFinish];
 }
 
 - (void) setSexFromNotice:(NSNotification *) notice
@@ -424,25 +432,42 @@
         }
     }
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    
+    [self checkConditionIsFinish];
 }
 
 - (void) setDateFromNotice:(NSNotification *) notice
 {
-    NSString *dateString = [notice.userInfo objectForKey:@"SetDate"];
-    dateValLab.text = dateString;
+    int tag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
+    if (tag==0)
+    {
+        NSString *dateString = [notice.userInfo objectForKey:@"SetDate"];
+        dateValLab.text = dateString;
+    }
+    
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    
+    [self checkConditionIsFinish];
 }
 
 - (void) setTimesFromNotice:(NSNotification *)notice
 {
-    timeValueLab.text = [notice.userInfo objectForKey:@"Time"];
+    int tag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
+    if (tag==0)
+    {
+        timeValueLab.text = [notice.userInfo objectForKey:@"Time"];
+    }
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    
+    [self checkConditionIsFinish];
 }
 
 - (void) setSubjectFromNotice:(NSNotification *)notice
 {
     subValLab.text = [notice.userInfo objectForKey:@"name"];
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    
+    [self checkConditionIsFinish];
 }
 
 #pragma mark -
@@ -489,12 +514,13 @@
 
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *idString = @"idString";
+    NSString *idString    = @"idString";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:idString];
     if (!cell)
     {
         cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
                                      reuseIdentifier:idString];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
         switch (indexPath.row)
         {
             case 0:
@@ -502,7 +528,7 @@
                 UILabel *startDate = [[UILabel alloc]init];
                 startDate.text = @"开始日期";
                 startDate.backgroundColor = [UIColor clearColor];
-                startDate.frame = [UIView fitCGRect:CGRectMake(0, 0, 80, 44)
+                startDate.frame = [UIView fitCGRect:CGRectMake(2, 2, 80, 42)
                                          isBackView:NO];
                 [cell addSubview:startDate];
                 [startDate release];
@@ -511,9 +537,11 @@
                 dateValLab.text = @"";
                 dateValLab.textAlignment   = NSTextAlignmentCenter;
                 dateValLab.backgroundColor = [UIColor clearColor];
-                dateValLab.frame = CGRectMake(80, 0, 170, 44);
+                dateValLab.frame = CGRectMake(80, 2, 170, 42);
                 [cell addSubview:dateValLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+                cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
+                                                       highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
                 break;
             }
             case 1:
@@ -521,16 +549,18 @@
                 UILabel *subLab = [[UILabel alloc]init];
                 subLab.text = [NSString stringWithFormat:@"辅导科目"];
                 subLab.backgroundColor = [UIColor clearColor];
-                subLab.frame = CGRectMake(0, 0, 140, 44);
+                subLab.frame = CGRectMake(2, 2, 140, 42);
                 [cell addSubview:subLab];
                 [subLab release];
                 
                 subValLab  = [[UILabel alloc]init];
                 subValLab.text      = tObj.pf;
                 subValLab.textColor = [UIColor lightGrayColor];
-                subValLab.frame = CGRectMake(140, 0, 140, 44);
+                subValLab.frame = CGRectMake(140, 2, 120, 42);
                 [cell addSubview:subValLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+                cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
+                                                       highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
                 break;
             }
             case 2:
@@ -538,7 +568,7 @@
                 UILabel *sexLab = [[UILabel alloc]init];
                 sexLab.text = @"老师性别 ";
                 sexLab.backgroundColor = [UIColor clearColor];
-                sexLab.frame = CGRectMake(0, 0, 140, 44);
+                sexLab.frame = CGRectMake(2, 2, 140, 42);
                 [cell addSubview:sexLab];
                 [sexLab release];
                 
@@ -552,11 +582,12 @@
                     sexValLab.text = @"女";
                 }
                 sexValLab.textColor = [UIColor lightGrayColor];
-                sexValLab.frame = CGRectMake(140, 0, 140, 44);
+                sexValLab.frame = CGRectMake(140, 2, 120, 42);
                 [cell addSubview:sexValLab];
                 [sexValLab release];
                 
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
+                                                       highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
                 break;
             }
             case 3:
@@ -564,7 +595,7 @@
                 UILabel *salaryLab = [[UILabel alloc]init];
                 salaryLab.text = @"每小时课酬标准";
                 salaryLab.backgroundColor = [UIColor clearColor];
-                salaryLab.frame = [UIView fitCGRect:CGRectMake(0, 0, 140, 44)
+                salaryLab.frame = [UIView fitCGRect:CGRectMake(2, 2, 140, 42)
                                          isBackView:NO];
                 [cell addSubview:salaryLab];
                 [salaryLab release];
@@ -572,9 +603,11 @@
                 salaryValLab  = [[UILabel alloc]init];
                 salaryValLab.text      = @"";
                 salaryValLab.backgroundColor = [UIColor clearColor];
-                salaryValLab.frame = CGRectMake(140, 0, 140, 44);
+                salaryValLab.frame = CGRectMake(140, 2, 140, 42);
                 [cell addSubview:salaryValLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+                cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
+                                                       highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
                 break;
             }
             case 4:
@@ -582,7 +615,7 @@
                 UILabel *timesLab = [[UILabel alloc]init];
                 timesLab.text = @"预计辅导小时数";
                 timesLab.backgroundColor = [UIColor clearColor];
-                timesLab.frame = [UIView fitCGRect:CGRectMake(0, 0, 140, 44)
+                timesLab.frame = [UIView fitCGRect:CGRectMake(2, 2, 140, 42)
                                          isBackView:NO];
                 [cell addSubview:timesLab];
                 [timesLab release];
@@ -590,9 +623,11 @@
                 timeValueLab = [[UILabel alloc]init];
                 timeValueLab.text  = @"20";
                 timeValueLab.backgroundColor = [UIColor clearColor];
-                timeValueLab.frame = CGRectMake(140, 0, 140, 44);
+                timeValueLab.frame = CGRectMake(140, 2, 140, 42);
                 [cell addSubview:timeValueLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+                cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
+                                                       highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
                 break;
             }
             case 5:
@@ -600,7 +635,7 @@
                 UILabel *posLab = [[UILabel alloc]init];
                 posLab.text = @"授课地点";
                 posLab.backgroundColor = [UIColor clearColor];
-                posLab.frame = [UIView fitCGRect:CGRectMake(0, 0, 140, 44)
+                posLab.frame = [UIView fitCGRect:CGRectMake(2, 2, 140, 42)
                                       isBackView:NO];
                 [cell addSubview:posLab];
                 [posLab release];
@@ -608,56 +643,71 @@
                 posValLab = [[UILabel alloc]init];
                 posValLab.text  = @"";
                 posValLab.backgroundColor = [UIColor clearColor];
-                posValLab.frame = CGRectMake(140, 0, 130, 44);
+                posValLab.frame = CGRectMake(140, 2, 130, 42);
                 posValLab.font  = [UIFont systemFontOfSize:12.f];
                 [cell addSubview:posValLab];
                 
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
+                                                       highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
                 break;
             }
             case 6:
             {
-                recordBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                UIImage *recordImg = [UIImage imageNamed:@"sd_record_btn"];
+                
+                recordBtn = [UIButton buttonWithType:UIButtonTypeCustom];
                 recordBtn.tag    = 2;
                 recordBtn.hidden = NO;
-                [recordBtn setTitle:@"录音"
+                [recordBtn setImage:recordImg
                            forState:UIControlStateNormal];
-                recordBtn.frame  = CGRectMake(30, 15, 40, 30);
+                recordBtn.frame  = CGRectMake(0, 17.5, 40, 30);
                 [recordBtn addTarget:self
                               action:@selector(doButtonClicked:)
                     forControlEvents:UIControlEventTouchUpInside];
                 [cell addSubview:recordBtn];
                 
-                keyBoardBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                keyBoardBtn = [UIButton buttonWithType:UIButtonTypeCustom];
                 keyBoardBtn.tag     = 3;
                 keyBoardBtn.hidden  = YES;
-                [keyBoardBtn setTitle:@"键盘"
+                [keyBoardBtn setImage:[UIImage imageNamed:@"sd_input_btn"]
                              forState:UIControlStateNormal];
-                keyBoardBtn.frame   = CGRectMake(30, 15, 40, 30);
+                keyBoardBtn.frame   = CGRectMake(0, 17.5, 40, 30);
                 [keyBoardBtn addTarget:self
                                 action:@selector(doButtonClicked:)
                       forControlEvents:UIControlEventTouchUpInside];
                 [cell addSubview:keyBoardBtn];
                 
-                messageField = [[UITextField alloc]init];
-                messageField.text     = @"";
-                messageField.hidden   = NO;
-                messageField.delegate = self;
-                messageField.frame    = CGRectMake(70, 15, 160, 30);
-                messageField.borderStyle = UITextBorderStyleLine;
+                UIImage *normalImg = [UIImage imageNamed:@"normal_fld"];
+                UIImageView *emailImgView = [[UIImageView alloc]initWithImage:normalImg];
+                messageField  = [[UITextField alloc]init];
+                messageField.delegate    = self;
+                messageField.borderStyle = UITextBorderStyleNone;
+                messageField.frame = CGRectMake(40+5,20,normalImg.size.width-5,
+                                                        normalImg.size.height);
+                emailImgView.frame = CGRectMake(40,15,normalImg.size.width,
+                                                normalImg.size.height+10);
+                [cell addSubview:emailImgView];
                 [cell addSubview:messageField];
                                 
-                recordLongPressBtn = [[UILongPressButton alloc]initWithFrame:CGRectMake(70, 7, 160, 30)];
+                recordLongPressBtn = [[UILongPressButton alloc]initWithFrame:CGRectMake(40, 7, 160, 30)];
                 recordLongPressBtn.tag      = 4;
                 recordLongPressBtn.delegate = self;
-                recordLongPressBtn.frame    = CGRectMake(70, 15, 160, 30);
+                recordLongPressBtn.frame    = CGRectMake(40, 15, 160, 30);
                 recordLongPressBtn.hidden   = YES;
                 [cell addSubview:recordLongPressBtn];
                 
-                recordSuccessBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                UIImage *btnImg   = [UIImage imageNamed:@"normal_btn"];
+                recordSuccessBtn = [UIButton buttonWithType:UIButtonTypeCustom];
                 recordSuccessBtn.hidden= YES;
                 recordSuccessBtn.tag   = 5;
-                recordSuccessBtn.frame = CGRectMake(70, 15, 160, 30);
+                recordSuccessBtn.frame = CGRectMake(40, 15,
+                                                    btnImg.size.width,
+                                                    btnImg.size.height);
+                [recordSuccessBtn setBackgroundImage:btnImg
+                                            forState:UIControlStateNormal];
+                recordSuccessBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+                [recordSuccessBtn setTitleColor:[UIColor blackColor]
+                                       forState:UIControlStateNormal];
                 [recordSuccessBtn setTitle:@"录音成功"
                                   forState:UIControlStateNormal];
                 [recordSuccessBtn addTarget:self
@@ -665,15 +715,15 @@
                              forControlEvents:UIControlEventTouchUpInside];
                 [cell addSubview:recordSuccessBtn];
                 
-                reCustomBtnView = [[CustomButtonView alloc]initWithFrame:CGRectMake(70, 120, 80, 80)];
-                reCustomBtnView.tag    = 0;
-                reCustomBtnView.hidden = YES;
+                reCustomBtnView = [[CustomButtonView alloc]initWithFrame:CGRectMake(60, 120, 80, 80)];
+                reCustomBtnView.tag      = 0;
+                reCustomBtnView.hidden   = YES;
                 reCustomBtnView.delegate = self;
                 reCustomBtnView.imageView.image = [UIImage imageNamed:@"re_hearing.png"];
                 reCustomBtnView.contentLab.text = @"重听一遍";
                 [self.view addSubview:reCustomBtnView];
                 
-                clrBtnView = [[CustomButtonView alloc]initWithFrame:CGRectMake(170, 120, 80, 80)];
+                clrBtnView = [[CustomButtonView alloc]initWithFrame:CGRectMake(180, 120, 80, 80)];
                 clrBtnView.tag    = 1;
                 clrBtnView.hidden = YES;
                 clrBtnView.delegate = self;
@@ -688,8 +738,6 @@
                 labaView.image = [UIImage imageNamed:@"laba.png"];
                 [soundImageView addSubview:labaView];
                 [recordSuccessBtn addSubview:soundImageView];
-                
-                cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 break;
             }
             default:

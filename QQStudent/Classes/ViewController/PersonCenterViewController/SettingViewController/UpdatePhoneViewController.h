@@ -11,6 +11,7 @@
 @interface UpdatePhoneViewController : UIViewController<UITextFieldDelegate>
 {
     UITextField  *txtFld;
+    UIButton     *okBtn;
 }
 @property (nonatomic, retain) NSString *phone;
 @end

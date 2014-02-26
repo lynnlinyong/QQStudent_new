@@ -9,7 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "MQTTSession.h"
 
-@interface MainViewController : UIViewController<ServerRequestDelegate,
+@interface MainViewController : UIViewController<
+                                                TeacherPropertyViewDelegate,
+                                                ServerRequestDelegate,
                                                 AMapSearchDelegate,
                                                 MAMapViewDelegate>
 {
@@ -22,7 +24,16 @@
 }
 
 @property (nonatomic, retain) MAMapView *mapView;
+
++ (CustomNavigationViewController *) getNavigationViewController;
+
 + (void) getWebServerAddress;
+
 + (NSString *) getPort:(NSString *) str;
+
++ (void) setNavTitle:(NSString *) title;
+
++ (void) setNavBackButton:(UIViewController *) delegate parentVctr:(UIViewController *)parentVctr;
+
 + (NSString *) getPushAddress:(NSString *) str;
 @end

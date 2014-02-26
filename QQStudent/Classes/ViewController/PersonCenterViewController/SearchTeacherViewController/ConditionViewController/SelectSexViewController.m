@@ -39,38 +39,100 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 160)
+    UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
+    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0,
+                                                   titleImg.size.width,
+                                                   210)
                              isBackView:NO];
     self.view.backgroundColor = [UIColor whiteColor];
     
-    UILabel *infoLab = [[UILabel alloc]init];
-    infoLab.text  = @"选择性别";
-    infoLab.frame = CGRectMake(45, 0, 150, 20);
-    infoLab.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:infoLab];
-    [infoLab release];
+    LBorderView *groupView = [[LBorderView alloc]initWithFrame:CGRectMake(-10, -5,
+                                                                          self.view.frame.size.width+20,
+                                                                          self.view.frame.size.height+10)];
+    groupView.borderType   = BorderTypeSolid;
+    groupView.dashPattern  = 8;
+    groupView.spacePattern = 8;
+    groupView.borderWidth  = 1;
+    groupView.cornerRadius = 5;
+    groupView.borderColor  = [UIColor whiteColor];
+    groupView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:groupView];
     
-    gdView = [[UIGridView alloc]init];
-    gdView.uiGridViewDelegate = self;
-    gdView.frame = CGRectMake(0, 20, 240, 90);
+    UIImageView *titleImgView = [[UIImageView alloc]init];
+    titleImgView.frame = [UIView fitCGRect:CGRectMake(-2.5, -2,
+                                                      groupView.frame.size.width+5, titleImg.size.height)
+                                isBackView:NO];
+    titleImgView.image = titleImg;
+    [groupView addSubview:titleImgView];
+    [titleImgView release];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text  = @"选择性别";
+    titleLab.textColor = [UIColor whiteColor];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame= [UIView fitCGRect:CGRectMake(-2.5, -2,
+                                                 groupView.frame.size.width+5, titleImg.size.height)
+                           isBackView:NO];
+    titleLab.backgroundColor = [UIColor clearColor];
+    titleLab.textAlignment   = NSTextAlignmentCenter;
+    [groupView addSubview:titleLab];
+    [titleLab release];
+    
+    gdView = [[UITableView alloc]init];
+    gdView.delegate   = self;
+    gdView.dataSource = self;
+    gdView.frame = CGRectMake(titleImg.size.width/2-120, 30, 240, 120);
     gdView.userInteractionEnabled = YES;
+    gdView.scrollEnabled = NO;
     [self.view addSubview:gdView];
     
-    UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    okBtn.tag = 0;
-    okBtn.frame = CGRectMake(60, 120, 40, 30);
+    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
+    UIImageView *bottomImgView = [[UIImageView alloc]init];
+    bottomImgView.image = bottomImg;
+    bottomImgView.frame = [UIView fitCGRect:CGRectMake(-11,
+                                                       self.view.frame.size.height-bottomImg.size.height+6,
+                                                       self.view.frame.size.width+23, bottomImg.size.height)
+                                 isBackView:NO];
+    [self.view addSubview:bottomImgView];
+    [bottomImgView release];
+    
+    UIImage *okBtnImg = [UIImage imageNamed:@"dialog_ok_normal_btn"];
+    UIButton *okBtn   = [UIButton buttonWithType:UIButtonTypeCustom];
+    okBtn.tag   = 0;
+    [okBtn setTitleColor:[UIColor blackColor]
+                forState:UIControlStateNormal];
+    okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
+                             self.view.frame.size.height-okBtnImg.size.height+3,
+                             okBtnImg.size.width,
+                             okBtnImg.size.height);
     [okBtn setTitle:@"确定"
            forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_normal_btn"]
+                     forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_hlight_btn"]
+                     forState:UIControlStateHighlighted];
     [okBtn addTarget:self
               action:@selector(doButtonClicked:)
     forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:okBtn];
     
-    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    cancelBtn.tag   = 1;
-    cancelBtn.frame = CGRectMake(160, 120, 40, 30);
+    UIImage *cancelImg  = [UIImage imageNamed:@"dialog_cancel_normal_btn"];
+    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    cancelBtn.tag = 1;
+    [cancelBtn setTitleColor:[UIColor blackColor]
+                    forState:UIControlStateNormal];
+    cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
+                                 self.view.frame.size.height-cancelImg.size.height+3,
+                                 cancelImg.size.width,
+                                 cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
                forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_normal_btn"]
+                         forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_hlight_btn"]
+                         forState:UIControlStateHighlighted];
     [cancelBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
@@ -94,40 +156,30 @@
 }
 
 #pragma mark -
-#pragma mark - UIGridViewDelegate
-- (void) gridView:(UIGridView *)grid didSelectRowAt:(int)rowIndex AndColumnAt:(int)columnIndex
-{
-    
-}
-
-- (CGFloat) gridView:(UIGridView *)grid widthForColumnAt:(int)columnIndex
-{
-    return 100;
-}
-
-- (CGFloat) gridView:(UIGridView *)grid heightForRowAt:(int)rowIndex
-{
-    return 30;
-}
-
-- (NSInteger) numberOfColumnsOfGridView:(UIGridView *) grid
+#pragma mark - UITableViewDelegate and UITableViewDataSource
+- (int) numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
 }
 
-- (NSInteger) numberOfCellsOfGridView:(UIGridView *) grid
+- (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return 3;
 }
 
-- (UIGridViewCell *) gridView:(UIGridView *)grid cellForRowAt:(int)rowIndex AndColumnAt:(int)columnIndex
+- (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 40;
+}
+
+- (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *idString   = @"idString";
-    UIGridViewCell *cell = [grid dequeueReusableCellWithIdentifier:idString];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:idString];
     if (!cell)
     {
-        cell = [[[UIGridViewCell alloc]init]autorelease];
-        switch (rowIndex)
+        cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:idString]autorelease];
+        switch (indexPath.row)
         {
             case 0:
             {
@@ -138,7 +190,7 @@
                        forState:UIControlStateNormal];
                 [qrBtn setTitleColor:[UIColor grayColor]
                             forState:UIControlStateNormal];
-                qrBtn.frame = CGRectMake(0, 0, 80, 30);
+                qrBtn.frame = CGRectMake(100, 7, 80, 30);
                 [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
                 [qrBtn setChecked:YES];
                 [cell addSubview:qrBtn];
@@ -156,7 +208,7 @@
                        forState:UIControlStateNormal];
                 [qrBtn setTitleColor:[UIColor grayColor]
                             forState:UIControlStateNormal];
-                qrBtn.frame = CGRectMake(0, 0, 80, 30);
+                qrBtn.frame = CGRectMake(100, 7, 80, 30);
                 [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
                 [cell addSubview:qrBtn];
                 qrBtn.exclusiveTouch = YES;
@@ -173,7 +225,7 @@
                        forState:UIControlStateNormal];
                 [qrBtn setTitleColor:[UIColor grayColor]
                             forState:UIControlStateNormal];
-                qrBtn.frame = CGRectMake(0, 0, 80, 30);
+                qrBtn.frame = CGRectMake(100, 7, 80, 30);
                 [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
                 [cell addSubview:qrBtn];
                 qrBtn.exclusiveTouch = YES;

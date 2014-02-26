@@ -27,6 +27,9 @@
 - (void) viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    
+    //设置Title
+    [MainViewController setNavTitle:@"轻轻家教"];
 }
 
 - (void)viewDidLoad
@@ -82,15 +85,8 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.font            = [UIFont systemFontOfSize:18.f];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment = UITextAlignmentCenter;
-    title.text = @"轻轻家教";
-    self.navigationItem.titleView = title;
-    [title release];
-    
+    _calloutMapAnnotation = [[CalloutMapAnnotation alloc]init];
+
     //显示地图
     NSDictionary *tpDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
     int updateMeters = 10;
@@ -103,7 +99,7 @@
     
     self.mapView = [[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0,
                                                                                  320, 480)
-                                                         isBackView:YES]];
+                                                           isBackView:YES]];
     self.mapView.showsScale = NO;
     self.mapView.delegate   = self;
     self.mapView.distanceFilter  = updateMeters;//10米位置更新到服务器
@@ -207,6 +203,41 @@
     {
         CLog(@"setTerminalProperty Haved Success!");
     }
+}
+
++ (void) setNavTitle:(NSString *) title
+{
+    BOOL isSet = NO;
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    NSArray *subArray = [nav.navigationBar subviews];
+    for (UIView *view in subArray)
+    {
+        if (view.tag == 1010)   //Title View
+        {
+            UILabel *titleLab = (UILabel *)view;
+            titleLab.text     = title;
+            isSet = YES;
+        }
+    }
+    if (!isSet)
+    {
+        UILabel *titleLab     = [[UILabel alloc] initWithFrame:CGRectMake(160-100, 22-15, 200, 30)];
+        titleLab.tag             = 1010;
+        titleLab.font            = [UIFont systemFontOfSize:18.f];
+        titleLab.textColor       = [UIColor colorWithHexString:@"#009f66"];
+        titleLab.backgroundColor = [UIColor clearColor];
+        titleLab.textAlignment = UITextAlignmentCenter;
+        titleLab.text = @"轻轻家教";
+        [nav.navigationBar addSubview:titleLab];
+        [title release];
+    }
+}
+
++ (CustomNavigationViewController *) getNavigationViewController
+{
+    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    return (CustomNavigationViewController *)app.window.rootViewController;
 }
 
 + (void) getWebServerAddress
@@ -352,8 +383,6 @@
         [self.mapView removeAnnotation:self.mapView.userLocation];
         [self.mapView removeOverlays:self.mapView.overlays];
     }
-    
-    _calloutMapAnnotation = [[CalloutMapAnnotation alloc]init];
 }
 
 - (void) initMapKey
@@ -417,7 +446,68 @@
     }
     else
     {
-        PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
+        MyTeacherViewController *mVctr = [[MyTeacherViewController alloc]init];
+        UINavigationController *navMvctr = [[UINavigationController alloc]initWithRootViewController:mVctr];
+        
+        LatlyViewController *lVctr = [[LatlyViewController alloc]init];
+        UINavigationController *navLVctr = [[UINavigationController alloc]initWithRootViewController:lVctr];
+        
+        SearchTeacherViewController *sVctr = [[SearchTeacherViewController alloc]init];
+        UINavigationController *navSVctr = [[UINavigationController alloc]initWithRootViewController:sVctr];
+        
+        ShareViewController *shareVctr = [[ShareViewController alloc]initWithNibName:nil
+                                                                              bundle:nil];
+        UINavigationController *navShareVctr = [[UINavigationController alloc]initWithRootViewController:shareVctr];
+        
+        SettingViewController *setVctr = [[SettingViewController alloc]initWithNibName:nil
+                                                                                bundle:nil];
+        UINavigationController *navSetVctr = [[UINavigationController alloc]initWithRootViewController:setVctr];
+        
+        
+        NSMutableDictionary *imgDic = [NSMutableDictionary dictionaryWithCapacity:3];
+        [imgDic setObject:[UIImage imageNamed:@"s_1_1"]
+                   forKey:@"Default"];
+        [imgDic setObject:[UIImage imageNamed:@"s_1_2"]
+                   forKey:@"Highlighted"];
+        [imgDic setObject:[UIImage imageNamed:@"s_1_2"]
+                   forKey:@"Seleted"];
+        NSMutableDictionary *imgDic2 = [NSMutableDictionary dictionaryWithCapacity:3];
+        [imgDic2 setObject:[UIImage imageNamed:@"s_2_1"]
+                    forKey:@"Default"];
+        [imgDic2 setObject:[UIImage imageNamed:@"s_2_2"]
+                    forKey:@"Highlighted"];
+        [imgDic2 setObject:[UIImage imageNamed:@"s_2_2"]
+                    forKey:@"Seleted"];
+        NSMutableDictionary *imgDic3 = [NSMutableDictionary dictionaryWithCapacity:3];
+        [imgDic3 setObject:[UIImage imageNamed:@"s_3_1"]
+                    forKey:@"Default"];
+        [imgDic3 setObject:[UIImage imageNamed:@"s_3_2"]
+                    forKey:@"Highlighted"];
+        [imgDic3 setObject:[UIImage imageNamed:@"s_3_2"]
+                    forKey:@"Seleted"];
+        NSMutableDictionary *imgDic4 = [NSMutableDictionary dictionaryWithCapacity:3];
+        [imgDic4 setObject:[UIImage imageNamed:@"s_4_1"]
+                    forKey:@"Default"];
+        [imgDic4 setObject:[UIImage imageNamed:@"s_4_2"]
+                    forKey:@"Highlighted"];
+        [imgDic4 setObject:[UIImage imageNamed:@"s_4_2"]
+                    forKey:@"Seleted"];
+        NSMutableDictionary *imgDic5 = [NSMutableDictionary dictionaryWithCapacity:3];
+        [imgDic5 setObject:[UIImage imageNamed:@"s_5_1"]
+                    forKey:@"Default"];
+        [imgDic5 setObject:[UIImage imageNamed:@"s_5_2"]
+                    forKey:@"Highlighted"];
+        [imgDic5 setObject:[UIImage imageNamed:@"s_5_2"]
+                    forKey:@"Seleted"];
+        NSMutableArray *ctrlArr = [NSMutableArray arrayWithObjects:navMvctr,navLVctr,navSVctr,navShareVctr,navSetVctr,nil];
+        
+        NSArray *imgArr = [NSArray arrayWithObjects:imgDic,imgDic3,imgDic2,
+                           imgDic4,imgDic5,nil];
+        
+        PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]
+                                              initWithViewControllers:ctrlArr
+                                         imageArray:imgArr];
+//        [MainViewController setNavBackButton:pcVctr parentVctr:self];
         [self.navigationController pushViewController:pcVctr
                                              animated:YES];
         [pcVctr release];
@@ -707,18 +797,13 @@
             outAnnView = [[[CallOutAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"calloutview"] autorelease];
             
             Teacher *tObj = [ann.teacherObj copy];
-            TeacherPropertyView *tpView = [[TeacherPropertyView alloc]initWithFrame:CGRectMake(0, 0, outAnnView.contentView.frame.size.width, outAnnView.contentView.frame.size.height)];
+            TeacherPropertyView *tpView = [[TeacherPropertyView alloc]initWithFrame:CGRectMake(0,
+                                                                                               0,
+                                                                                               outAnnView.contentView.frame.size.width,
+                                                                                               outAnnView.contentView.frame.size.height)];
+            tpView.tObj = [tObj copy];
+            tpView.delegate = self;
             [outAnnView.contentView addSubview:tpView];
-            tpView.headImgView.URL = tObj.headUrl;
-            if (tObj.sex == 1)
-            {
-                tpView.introLab.text = [NSString stringWithFormat:@"%@ 男", tObj.name];
-            }
-            else
-            {
-                tpView.introLab.text = [NSString stringWithFormat:@"%@ 女", tObj.name];
-            }
-            tpView.tsLab.text = [NSString stringWithFormat:@"已辅导%d位学生", tObj.studentCount];
             [tObj release];
         }
         
@@ -730,7 +815,7 @@
 - (void) mapView:(MAMapView *)mapView didSelectAnnotationView:(MAAnnotationView *)view
 {
     CustomPointAnnotation *annn = (CustomPointAnnotation*)view.annotation;
-    if (annn.tag == 1000)   //我的位置
+    if (annn == meAnn)     //我的位置
         return;
     
     if ([view.annotation isKindOfClass:[MAPointAnnotation class]]) {
@@ -748,7 +833,8 @@
         }
         
         //创建搭载自定义calloutview的annotation
-        _calloutMapAnnotation = [[[CalloutMapAnnotation alloc] initWithLatitude:view.annotation.coordinate.latitude andLongitude:view.annotation.coordinate.longitude] autorelease];
+        CLog(@"Old:%f,%f", view.annotation.coordinate.latitude,view.annotation.coordinate.longitude)
+        _calloutMapAnnotation = [[CalloutMapAnnotation alloc] initWithLatitude:view.annotation.coordinate.latitude andLongitude:view.annotation.coordinate.longitude];
         _calloutMapAnnotation.teacherObj = annn.teacherObj;
         
         [self.mapView addAnnotation:_calloutMapAnnotation];
@@ -759,9 +845,10 @@
 
 - (void) mapView:(MAMapView *)mapView didDeselectAnnotationView:(MAAnnotationView *)view
 {
-    if (_calloutMapAnnotation&&![view isKindOfClass:[CallOutAnnotationView class]]) {
-        if (_calloutMapAnnotation.coordinate.latitude == view.annotation.coordinate.latitude&&
-            _calloutMapAnnotation.coordinate.longitude == view.annotation.coordinate.longitude) {
+    if (_calloutMapAnnotation &&![view isKindOfClass:[CallOutAnnotationView class]]) {
+        CLog(@"%f,%f  %f,%f", _calloutMapAnnotation.latitude,_calloutMapAnnotation.longitude, view.annotation.coordinate.latitude,view.annotation.coordinate.longitude);
+        if (_calloutMapAnnotation.latitude == view.annotation.coordinate.latitude&&
+            _calloutMapAnnotation.longitude == view.annotation.coordinate.longitude) {
             [self.mapView removeAnnotation:_calloutMapAnnotation];
             _calloutMapAnnotation = nil;
         }

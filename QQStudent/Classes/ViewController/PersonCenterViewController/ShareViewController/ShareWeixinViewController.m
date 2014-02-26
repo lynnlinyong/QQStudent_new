@@ -41,14 +41,15 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 240)
+    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 170)
                              isBackView:NO];
     self.view.backgroundColor = [UIColor whiteColor];
     
-    shareTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 240, 240) isBackView:NO]
-                                           style:UITableViewStyleGrouped];
-    shareTab.delegate   = self;
-    shareTab.dataSource = self;
+    shareTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 240, 170)
+                                                        isBackView:NO]
+                                           style:UITableViewStylePlain];
+    shareTab.delegate      = self;
+    shareTab.dataSource    = self;
     shareTab.scrollEnabled = NO;
     [self.view addSubview:shareTab];
 }
@@ -57,28 +58,28 @@
 #pragma mark - UITableViewDelegate and UITableDataScource
 - (int) numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 2;
+    return 1;
 }
 
 - (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    switch (section)
-    {
-        case 0:
-        {
-            return 3;
-            break;
-        }
-        case 1:
-        {
-            return 1;
-            break;
-        }
-        default:
-            break;
-    }
+//    switch (section)
+//    {
+//        case 0:
+//        {
+//            return 3;
+//            break;
+//        }
+//        case 1:
+//        {
+//            return 1;
+//            break;
+//        }
+//        default:
+//            break;
+//    }
     
-    return 1;
+    return 4;
 }
 
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -89,60 +90,53 @@
     {
         cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
                                      reuseIdentifier:idString];
+        cell.backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"lt_list_bg"]];
     }
     
-    switch (indexPath.section)
+
+    switch (indexPath.row)
     {
         case 0:
         {
-            switch (indexPath.row)
-            {
-                case 0:
-                {
-                    UILabel *titleLab = [[UILabel alloc]init];
-                    titleLab.text  = @"分享到微信";
-                    titleLab.backgroundColor = [UIColor clearColor];
-                    titleLab.frame = CGRectMake(0, 0,240, 44);
-                    titleLab.textAlignment = NSTextAlignmentCenter;
-                    [cell addSubview:titleLab];
-                    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                    [titleLab release];
-                    break;
-                }
-                case 1:
-                {
-                    UILabel *titleLab = [[UILabel alloc]init];
-                    titleLab.text  = @"分享给好友";
-                    titleLab.backgroundColor = [UIColor clearColor];
-                    titleLab.frame = CGRectMake(0, 0,240, 44);
-                    titleLab.textAlignment = NSTextAlignmentCenter;
-                    [cell addSubview:titleLab];
-                    [titleLab release];
-                    break;
-                }
-                case 2:
-                {
-                    UILabel *titleLab = [[UILabel alloc]init];
-                    titleLab.text  = @"分享到朋友圈";
-                    titleLab.backgroundColor = [UIColor clearColor];
-                    titleLab.frame = CGRectMake(0, 0,240, 44);
-                    titleLab.textAlignment = NSTextAlignmentCenter;
-                    [cell addSubview:titleLab];
-                    [titleLab release];
-                    break;
-                }
-                default:
-                    break;
-            }
+            UILabel *titleLab = [[UILabel alloc]init];
+            titleLab.text  = @"分享到微信";
+            titleLab.backgroundColor = [UIColor clearColor];
+            titleLab.frame = CGRectMake(0, 0,240, 44);
+            titleLab.textAlignment = NSTextAlignmentCenter;
+            [cell addSubview:titleLab];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            [titleLab release];
             break;
         }
         case 1:
+        {
+            UILabel *titleLab = [[UILabel alloc]init];
+            titleLab.text  = @"分享给好友";
+            titleLab.backgroundColor = [UIColor clearColor];
+            titleLab.frame = CGRectMake(0, 0,240, 44);
+            titleLab.textAlignment = NSTextAlignmentCenter;
+            [cell addSubview:titleLab];
+            [titleLab release];
+            break;
+        }
+        case 2:
+        {
+            UILabel *titleLab = [[UILabel alloc]init];
+            titleLab.text  = @"分享到朋友圈";
+            titleLab.backgroundColor = [UIColor clearColor];
+            titleLab.frame = CGRectMake(0, 0,240, 44);
+            titleLab.textAlignment = NSTextAlignmentCenter;
+            [cell addSubview:titleLab];
+            [titleLab release];
+            break;
+        }
+        case 3:
         {
             UILabel *cancelLab = [[UILabel alloc]init];
             cancelLab.text  = @"取消";
             cancelLab.backgroundColor = [UIColor clearColor];
             cancelLab.frame = CGRectMake(0, 0,240, 44);
-            cancelLab.textAlignment = NSTextAlignmentCenter;
+            cancelLab.textAlignment   = NSTextAlignmentCenter;
             [cell addSubview:cancelLab];
             [cancelLab release];
             break;
@@ -157,36 +151,27 @@
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    switch (indexPath.section)
+    switch (indexPath.row)
     {
-        case 0:
+        case 1:    //分享给好友
         {
-            switch (indexPath.row)
-            {
-                case 1:    //分享给好友
-                {
-                    SendMessageToWXReq* req = [[[SendMessageToWXReq alloc] init]autorelease];
-                    req.text  = @"轻轻家教非常不错,马上去下载吧!";
-                    req.bText = YES;
-                    req.scene = WXSceneSession;
-                    [WXApi sendReq:req];
-                    break;
-                }
-                case 2:    //分享到朋友圈
-                {
-                    SendMessageToWXReq* req = [[[SendMessageToWXReq alloc] init]autorelease];
-                    req.text  = @"轻轻家教非常不错,马上去下载吧!";
-                    req.bText = YES;
-                    req.scene = WXSceneTimeline;
-                    [WXApi sendReq:req];
-                    break;
-                }
-                default:
-                    break;
-            }
+            SendMessageToWXReq* req = [[[SendMessageToWXReq alloc] init]autorelease];
+            req.text  = @"轻轻家教非常不错,马上去下载吧!";
+            req.bText = YES;
+            req.scene = WXSceneSession;
+            [WXApi sendReq:req];
             break;
         }
-        case 1:
+        case 2:    //分享到朋友圈
+        {
+            SendMessageToWXReq* req = [[[SendMessageToWXReq alloc] init]autorelease];
+            req.text  = @"轻轻家教非常不错,马上去下载吧!";
+            req.bText = YES;
+            req.scene = WXSceneTimeline;
+            [WXApi sendReq:req];
+            break;
+        }
+        case 3:
         {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"dismissView"
                                                                 object:nil];

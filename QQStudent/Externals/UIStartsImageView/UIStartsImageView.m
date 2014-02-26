@@ -16,31 +16,30 @@
     if (self)
     {
         float width  = frame.size.width;
-        float height = frame.size.height;
-        
+        UIImage *starImg = [UIImage imageNamed:@"mt_star_normal"];
         star1ImgView = [[UIImageView alloc]init];
-        star1ImgView.frame = CGRectMake(0, 0, width/6, height);
-        star1ImgView.image = [UIImage imageNamed:@"star.png"];
+        star1ImgView.frame = CGRectMake(0, 0, starImg.size.width, starImg.size.height);
+        star1ImgView.image = starImg;
         
         star2ImgView = [[UIImageView alloc]init];
-        star2ImgView.frame = CGRectMake(width/6, 0, width/6, height);
-        star2ImgView.image = [UIImage imageNamed:@"star.png"];
+        star2ImgView.frame = CGRectMake(width/6, 0, starImg.size.width, starImg.size.height);
+        star2ImgView.image = starImg;
         
         star3ImgView = [[UIImageView alloc]init];
-        star3ImgView.frame = CGRectMake(width/6*2, 0, width/6, height);
-        star3ImgView.image = [UIImage imageNamed:@"star.png"];
+        star3ImgView.frame = CGRectMake(width/6*2, 0, starImg.size.width, starImg.size.height);
+        star3ImgView.image = starImg;
         
         star4ImgView = [[UIImageView alloc]init];
-        star4ImgView.frame = CGRectMake(width/6*3, 0, width/6, height);
-        star4ImgView.image = [UIImage imageNamed:@"star.png"];
+        star4ImgView.frame = CGRectMake(width/6*3, 0, starImg.size.width, starImg.size.height);
+        star4ImgView.image = starImg;
         
         star5ImgView = [[UIImageView alloc]init];
-        star5ImgView.frame = CGRectMake(width/6*4, 0, width/6, height);
-        star5ImgView.image = [UIImage imageNamed:@"star.png"];
+        star5ImgView.frame = CGRectMake(width/6*4, 0, starImg.size.width, starImg.size.height);
+        star5ImgView.image = starImg;
         
         star6ImgView = [[UIImageView alloc]init];
-        star6ImgView.frame = CGRectMake(width/6*5, 0, width/6, height);
-        star6ImgView.image = [UIImage imageNamed:@"star.png"];
+        star6ImgView.frame = CGRectMake(width/6*5, 0, starImg.size.width, starImg.size.height);
+        star6ImgView.image = starImg;
         
         [self addSubview:star1ImgView];
         [self addSubview:star2ImgView];
@@ -63,4 +62,63 @@
     [super dealloc];
 }
 
+- (void) setHlightStar:(int) count
+{
+    CLog(@"TeacherStar:%d", count);
+    UIImage *hlightImg = [UIImage imageNamed:@"mt_star_hlight"];
+    switch (count)
+    {
+        case 0:
+        {
+            break;
+        }
+        case 1:
+        {
+            star1ImgView.image = hlightImg;
+            break;
+        }
+        case 2:
+        {
+            star1ImgView.image = hlightImg;
+            star2ImgView.image = hlightImg;
+            break;
+        }
+        case 3:
+        {
+            star1ImgView.image = hlightImg;
+            star2ImgView.image = hlightImg;
+            star3ImgView.image = hlightImg;
+            break;
+        }
+        case 4:
+        {
+            star1ImgView.image = hlightImg;
+            star2ImgView.image = hlightImg;
+            star3ImgView.image = hlightImg;
+            star4ImgView.image = hlightImg;
+            break;
+        }
+        case 5:
+        {
+            star1ImgView.image = hlightImg;
+            star2ImgView.image = hlightImg;
+            star3ImgView.image = hlightImg;
+            star4ImgView.image = hlightImg;
+            star5ImgView.image = hlightImg;
+            break;
+        }
+        case 6:
+        {
+            star1ImgView.image = hlightImg;
+            star2ImgView.image = hlightImg;
+            star3ImgView.image = hlightImg;
+            star4ImgView.image = hlightImg;
+            star5ImgView.image = hlightImg;
+            star6ImgView.image = hlightImg;
+            break;
+        }
+        default:
+            break;
+    }
+}
 @end

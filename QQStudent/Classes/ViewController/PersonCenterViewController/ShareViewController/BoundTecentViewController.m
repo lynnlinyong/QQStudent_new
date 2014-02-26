@@ -23,6 +23,12 @@
     return self;
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [MainViewController setNavTitle:@"分享到腾讯微博"];
+    [super viewDidAppear:animated];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -43,68 +49,40 @@
 #pragma mark -
 #pragma mark - Custom Action
 - (void) initUI
-{
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment = UITextAlignmentCenter;
-    title.text = @"分享到腾讯微博";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0, 0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
+{    
     UILabel *infoLab = [[UILabel alloc]init];
-    infoLab.text = @"绑定腾讯微博,分享更多人!";
+    infoLab.text = @"绑定腾讯微博,分享给更多人!";
     infoLab.backgroundColor = [UIColor clearColor];
-    infoLab.frame = [UIView fitCGRect:CGRectMake(60, 200, 200, 20)
+    infoLab.frame = [UIView fitCGRect:CGRectMake(50, 180, 220, 20)
                            isBackView:NO];
     [self.view addSubview:infoLab];
     [infoLab release];
     
-    UIButton *boundBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    UIImage *boundImg  = [UIImage imageNamed:@"normal_btn"];
+    UIButton *boundBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [boundBtn setTitle:@"立即绑定"
               forState:UIControlStateNormal];
+    [boundBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                   forState:UIControlStateNormal];
+    [boundBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                   forState:UIControlStateHighlighted];
+    [boundBtn setBackgroundImage:boundImg
+                        forState:UIControlStateNormal];
+    [boundBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                        forState:UIControlStateHighlighted];
+    boundBtn.frame = [UIView fitCGRect:CGRectMake(160-boundImg.size.width/2,
+                                                  230,
+                                                  boundImg.size.width,
+                                                  boundImg.size.height)
+                            isBackView:NO];
     [boundBtn addTarget:self
                  action:@selector(doButtonClicked:)
        forControlEvents:UIControlEventTouchUpInside];
-    boundBtn.frame = [UIView fitCGRect:CGRectMake(120, 230, 80, 30)
-                            isBackView:NO];
     [self.view addSubview:boundBtn];
 }
 
 #pragma mark -
 #pragma mark - Control Event
-- (void) doBackBtnClicked:(id)sender
-{
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
 - (void) doButtonClicked:(id)sender
 {
     SingleTCWeibo *tcWeibo = [SingleTCWeibo shareInstance];

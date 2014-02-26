@@ -40,6 +40,13 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    [MainViewController setNavTitle:@"分享到通讯录"];
+}
+
 - (void) viewDidUnload
 {
     [addressArray removeAllObjects];
@@ -63,48 +70,21 @@
 #pragma mark - 
 #pragma mark - Custom Action
 - (void) initUI
-{
-    UILabel *title        = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    title.textColor       = [UIColor colorWithHexString:@"#009f66"];
-    title.backgroundColor = [UIColor clearColor];
-    title.textAlignment = UITextAlignmentCenter;
-    title.text = @"分享到通讯录";
-    self.navigationItem.titleView = title;
-    [title release];
-    
-    //设置返回按钮
-    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
-    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame     = CGRectMake(0, 0,
-                                   50,
-                                   30);
-    [backBtn setBackgroundImage:backImg
-                       forState:UIControlStateNormal];
-    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
-                       forState:UIControlStateHighlighted];
-    [backBtn addTarget:self
-                action:@selector(doBackBtnClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"返回";
-    titleLab.textColor= [UIColor whiteColor];
-    titleLab.font     = [UIFont systemFontOfSize:12.f];
-    titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame = CGRectMake(8, 0,
-                                50,
-                                30);
-    titleLab.backgroundColor = [UIColor clearColor];
-    [backBtn addSubview:titleLab];
-    [titleLab release];
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backBtn];
-    
+{    
     addressArray = [[NSMutableArray alloc]init];
     selectArray  = [[NSMutableArray alloc]init];
     
-    UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    UIImage *shareImg  = [UIImage imageNamed:@"sp_share_btn_normal"];
+    UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [shareBtn setTitle:@"分享" forState:UIControlStateNormal];
-    shareBtn.frame = CGRectMake(0, 0, 40, 20);
+    shareBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    [shareBtn setBackgroundImage:shareImg
+                        forState:UIControlStateNormal];
+    [shareBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_hlight"]
+                        forState:UIControlStateHighlighted];
+    shareBtn.frame = CGRectMake(0, 0,
+                                shareImg.size.width-10,
+                                shareImg.size.height-5);
     [shareBtn addTarget:self
                  action:@selector(doShareBtnClicked:)
        forControlEvents:UIControlEventTouchUpInside];
@@ -113,7 +93,8 @@
     addressTab   = [[UITableView alloc]init];
     addressTab.delegate   = self;
     addressTab.dataSource = self;
-    addressTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 460) isBackView:NO];
+    addressTab.frame = [UIView fitCGRect:CGRectMake(0, 10, 320, 460)
+                              isBackView:NO];
     [self.view addSubview:addressTab];
 }
 
@@ -285,11 +266,6 @@
         [selectArray addObject:[NSNumber numberWithInt:checkBox.tag]];
     else
         [selectArray removeObject:[NSNumber numberWithInt:checkBox.tag]];
-}
-
-- (void) doBackBtnClicked:(id)sender
-{
-    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void) doShareBtnClicked:(id)sender

@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 @interface CalloutMapAnnotation : NSObject<MAAnnotation>
-@property (nonatomic) CLLocationDegrees latitude;
-@property (nonatomic) CLLocationDegrees longitude;
+@property (nonatomic, assign) CLLocationDegrees latitude;
+@property (nonatomic, assign) CLLocationDegrees longitude;
 @property (nonatomic, copy) Site *site;
 @property (copy, nonatomic) Teacher *teacherObj; 
 - (id)initWithLatitude:(CLLocationDegrees)lat andLongitude:(CLLocationDegrees)lon;

@@ -62,9 +62,17 @@
         teacherObj.isOnline = NO;
     teacherObj.phoneNums = [resDic objectForKey:@"phone"];
     teacherObj.pfId      = ((NSNumber *) [resDic objectForKey:@"subject"]).intValue;
-    teacherObj.pf        = [[resDic objectForKey:@"subjectText"] copy];
-    teacherObj.comment   = ((NSNumber *) [resDic objectForKey:@"tstars"]).intValue;
-    teacherObj.comment   = ((NSNumber *) [resDic objectForKey:@"teacher_stars"]).intValue;
+    
+    NSString *subject    = [[resDic objectForKey:@"subjectText"] copy];
+    if (subject)
+        teacherObj.pf    = subject;
+    else
+        teacherObj.pf    = [[resDic objectForKey:@"subject"] copy];
+    NSString *starCnt    = [[resDic objectForKey:@"tstars"] copy];
+    if (starCnt)
+        teacherObj.comment   = starCnt.intValue;
+    else
+        teacherObj.comment   = ((NSNumber *) [resDic objectForKey:@"teacher_stars"]).intValue;
     teacherObj.info      = [resDic objectForKey:@"info"];
     teacherObj.badCount  = ((NSNumber *)[resDic objectForKey:@"xunNum"]).intValue;
     teacherObj.goodCount = ((NSNumber *) [resDic objectForKey:@"zanNum"]).intValue;
