@@ -48,5 +48,5 @@
 
 @property (nonatomic, retain) Teacher *tObj;
 @property (nonatomic, copy)   NSDictionary    *posDic;
-@property (nonatomic, copy)   NSMutableArray  *teacherArray;
+//@property (nonatomic, copy)   NSMutableArray  *teacherArray;
 @end

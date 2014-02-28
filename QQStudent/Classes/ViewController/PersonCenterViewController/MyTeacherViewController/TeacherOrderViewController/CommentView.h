@@ -15,7 +15,7 @@
 
 @interface CommentView : UIView
 @property (nonatomic, retain) NSString *orderId;
-@property (nonatomic, retain) UIView *contentView;
+@property (nonatomic, retain) UIImageView *contentView;
 @property (nonatomic, assign) id<CommentViewDelegate> delegate;
 - (void) showView:(CGRect) rect;
 @end

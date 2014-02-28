@@ -25,6 +25,8 @@
     UIButton *freeBtn;
     UIButton *finishBtn;
     UIButton *updateBtn;
+    
+    NSArray  *buttonArray;
 }
 @property (nonatomic, retain) CommentView *commView;
 @property (nonatomic, copy)   Order *order;

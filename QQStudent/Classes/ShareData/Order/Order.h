@@ -31,8 +31,15 @@ typedef enum _tagOrderStatus
     NSString  *orderProvice;       //订单省份
     NSString  *orderCity;          //订单城市
     NSString  *orderDist;          //订单区域
+    
+    NSString  *payMoney;           //消费金额
+    NSString  *backMoney;          //应退金额
+    
+    Teahcer   *teacher;            //订单的老师
 }
-
+@property (nonatomic, copy)   Teahcer   *teacher;
+@property (nonatomic, assign) NSString  *payMoney;
+@property (nonatomic, assign) NSString  *backMoney;
 @property (nonatomic, retain) NSString  *orderId;
 @property (nonatomic, retain) NSString  *orderAddTimes;
 @property (nonatomic, retain) NSString  *orderStudyPos;

@@ -104,24 +104,36 @@
     self.dataSource = self;
     self.messages   = [[NSMutableArray alloc]init];
 
-    listenBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [listenBtn setTitle:@"试听" forState:UIControlStateNormal];
+    listenBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [listenBtn setTitle:@"试听"
+               forState:UIControlStateNormal];
+    listenBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    [listenBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                    forState:UIControlStateNormal];
+    [listenBtn setBackgroundImage:[UIImage imageNamed:@"normal_btn"]
+                         forState:UIControlStateNormal];
     listenBtn.tag   = 0;
-    listenBtn.frame = CGRectMake(320-95, 7, 40, 20);
+    listenBtn.frame = CGRectMake(320-110, 12, 40, 20);
     [listenBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
     [self.navigationController.navigationBar addSubview:listenBtn];
     
-    employBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [employBtn setTitle:@"聘请"
+    employBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    employBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    [employBtn setTitle:@"聘请TA"
                forState:UIControlStateNormal];
+    [employBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_normal"]
+                         forState:UIControlStateNormal];
+    [employBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_hlight"]
+                         forState:UIControlStateHighlighted];
     employBtn.tag   = 1;
-    employBtn.frame = CGRectMake(320-45, 7, 40, 20);
+    employBtn.frame = CGRectMake(320-65, 12, 60, 20);
     [employBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
-    [self.navigationController.navigationBar addSubview:employBtn];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav.navigationBar addSubview:employBtn];
     
     //是否支持试听、聘用
     [self isShowListenBtn];
@@ -473,7 +485,7 @@
             if (order)
             {
                 AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-                UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
+                CustomNavigationViewController *nav     = (CustomNavigationViewController *)app.window.rootViewController;
                 UpdateOrderViewController *upVctr = [[UpdateOrderViewController alloc]init];
                 upVctr.order = [order copy];
                 [nav pushViewController:upVctr
@@ -582,7 +594,7 @@
 - (void) showTeacherDetailNotice:(NSNotification *) notice
 {
     AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav     = (CustomNavigationViewController *)app.window.rootViewController;
     TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
     tdVctr.tObj = tObj;
     [nav pushViewController:tdVctr

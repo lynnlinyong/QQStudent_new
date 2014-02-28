@@ -190,8 +190,7 @@
 
 - (void)request:(SinaWeiboRequest *)request didFinishLoadingWithResult:(id)result
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     [nav popToRootViewControllerAnimated:YES];
     
     CLog(@"Send Message Success!");

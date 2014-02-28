@@ -30,6 +30,7 @@
     //初始化UI
     [self initUI];
     
+    [self setButtonBgUp:proviceBtn];
     [self searchProvice];
     [self setGrideView];
 }
@@ -44,33 +45,53 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    UIButton *proviceBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    UIImage *bgImg = [UIImage imageNamed:@"sd_sel_pos_bg_down"];
+    self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
+    
+    proviceBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     proviceBtn.tag   = 100;
+    [proviceBtn setBackgroundImage:bgImg
+                          forState:UIControlStateNormal];
+    proviceBtn.titleLabel.textAlignment = NSTextAlignmentLeft;
     [proviceBtn setTitle:@"省份"
                 forState:UIControlStateNormal];
-    proviceBtn.frame = [UIView fitCGRect:CGRectMake(10, 30, 80, 30)
+    [proviceBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    proviceBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    proviceBtn.frame = [UIView fitCGRect:CGRectMake(5, 30, bgImg.size.width-10, bgImg.size.height)
                               isBackView:NO];
     [proviceBtn addTarget:self
                    action:@selector(doButtonClicked:)
          forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:proviceBtn];
     
-    UIButton *cityBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    cityBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     cityBtn.tag   = 101;
+    cityBtn.titleLabel.textAlignment = NSTextAlignmentLeft;
     [cityBtn setTitle:@"城市"
              forState:UIControlStateNormal];
-    cityBtn.frame = [UIView fitCGRect:CGRectMake(120, 30, 80, 30)
+    [cityBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [cityBtn setBackgroundImage:bgImg
+                       forState:UIControlStateNormal];
+    cityBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    cityBtn.frame = [UIView fitCGRect:CGRectMake(15+bgImg.size.width, 30, bgImg.size.width-10, bgImg.size.height)
                            isBackView:NO];
     [cityBtn addTarget:self
                 action:@selector(doButtonClicked:)
       forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:cityBtn];
     
-    UIButton *distBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    distBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     distBtn.tag    = 102;
     [distBtn setTitle:@"区域"
              forState:UIControlStateNormal];
-    distBtn.frame  = [UIView fitCGRect:CGRectMake(230, 30, 80, 30)
+    [distBtn setTitleColor:[UIColor blackColor]
+                  forState:UIControlStateNormal];
+    distBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+    [distBtn setBackgroundImage:bgImg
+                       forState:UIControlStateNormal];
+    distBtn.frame  = [UIView fitCGRect:CGRectMake(25+2*bgImg.size.width, 30,
+                                                  bgImg.size.width-10,
+                                                  bgImg.size.height)
                             isBackView:NO];
     [distBtn addTarget:self
                 action:@selector(doButtonClicked:)
@@ -82,17 +103,40 @@
     
     gdView = [[UIGridView alloc]init];
     gdView.uiGridViewDelegate = self;
-    gdView.frame = [UIView fitCGRect:CGRectMake(10, 65, 300, 400)
+    gdView.frame = [UIView fitCGRect:CGRectMake(8, 52, 305, 400)
                           isBackView:NO];
     gdView.userInteractionEnabled = YES;
     [self.view addSubview:gdView];
+    
+    UIImage *okImg  = [UIImage imageNamed:@"normal_btn"];
+    okBtn           = [UIButton buttonWithType:UIButtonTypeCustom];
+    okBtn.tag       = 103;
+    okBtn.hidden    = YES;
+    [okBtn setTitle:@"确定"
+           forState:UIControlStateNormal];
+    [okBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                forState:UIControlStateNormal];
+    [okBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                forState:UIControlStateHighlighted];
+    [okBtn setBackgroundImage:okImg
+                     forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                     forState:UIControlStateHighlighted];
+    okBtn.frame = [UIView fitCGRect:CGRectMake(160-okImg.size.width/2,
+                                               330,
+                                               okImg.size.width,
+                                               okImg.size.height)
+                         isBackView:NO];
+    [okBtn addTarget:self
+              action:@selector(doButtonClicked:)
+    forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:okBtn];
 }
 
 - (NSMutableArray *) searchProvice
 {
     //设置选择索引
     curSelIndex = 0;
-    
     [valueArray removeAllObjects];
     
     FMDB *fmdb = [FMDB sharedFMDB];
@@ -105,7 +149,7 @@
             [valueArray addObject:[rs stringForColumn:@"district"]];
         }
     }
-    
+    CLog(@"valueArray:%d", valueArray.count);
     return valueArray;
 }
 
@@ -198,8 +242,14 @@
         row = valueArray.count/3;
     int height = 20 * row;
     
-    gdView.frame = [UIView fitCGRect:CGRectMake(gdView.frame.origin.x, gdView.frame.origin.y, gdView.frame.size.width, height) isBackView:NO];
+    CLog(@"Y:%f", gdView.frame.origin.y);
+    gdView.frame = CGRectMake(gdView.frame.origin.x,
+                                                gdView.frame.origin.y,
+                                                gdView.frame.size.width, height);
     [gdView reloadData];
+    
+    okBtn.frame  = CGRectMake(okBtn.frame.origin.x, gdView.frame.origin.y+height+30,
+                              okBtn.frame.size.width, okBtn.frame.size.height);
 }
 
 #pragma mark -
@@ -207,10 +257,12 @@
 - (void) doButtonClicked:(id)sender
 {
     UIButton *btn = sender;
+    [self setButtonBgUp:btn];
     switch (btn.tag)
     {
         case 100:      //省份
         {
+            okBtn.hidden = YES;
             [self searchProvice];
             [self setGrideView];
             return;
@@ -218,11 +270,63 @@
         }
         case 101:      //城市
         {
+            okBtn.hidden = NO;
             return;
             break;
         }
         case 102:      //区
         {
+            okBtn.hidden = NO;
+            return;
+            break;
+        }
+        case 103:      //确定
+        {
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+- (void) setButtonBgUp:(UIButton *) btn
+{
+    UIImage *bgUpImg   = [UIImage imageNamed:@"sd_sel_pos_bg_up"];
+    UIImage *bgDownImg = [UIImage imageNamed:@"sd_sel_pos_bg_down"];
+    switch (btn.tag)
+    {
+        case 100:      //省份
+        {
+            [proviceBtn setBackgroundImage:bgUpImg
+                                  forState:UIControlStateNormal];
+            [distBtn setBackgroundImage:bgDownImg
+                               forState:UIControlStateNormal];
+            [cityBtn setBackgroundImage:bgDownImg
+                               forState:UIControlStateNormal];
+            [self searchProvice];
+            [self setGrideView];
+            return;
+            break;
+        }
+        case 101:      //城市
+        {
+            [distBtn setBackgroundImage:bgDownImg
+                               forState:UIControlStateNormal];
+            [cityBtn setBackgroundImage:bgUpImg
+                               forState:UIControlStateNormal];
+            [proviceBtn setBackgroundImage:bgDownImg
+                                  forState:UIControlStateNormal];
+            return;
+            break;
+        }
+        case 102:      //区
+        {
+            [distBtn setBackgroundImage:bgUpImg
+                               forState:UIControlStateNormal];
+            [cityBtn setBackgroundImage:bgDownImg
+                               forState:UIControlStateNormal];
+            [proviceBtn setBackgroundImage:bgDownImg
+                                  forState:UIControlStateNormal];
             return;
             break;
         }
@@ -255,12 +359,9 @@
 
 - (UIGridViewCell *) gridView:(UIGridView *)grid cellForRowAt:(int)rowIndex AndColumnAt:(int)columnIndex
 {
-    NSString *idString   = @"idString";
-    UIGridViewCell *cell = [grid dequeueReusableCellWithIdentifier:idString];
-    if (!cell)
+    UIGridViewCell *cell = [[UIGridViewCell alloc]init];
+    if (cell)
     {
-        cell = [[[UIGridViewCell alloc]init]autorelease];
-        
         int index = rowIndex*3+columnIndex;
         
         UILabel *contentLab = [[UILabel alloc]init];
@@ -268,7 +369,7 @@
         contentLab.text  = [valueArray objectAtIndex:index];
         contentLab.backgroundColor = [UIColor clearColor];
         contentLab.frame = CGRectMake(0, 0, 100, 20);
-        [cellArray addObject:contentLab];
+        [cellArray addObject:cell];
         [cell addSubview:contentLab];
         [contentLab release];
     }
@@ -284,12 +385,14 @@
     {
         case 0:     //省份
         {
+            [self setButtonBgUp:cityBtn];
             proviceValue = [[valueArray objectAtIndex:index] copy];
             [self searchCity:proviceValue];
             break;
         }
         case 1:     //城市
         {
+            [self setButtonBgUp:distBtn];
             cityValue = [[valueArray objectAtIndex:index] copy];
             [self searchDist:cityValue];
             break;

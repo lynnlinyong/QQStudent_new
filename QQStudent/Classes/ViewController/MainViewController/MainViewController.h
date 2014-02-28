@@ -10,6 +10,7 @@
 #import "MQTTSession.h"
 
 @interface MainViewController : UIViewController<
+CustomNavigationDataSource,
                                                 TeacherPropertyViewDelegate,
                                                 ServerRequestDelegate,
                                                 AMapSearchDelegate,

@@ -17,4 +17,5 @@
     int         selectRadioIndex;
 }
 
+@property (nonatomic, assign) BOOL isSetSex;
 @end

@@ -8,6 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TeacherDetailViewController : UIViewController<ServerRequestDelegate>
+@interface TeacherDetailViewController : UIViewController<ServerRequestDelegate,TTImageViewDelegate,UIScrollViewDelegate>
+{
+    UIImageView *headImageView;
+    UIImageView *bgImgView;
+    UIScrollView *bgScroll;
+}
 @property (nonatomic, copy) Teacher  *tObj;
 @end

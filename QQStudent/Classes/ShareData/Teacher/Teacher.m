@@ -29,6 +29,7 @@
 @synthesize teacherId;
 @synthesize goodCount;
 @synthesize badCount;
+@synthesize certArray;
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic
 {
@@ -60,7 +61,7 @@
         teacherObj.isOnline = YES;
     else
         teacherObj.isOnline = NO;
-    teacherObj.phoneNums = [resDic objectForKey:@"phone"];
+    teacherObj.phoneNums = [[resDic objectForKey:@"phone"] copy];
     teacherObj.pfId      = ((NSNumber *) [resDic objectForKey:@"subject"]).intValue;
     
     NSString *subject    = [[resDic objectForKey:@"subjectText"] copy];
@@ -76,6 +77,8 @@
     teacherObj.info      = [resDic objectForKey:@"info"];
     teacherObj.badCount  = ((NSNumber *)[resDic objectForKey:@"xunNum"]).intValue;
     teacherObj.goodCount = ((NSNumber *) [resDic objectForKey:@"zanNum"]).intValue;
+    teacherObj.certArray = [[resDic objectForKey:@"certificates"] copy];
+    
     return teacherObj;
 }
 
@@ -101,6 +104,8 @@
         longitude= [[NSString alloc]init];
         phoneNums= [[NSString alloc]init];
         info     = [[NSString alloc]init];
+        
+        certArray= [[NSArray alloc]init];
     }
     
     return self;
@@ -118,6 +123,7 @@
     [latitude  release];
     [longitude release];
     [phoneNums release];
+    [certArray release];
     [super dealloc];
 }
 
@@ -126,25 +132,26 @@
     Teacher *tObj = NSCopyObject(self, 0, zone);
     if (tObj)
     {
-        tObj.name    = [name copy];
-        tObj.sex     = sex;
-        tObj.pf      = [pf copy];
-        tObj.pfId    = pfId;
-        tObj.idNums  = [idNums copy];
-        tObj.mood    = [mood copy];
-        tObj.headUrl = [headUrl copy];
-        tObj.comment = comment;
+        tObj.name      = [name copy];
+        tObj.sex       = sex;
+        tObj.pf        = [pf copy];
+        tObj.pfId      = pfId;
+        tObj.idNums    = [idNums copy];
+        tObj.mood      = [mood copy];
+        tObj.headUrl   = [headUrl copy];
+        tObj.comment   = comment;
         tObj.studentCount = studentCount;
-        tObj.deviceId = [deviceId copy];
-        tObj.expense  = expense;
-        tObj.isIos    = isIos;
-        tObj.isOnline = isOnline;
-        tObj.latitude = [latitude copy];
+        tObj.deviceId  = [deviceId copy];
+        tObj.expense   = expense;
+        tObj.isIos     = isIos;
+        tObj.isOnline  = isOnline;
+        tObj.latitude  = [latitude copy];
         tObj.longitude = [longitude copy];
         tObj.phoneNums = [phoneNums copy];
         tObj.info      = [info copy];
         tObj.goodCount = goodCount;
         tObj.badCount  = badCount;
+        tObj.certArray = [certArray copy];
     }
     
     return tObj;
@@ -174,6 +181,7 @@
         tObj.info = [info copy];
         tObj.goodCount = goodCount;
         tObj.badCount  = badCount;
+        tObj.certArray = [certArray copy];
     }
     
     return tObj;

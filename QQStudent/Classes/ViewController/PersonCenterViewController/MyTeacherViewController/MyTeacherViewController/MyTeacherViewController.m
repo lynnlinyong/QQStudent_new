@@ -29,6 +29,10 @@
     [super viewDidAppear:animated];
     [MainViewController setNavTitle:@"个人中心"];
     self.navigationController.navigationBarHidden = YES;
+    
+    //获得订单列表
+    [self getOrderTeachers];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(doCommentOrderNotice:)
                                                  name:@"commentOrderNotice"
@@ -48,8 +52,17 @@
     //初始化上拉刷新
     [self initPullView];
     
-    //获得订单列表
-    [self getOrderTeachers];
+    UIImage *bgImg = [UIImage imageNamed:@"pp_nodata_bg"];
+    bgImgView      = [[UIImageView alloc]initWithImage:bgImg];
+    bgImgView.frame= [UIView fitCGRect:CGRectMake(160-50,
+                                                  280/2-40,
+                                                  100,
+                                                  80)
+                            isBackView:NO];
+    [self.view addSubview:bgImgView];
+    
+    self.tableView.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
+    self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
 }
 
 - (void)didReceiveMemoryWarning
@@ -62,12 +75,12 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     _refreshHeaderView    = nil;
-    [teacherArray removeAllObjects];
     [super viewDidUnload];
 }
 
 - (void) dealloc
 {
+    [bgImgView release];
     _refreshHeaderView = nil;
     [teacherArray release];
     [super dealloc];
@@ -78,7 +91,8 @@
 #pragma mark - Notice
 - (void) dismissComplainNotice:(NSNotification *) notice
 {
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) doCommentOrderNotice:(NSNotification *) notice
@@ -90,10 +104,10 @@
     NSArray *valuesArr = [NSArray arrayWithObjects:@"setEvaluate", orderId, index, ssid, nil];
     NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
-    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+    NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url      = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
     ServerRequest *request = [ServerRequest sharedServerRequest];
-    request.delegate = self;
+    request.delegate   = self;
     [request requestASyncWith:kServerPostRequest
                      paramDic:pDic
                        urlStr:url];
@@ -138,7 +152,7 @@
 }
 
 - (void) getOrderTeachers
-{
+{    
     NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"caches_time",@"sessid",nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getOrders",@"", ssid, nil];
@@ -163,12 +177,20 @@
 
 - (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 80;
+    if (indexPath.row==0)
+        return 80;
+    
+    return 120;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     GCRetractableSectionController* sectionController = [self.retractableControllers objectAtIndex:section];
-    return sectionController.numberOfRow;
+    int count = sectionController.numberOfRow;
+    if (count>0)
+        bgImgView.hidden = YES;
+    else
+        bgImgView.hidden = NO;
+    return count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -179,9 +201,10 @@
     {
         cell = (MyTeacherCell *)[sectionController cellForRow:indexPath.row];
         cell.delegate = self;
+        cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"mtp_tcell_bg"]];
         return cell;
     }
-    
+
     return [sectionController cellForRow:indexPath.row];
 }
 
@@ -199,6 +222,10 @@
 	//  should be calling your tableviews data source model to reload
 	//  put here just for demo
 	_reloading = YES;
+    
+    
+    //刷新订单数据
+    [self getOrderTeachers];
 }
 
 - (void)doneLoadingTableViewData
@@ -226,7 +253,7 @@
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view
 {
 	[self reloadTableViewDataSource];
-	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:3.0];
+//	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:3.0];
 }
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view
@@ -278,8 +305,7 @@
 #pragma mark - MyTeacherCellDelegate
 - (void) tableViewCell:(MyTeacherCell *)cell ClickedButton:(int)index
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     switch (index)
     {
         case 0:     //教师详情
@@ -300,9 +326,10 @@
         }
         case 2:     //投诉
         {
+            CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
             ComplainViewController *cpVctr = [[ComplainViewController alloc]init];
             cpVctr.tObj = cell.teacher;
-            [self presentPopupViewController:cpVctr
+            [nav presentPopupViewController:cpVctr
                                animationType:MJPopupViewAnimationFade];
             break;
         }
@@ -344,6 +371,8 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    [self doneLoadingTableViewData];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
@@ -368,6 +397,7 @@
         if ([action isEqualToString:@"getOrders"])
         {
             teacherArray = [[resDic objectForKey:@"teachers"] copy];
+            
             //初始化UI
             [self initUI];
         }
@@ -389,122 +419,7 @@
                         delegate:self
                otherButtonTitles:@"确定",nil];
     }
+    
+    [self doneLoadingTableViewData];
 }
-
-
-//(
-// {
-//     orders =         (
-//                       {
-//                           oid = 137;
-//                           "order_addtime" = "2014/01/15";
-//                           "order_gender_id" = 1;
-//                           "order_gender_text" = "\U7537";
-//                           "order_grade_id" = 8;
-//                           "order_grade_text" = "\U521d\U4e09";
-//                           "order_iaddress" = "\U5e7f\U4e1c\U7701 \U60e0\U5dde\U5e02 \U60e0\U9633\U533a \U4eba\U6c11\U56db\U8def \U9760\U8fd1\U798f\U5229\U8def\U53e3";
-//                           "order_iaddress_data" =                 {
-//                               cityCode = "\U60e0\U5dde\U5e02";
-//                               cityName = "\U60e0\U5dde\U5e02";
-//                               districtName = "\U60e0\U9633\U533a";
-//                               latitude = "22.793873";
-//                               longitude = "114.458013";
-//                               name = "\U5e7f\U4e1c\U7701 \U60e0\U5dde\U5e02 \U60e0\U9633\U533a \U4eba\U6c11\U56db\U8def \U9760\U8fd1\U798f\U5229\U8def\U53e3";
-//                               provinceName = "\U5e7f\U4e1c\U7701";
-//                               type = InputAddress;
-//                           };
-//                           "order_ismfjfu" = 0;
-//                           "order_jyfdnum" = 20;
-//                           "order_kcbz" = 180;
-//                           "order_pj_addtime" = 1389800475;
-//                           "order_pj_data" = "";
-//                           "order_pj_stars" = 1;
-//                           "order_pushcc" = 0;
-//                           "order_sd" = "2014/01/15 \U4e0a\U5348";
-//                           "order_stars" = 5;
-//                           "order_subject_data" =                 {
-//                               subjectId = 24;
-//                               subjectIndex = 2;
-//                               subjectText = "\U6570\U5b66";
-//                           };
-//                           "order_subject_text" = "\U6570\U5b66";
-//                           "order_tamount" = "3600.00";
-//                           "order_tfamount" = "0.00";
-//                           "order_updatetime" = 1389800475;
-//                           "order_xfamount" = "3600.00";
-//                           tid = 1462;
-//                           uid = 933;
-//                       },
-//                       {
-//                           oid = 136;
-//                           "order_addtime" = "2014/01/15";
-//                           "order_gender_id" = 1;
-//                           "order_gender_text" = "\U7537";
-//                           "order_grade_id" = 8;
-//                           "order_grade_text" = "\U521d\U4e09";
-//                           "order_iaddress" = "\U5e7f\U4e1c\U7701 \U60e0\U5dde\U5e02 \U60e0\U9633\U533a \U4eba\U6c11\U56db\U8def \U9760\U8fd1\U798f\U5229\U8def\U53e3";
-//                           "order_iaddress_data" =                 {
-//                               cityCode = "\U60e0\U5dde\U5e02";
-//                               cityName = "\U60e0\U5dde\U5e02";
-//                               districtName = "\U60e0\U9633\U533a";
-//                               latitude = "22.793873";
-//                               longitude = "114.458013";
-//                               name = "\U5e7f\U4e1c\U7701 \U60e0\U5dde\U5e02 \U60e0\U9633\U533a \U4eba\U6c11\U56db\U8def \U9760\U8fd1\U798f\U5229\U8def\U53e3";
-//                               provinceName = "\U5e7f\U4e1c\U7701";
-//                               type = InputAddress;
-//                           };
-//                           "order_ismfjfu" = 0;
-//                           "order_jyfdnum" = 20;
-//                           "order_kcbz" = 180;
-//                           "order_pj_addtime" = 0;
-//                           "order_pj_data" = "<null>";
-//                           "order_pj_stars" = 0;
-//                           "order_pushcc" = 0;
-//                           "order_sd" = "2014/01/15 \U4e0a\U5348";
-//                           "order_stars" = 1;
-//                           "order_subject_data" =                 {
-//                               subjectId = 24;
-//                               subjectIndex = 2;
-//                               subjectText = "\U6570\U5b66";
-//                           };
-//                           "order_subject_text" = "\U6570\U5b66";
-//                           "order_tamount" = "3600.00";
-//                           "order_tfamount" = "0.00";
-//                           "order_updatetime" = 1389799321;
-//                           "order_xfamount" = "0.00";
-//                           tid = 1462;
-//                           uid = 933;
-//                       }
-//                       );
-//     teacher =         {
-//         acode = 0755;
-//         address = "\U5e7f\U4e1c\U7701 \U6df1\U5733\U5e02 \U9f99\U5c97\U533a \U6c5f\U5cad\U8def \U9760\U8fd1\U6bd4\U4e9a\U8fea\U6c7d\U8f66\U576a\U5c71\U552e\U540e\U670d\U52a1\U603b\U5e97";
-//         deviceId = t354316039702636;
-//         deviceToken = "";
-//         gender = 1;
-//         genderText = "\U7537";
-//         ios = 0;
-//         latitude = "22.67559100";
-//         lltime = 1392052814;
-//         "location_stars" = 1;
-//         longitude = "114.35715000";
-//         online = 1;
-//         "phone_stars" = 1;
-//         "pre_listening" = 1;
-//         regtime = 1389625936;
-//         searchCode = tcgqobled;
-//         "teacher_certificates" = "<null>";
-//         "teacher_expense" = 13;
-//         "teacher_icon" = "uploadfile/file/18610674146/image/20140113231657_49416.jpg";
-//         "teacher_idnumber" = 510521198904074359;
-//         "teacher_info" = lynn;
-//         "teacher_name" = lynn;
-//         "teacher_phone" = 18610674146;
-//         "teacher_stars" = 1;
-//         "teacher_subject" = 24;
-//         "teacher_subjectText" = "\U6570\U5b66";
-//         "teacher_type" = 0;
-//     };
-// }
-// )
 @end

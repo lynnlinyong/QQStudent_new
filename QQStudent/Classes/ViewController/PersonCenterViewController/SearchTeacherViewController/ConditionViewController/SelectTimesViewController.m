@@ -57,43 +57,30 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
+    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
     UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0,
-                                                   titleImg.size.width,
-                                                   210)
-                             isBackView:NO];
+    self.view.frame = CGRectMake(0, 0,
+                                 titleImg.size.width,150+bottomImg.size.height);
     self.view.backgroundColor = [UIColor whiteColor];
     
-    LBorderView *groupView = [[LBorderView alloc]initWithFrame:CGRectMake(-10, -5,
-                                                                          self.view.frame.size.width+20,
-                                                                          self.view.frame.size.height+10)];
-    groupView.borderType   = BorderTypeSolid;
-    groupView.dashPattern  = 8;
-    groupView.spacePattern = 8;
-    groupView.borderWidth  = 1;
-    groupView.cornerRadius = 5;
-    groupView.borderColor  = [UIColor whiteColor];
-    groupView.backgroundColor = [UIColor whiteColor];
-    [self.view addSubview:groupView];
     
     UIImageView *titleImgView = [[UIImageView alloc]init];
-    titleImgView.frame = [UIView fitCGRect:CGRectMake(-2.5, -2,
-                                                      groupView.frame.size.width+5, titleImg.size.height)
-                                isBackView:NO];
+    titleImgView.frame = CGRectMake(-2, -titleImg.size.height,
+                                    self.view.frame.size.width+5,
+                                    titleImg.size.height);
     titleImgView.image = titleImg;
-    [groupView addSubview:titleImgView];
+    [self.view addSubview:titleImgView];
     [titleImgView release];
     
     infoLab = [[UILabel alloc]init];
     infoLab.text  = [NSString stringWithFormat:@"选择预计辅导 %@ 小时", curValue];
     infoLab.textColor = [UIColor whiteColor];
     infoLab.textAlignment = NSTextAlignmentCenter;
-    infoLab.frame= [UIView fitCGRect:CGRectMake(-2.5, -2,
-                                                 groupView.frame.size.width+5, titleImg.size.height)
-                           isBackView:NO];
+    infoLab.frame= CGRectMake(-2, -titleImg.size.height,
+                                   self.view.frame.size.width+5, titleImg.size.height);
     infoLab.backgroundColor = [UIColor clearColor];
     infoLab.textAlignment   = NSTextAlignmentCenter;
-    [groupView addSubview:infoLab];
+    [self.view addSubview:infoLab];
     
     int intValue = curValue.integerValue;
     int i = intValue / 100;
@@ -107,16 +94,14 @@
     [timePickerView selectRow:i inComponent:0 animated:NO];
     [timePickerView selectRow:j inComponent:1 animated:NO];
     [timePickerView selectRow:k inComponent:2 animated:NO];
-    timePickerView.frame = CGRectMake(titleImg.size.width/2-120, 20, 240, 162);
+    timePickerView.frame = CGRectMake(titleImg.size.width/2-120, 0, 240, 162);
     [self.view addSubview:timePickerView];
-    
-    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
+
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
-    bottomImgView.frame = [UIView fitCGRect:CGRectMake(-11,
-                                                       self.view.frame.size.height-bottomImg.size.height+6,
-                                                       self.view.frame.size.width+23, bottomImg.size.height)
-                                 isBackView:NO];
+    bottomImgView.frame = CGRectMake(-2,
+                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.width+4, bottomImg.size.height);
     [self.view addSubview:bottomImgView];
     [bottomImgView release];
     
@@ -127,7 +112,7 @@
                 forState:UIControlStateNormal];
     okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
-                             self.view.frame.size.height-okBtnImg.size.height+3,
+                             self.view.frame.size.height-bottomImg.size.height+6,
                              okBtnImg.size.width,
                              okBtnImg.size.height);
     [okBtn setTitle:@"确定"
@@ -148,7 +133,7 @@
                     forState:UIControlStateNormal];
     cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
-                                 self.view.frame.size.height-cancelImg.size.height+3,
+                                 self.view.frame.size.height-bottomImg.size.height+6,
                                  cancelImg.size.width,
                                  cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
@@ -161,6 +146,7 @@
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:cancelBtn];
+
 }
 
 - (void) doButtonClicked:(id)sender

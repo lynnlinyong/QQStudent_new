@@ -157,7 +157,7 @@
     if ((page == 3) && (offset > 20))
     {
         MainViewController *mainVctr = [[MainViewController alloc]init];
-        UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:mainVctr];
+        CustomNavigationViewController *nav = [[CustomNavigationViewController alloc]initWithRootViewController:mainVctr];
         AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         app.window.rootViewController = nav;
     }

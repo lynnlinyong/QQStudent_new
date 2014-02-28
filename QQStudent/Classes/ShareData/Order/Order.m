@@ -20,6 +20,9 @@
 @synthesize orderProvice;
 @synthesize orderCity;
 @synthesize orderDist;
+@synthesize payMoney;
+@synthesize backMoney;
+@synthesize teacher;
 
 - (id) init
 {
@@ -37,6 +40,11 @@
         orderProvice= [[NSString alloc]init];
         orderCity   = [[NSString alloc]init];
         orderDist   = [[NSString alloc]init];
+        
+        payMoney  = [[NSString alloc]init];
+        backMoney = [[NSString alloc]init];
+        
+        teacher   = [[Teacher alloc]init];
     }
     
     return self;
@@ -44,6 +52,9 @@
 
 - (void) dealloc
 {
+    [teacher         release];
+    [payMoney        release];
+    [backMoney       release];
     [orderDist       release];
     [orderCity       release];
     [orderProvice    release];
@@ -67,13 +78,16 @@
         order.orderStudyPos   = [orderStudyPos copy];
         order.orderStudyTimes = [orderStudyTimes copy];
         order.everyTimesMoney = [everyTimesMoney copy];
-        order.totalMoney = [totalMoney copy];
-        order.comment = [comment copy];
-        order.orderStatus  = orderStatus;
+        order.totalMoney      = [totalMoney copy];
+        order.comment         = [comment copy];
+        order.orderStatus     = orderStatus;
+        order.orderProvice    = [orderProvice copy];
+        order.orderCity       = [orderCity copy];
+        order.orderDist       = [orderDist copy];
         
-        order.orderProvice = [orderProvice copy];
-        order.orderCity    = [orderCity copy];
-        order.orderDist    = [orderDist copy];
+        order.payMoney        = [payMoney copy];
+        order.backMoney       = [backMoney copy];
+        order.teacher         = [teacher copy];
     }
     
     return order;
@@ -96,6 +110,11 @@
         order.orderProvice = [orderProvice copy];
         order.orderCity    = [orderCity copy];
         order.orderDist    = [orderDist copy];
+        
+        order.payMoney        = [payMoney copy];
+        order.backMoney       = [backMoney copy];
+        
+        order.teacher      = [teacher copy];
     }
     
     return order;
@@ -125,6 +144,10 @@
         if ([dic objectForKey:@"districtName"])
             order.orderDist = [dic objectForKey:@"districtName"];
     }
+    
+    order.totalMoney = [[dic objectForKey:@"order_tamount"]  copy];
+    order.backMoney  = [[dic objectForKey:@"order_tfamount"] copy];
+    order.payMoney   = [[dic objectForKey:@"order_xfamount"] copy];
     
     return order;
 }

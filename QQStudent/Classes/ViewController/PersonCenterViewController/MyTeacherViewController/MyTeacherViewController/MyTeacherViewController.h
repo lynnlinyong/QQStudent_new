@@ -19,6 +19,8 @@
     
     EGORefreshTableHeaderView *_refreshHeaderView;
 	BOOL _reloading;
+    
+    UIImageView *bgImgView;
 }
 
 - (void)reloadTableViewDataSource;

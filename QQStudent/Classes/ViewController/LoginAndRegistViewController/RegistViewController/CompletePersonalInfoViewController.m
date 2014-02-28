@@ -54,114 +54,17 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    //获得Student
-    NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
-    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    upTab = [[UITableView alloc]init];
+    upTab.delegate     = self;
+    upTab.dataSource   = self;
+    upTab.frame = CGRectMake(0, 10, 320, 400);
+    upTab.scrollEnabled  = NO;
+    upTab.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [self.view addSubview:upTab];
     
-    UIButton *emailBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    emailBtn.frame = [UIView fitCGRect:CGRectMake(30, 80, 260, 20)
-                            isBackView:NO];
-    UILabel *emailLab = [[UILabel alloc]init];
-    emailLab.text  = @"邮箱";
-    emailLab.frame = CGRectMake(0, 0, 40, 20);
-    emailLab.backgroundColor = [UIColor clearColor];
-    [emailBtn addSubview:emailLab];
-    
-    UILabel *emailValLab = [[UILabel alloc]init];
-    emailValLab.text  = student.email;
-    emailValLab.frame =CGRectMake(40, 0, 220, 20);
-    emailValLab.backgroundColor = [UIColor clearColor];
-    emailValLab.textAlignment   = NSTextAlignmentCenter;
-    [emailBtn addSubview:emailValLab];
-    [self.view addSubview:emailBtn];
-    [emailLab release];
-    [emailValLab release];
-    
-    UIButton *phoneBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    phoneBtn.frame = [UIView fitCGRect:CGRectMake(30, 110, 260, 20)
-                            isBackView:NO];
-    UILabel *phoneLab = [[UILabel alloc]init];
-    phoneLab.text  = @"手机";
-    phoneLab.frame = CGRectMake(0, 0, 40, 20);
-    phoneLab.backgroundColor = [UIColor clearColor];
-    [phoneBtn addSubview:phoneLab];
-    
-    UILabel *phoneValLab = [[UILabel alloc]init];
-    phoneValLab.text  = student.phoneNumber;
-    phoneValLab.frame =CGRectMake(40, 0, 220, 20);
-    phoneValLab.backgroundColor = [UIColor clearColor];
-    phoneValLab.textAlignment   = NSTextAlignmentCenter;
-    [phoneBtn addSubview:phoneValLab];
-    [self.view addSubview:phoneBtn];
-    [phoneLab release];
-    [phoneValLab release];
-    
-    UIButton *nameBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    nameBtn.tag   = 0;
-    nameBtn.frame = [UIView fitCGRect:CGRectMake(30, 140, 260, 20)
-                           isBackView:NO];
-    [nameBtn addTarget:self
-                action:@selector(doButtonClicked:)
-      forControlEvents:UIControlEventTouchUpInside];
-    UILabel *nameLab = [[UILabel alloc]init];
-    nameLab.text  = @"昵称";
-    nameLab.frame = CGRectMake(0, 0, 40, 20);
-    nameLab.backgroundColor = [UIColor clearColor];
-    [nameBtn addSubview:nameLab];
-    
-    nameValLab = [[UILabel alloc]init];
-    nameValLab.text = student.nickName;
-    nameValLab.frame = CGRectMake(40, 0, 220, 20);
-    nameValLab.backgroundColor = [UIColor clearColor];
-    nameValLab.textAlignment   = NSTextAlignmentCenter;
-    [nameBtn addSubview:nameValLab];
-    [self.view addSubview:nameBtn];
-    [nameLab release];
-    
-    UIButton *classBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    classBtn.tag   = 1;
-    classBtn.frame = [UIView fitCGRect:CGRectMake(30, 170, 260, 20)
-                            isBackView:NO];
-    [classBtn addTarget:self
-                 action:@selector(doButtonClicked:)
-       forControlEvents:UIControlEventTouchUpInside];
-    UILabel *classLab = [[UILabel alloc]init];
-    classLab.text  = @"年级";
-    classLab.backgroundColor = [UIColor clearColor];
-    classLab.frame = CGRectMake(0, 0, 40, 20);
-    [classBtn addSubview:classLab];
-    
-    classValLab = [[UILabel alloc]init];
-    classValLab.text = @"";
-    classValLab.frame = CGRectMake(40, 0, 220, 20);
-    classValLab.backgroundColor = [UIColor clearColor];
-    classValLab.textAlignment   = NSTextAlignmentCenter;
-    [classBtn addSubview:classValLab];
-    [self.view addSubview:classBtn];
-    [classLab release];
-    
-    UIButton *sexBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    sexBtn.tag   = 2;
-    sexBtn.frame = [UIView fitCGRect:CGRectMake(30, 200, 260, 20)
-                          isBackView:NO];
-    [sexBtn addTarget:self
-               action:@selector(doButtonClicked:)
-     forControlEvents:UIControlEventTouchUpInside];
-    UILabel *sexLab = [[UILabel alloc]init];
-    sexLab.text     = @"性别";
-    sexLab.backgroundColor = [UIColor clearColor];
-    sexLab.frame = CGRectMake(0, 0, 40, 20);
-    [sexBtn addSubview:sexLab];
-    
-    sexValLab = [[UILabel alloc]init];
-    sexValLab.text  = @"";
-    sexValLab.textAlignment = NSTextAlignmentCenter;
-    sexValLab.frame = CGRectMake(40, 0, 220, 20);
-    sexValLab.backgroundColor = [UIColor clearColor];
-    [sexBtn addSubview:sexValLab];
-    [self.view addSubview:sexBtn];
-    [sexLab release];
-    
+    upTab.backgroundColor     = [UIColor colorWithHexString:@"E1E0DE"];
+    self.view.backgroundColor = [UIColor colorWithHexString:@"E1E0DE"];
+
     //注册设置名称昵称消息
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(setNickNameFromNotice:) name:@"setNickNameNotice"
@@ -176,6 +79,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(setGradeFromNotice:) name:@"setGradeNotice"
                                                object:nil];
+    
+    
 }
 
 - (void) checkInfoComplete
@@ -243,9 +148,11 @@
     int tag = ((NSNumber *)[userInfoDic objectForKey:@"TAG"]).intValue;
     if (tag == 0)  //确定
     {
+        CLog(@"name:%@", [userInfoDic objectForKey:@"name"]);
         classValLab.text = [userInfoDic objectForKey:@"name"];
         student.grade    = [userInfoDic objectForKey:@"id"];
     }
+    CLog(@"jiwejiweiweui");
     
     stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
     [[NSUserDefaults standardUserDefaults] setObject:stuData forKey:STUDENT];
@@ -297,24 +204,195 @@
     UIButton *button = (UIButton *)sender;
     switch (button.tag)
     {
-        case 0:         //昵称
+                default:
+            break;
+    }
+}
+
+#pragma mark -
+#pragma mark - UITableViewDelegate and UITableViewDatasource
+- (int) numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 5;
+}
+
+- (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *idString = @"idString";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:idString];
+    if (!cell)
+    {
+        cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
+                                     reuseIdentifier:idString];
+    }
+    
+    //获得Student
+    NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
+    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    switch (indexPath.row)
+    {
+        case 0:
+        {
+            UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
+            UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                            forState:UIControlStateNormal];
+            [finishBtn setBackgroundImage:loginImg
+                                 forState:UIControlStateNormal];
+            [finishBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                                 forState:UIControlStateHighlighted];
+            finishBtn.frame = CGRectMake(5,
+                                                           0,
+                                                           cell.frame.size.width-10,
+                                                           cell.frame.size.height);
+            [cell addSubview:finishBtn];
+            
+            UILabel *infoLab = [[UILabel alloc]init];
+            infoLab.backgroundColor = [UIColor clearColor];
+            infoLab.text = @"邮箱";
+            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            [finishBtn addSubview:infoLab];
+            [infoLab release];
+            
+            UILabel *emailValLab = [[UILabel alloc]init];
+            emailValLab.text = student.email;
+            emailValLab.textAlignment   = NSTextAlignmentCenter;
+            emailValLab.backgroundColor = [UIColor clearColor];
+            emailValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
+            [finishBtn addSubview:emailValLab];
+            
+            break;
+        }
+        case 1:
+        {
+            UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
+            UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                            forState:UIControlStateNormal];
+            [finishBtn setBackgroundImage:loginImg
+                                 forState:UIControlStateNormal];
+            [finishBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                                 forState:UIControlStateHighlighted];
+            finishBtn.frame = CGRectMake(5,
+                                                           0,
+                                                           cell.frame.size.width-10,
+                                                           cell.frame.size.height);
+            [cell addSubview:finishBtn];
+            
+            UILabel *infoLab = [[UILabel alloc]init];
+            infoLab.backgroundColor = [UIColor clearColor];
+            infoLab.text = @"手机";
+            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            [finishBtn addSubview:infoLab];
+            [infoLab release];
+            
+            UILabel *phoneValLab = [[UILabel alloc]init];
+            phoneValLab.text  = student.phoneNumber;
+            phoneValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
+            phoneValLab.backgroundColor = [UIColor clearColor];
+            phoneValLab.textAlignment   = NSTextAlignmentCenter;
+            [finishBtn addSubview:phoneValLab];
+            [phoneValLab release];
+            break;
+        }
+        case 2:
+        {
+            UILabel *infoLab = [[UILabel alloc]init];
+            infoLab.backgroundColor = [UIColor clearColor];
+            infoLab.text = @"昵称";
+            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            [cell addSubview:infoLab];
+            [infoLab release];
+            
+            nameValLab = [[UILabel alloc]init];
+            nameValLab.text = student.nickName;
+            nameValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
+            nameValLab.backgroundColor = [UIColor clearColor];
+            nameValLab.textAlignment   = NSTextAlignmentCenter;
+            [cell addSubview:nameValLab];
+            
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
+            break;
+        }
+        case 3:
+        {
+            UILabel *infoLab = [[UILabel alloc]init];
+            infoLab.backgroundColor = [UIColor clearColor];
+            infoLab.text = @"年级";
+            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            [cell addSubview:infoLab];
+            [infoLab release];
+            
+            classValLab = [[UILabel alloc]init];
+            classValLab.text = @"";
+            classValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170,
+                                           cell.frame.size.height-10);
+            classValLab.backgroundColor = [UIColor clearColor];
+            classValLab.textAlignment   = NSTextAlignmentCenter;
+            [cell addSubview:classValLab];
+            
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
+            break;
+        }
+        case 4:
+        {
+            UILabel *infoLab = [[UILabel alloc]init];
+            infoLab.backgroundColor = [UIColor clearColor];
+            infoLab.text = @"性别";
+            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            [cell addSubview:infoLab];
+            [infoLab release];
+            
+            sexValLab = [[UILabel alloc]init];
+            sexValLab.text  = @"";
+            sexValLab.textAlignment = NSTextAlignmentCenter;
+            sexValLab.frame = CGRectMake(40, 0, 220, 20);
+            sexValLab.backgroundColor = [UIColor clearColor];
+            sexValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
+            [cell addSubview:sexValLab];
+            
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
+            break;
+        }
+        default:
+            break;
+    }
+    
+    return cell;
+}
+
+- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath
+                             animated:YES];
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    
+    switch (indexPath.row)
+    {
+        case 2:
         {
             SetNickNameViewController *snVc = [[SetNickNameViewController alloc]init];
-            [self presentPopupViewController:snVc
-                               animationType:MJPopupViewAnimationFade];
+            [nav presentPopupViewController:snVc
+                              animationType:MJPopupViewAnimationFade];
             break;
         }
-        case 1:         //年级
+        case 3:
         {
             SetGradeViewController *sgVctr = [[SetGradeViewController alloc]init];
-            [self presentPopupViewController:sgVctr
+            [nav presentPopupViewController:sgVctr
                                animationType:MJPopupViewAnimationFade];
             break;
         }
-        case 2:         //性别
+        case 4:
         {
-            SetSexViewController *ssVctr = [[SetSexViewController alloc]init];
-            [self presentPopupViewController:ssVctr
+            SelectSexViewController *ssVctr = [[SelectSexViewController alloc]init];
+            ssVctr.isSetSex = YES;
+            [nav presentPopupViewController:ssVctr
                                animationType:MJPopupViewAnimationFade];
             break;
         }

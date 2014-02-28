@@ -19,5 +19,10 @@
     NSString *proviceValue;
     NSString *cityValue;
     NSString *distValue;
+    
+    UIButton *distBtn;
+    UIButton *cityBtn;
+    UIButton *proviceBtn;
+    UIButton *okBtn;
 }
 @end

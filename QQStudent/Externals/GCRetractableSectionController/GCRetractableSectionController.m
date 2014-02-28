@@ -105,7 +105,8 @@
 	UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:contentCellIdentifier];
 	if (cell == nil) {
 		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:contentCellIdentifier] autorelease];
-		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        
+//		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	}
 	
 	cell.textLabel.text = [self titleContentForRow:row];
@@ -116,11 +117,14 @@
 - (void) setAccessoryViewOnCell:(UITableViewCell*) cell {
 	NSString* path = nil;
 	if (self.open) {
+        
+        cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"mtp_tcell_sel_bg"]];
 		path = @"UpAccessory";
         if (self.titleAlternativeTextColor == nil) cell.textLabel.textColor =  [UIColor colorWithRed:0.191 green:0.264 blue:0.446 alpha:1.000];
         else cell.textLabel.textColor = self.titleAlternativeTextColor;
 	}	
 	else {
+        cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"mtp_tcell_bg"]];
 		path = @"DownAccessory";
 		cell.textLabel.textColor = (self.titleTextColor == nil ? [UIColor blackColor] : self.titleTextColor);
 	}
@@ -137,7 +141,7 @@
 	else {
 		imageView = [[UIImageView alloc] initWithImage:(self.useOnlyWhiteImages ? whiteAccessoryImage : accessoryImage)];
 		imageView.highlightedImage = whiteAccessoryImage;
-		cell.accessoryView = imageView;
+//		cell.accessoryView = imageView;
 		[imageView release];
 	}
 }

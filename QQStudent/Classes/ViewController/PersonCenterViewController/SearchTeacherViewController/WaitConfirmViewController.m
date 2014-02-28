@@ -15,7 +15,6 @@
 @implementation WaitConfirmViewController
 @synthesize mapView;
 @synthesize tObj;
-@synthesize teacherArray;
 @synthesize valueDic;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -30,8 +29,9 @@
 {
     [super viewDidLoad];
     
-    //发起邀请
-    [self sendInviteMsg];
+    [self initBackBarItem];
+    
+    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -41,8 +41,6 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
-    [self initUI];
-    
     [super viewDidAppear:animated];
 }
 
@@ -53,12 +51,15 @@
     timeLab.text   = @"";
     waitTimeInvite = 20;
     
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
 
 - (void) viewDidUnload
-{
+{    
     [teacherArray removeAllObjects];
     
     self.mapView.delegate = nil;
@@ -76,6 +77,12 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) initBackBarItem
+{
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = self;
+}
+
 - (void) initUI
 {
     //显示地图
@@ -113,7 +120,19 @@
     timeLab.backgroundColor = [UIColor clearColor];
     [showBtn addSubview:timeLab];
     
-    timer = [NSTimer scheduledTimerWithTimeInterval:1.f
+    isLast     = NO;
+    curPage    = 0;
+    timeTicker = 0;
+    waitTimeInvite = 20;//((NSNumber *)[[NSUserDefaults standardUserDefaults] objectForKey:PUSHMAXTIME]).intValue;
+    
+    teacherArray = [[NSMutableArray alloc]init];
+    
+    //搜索附近老师
+    [self searchNearTeacher];
+    
+    CLog(@"getValuesDic:%@", valueDic);
+    
+    timer      = [NSTimer scheduledTimerWithTimeInterval:1.f
                                              target:self
                                            selector:@selector(startTimer:)
                                            userInfo:nil
@@ -131,7 +150,7 @@
     NSString *jsonStr  = [self packageJsonStr];
     if (jsonStr)
     {
-        NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
         NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"toPhone",@"pushMessage",@"sessid", nil];
         NSArray *valuesArr = [NSArray arrayWithObjects:@"pushMessageTeacher",taPhone,jsonStr,ssid, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
@@ -196,6 +215,8 @@
             }
         }
     }
+    else
+        CLog(@"Teacher array is NULL");
 }
 
 - (void) startTimer:(NSTimer *) timer
@@ -207,21 +228,106 @@
         reBtn.hidden   = NO;
         showBtn.hidden = YES;
         
-        //该条件
-        UIButton *cBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        cBtn.tag   = 1;
-        cBtn.frame = CGRectMake(0, 0, 60, 30);
-        [cBtn setTitle:@"改条件"
-              forState:UIControlStateNormal];
-        [cBtn addTarget:self
-                 action:@selector(doButtonClicked:)
-          forControlEvents:UIControlEventTouchUpInside];
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:cBtn];
+        UIImage *shareImg  = [UIImage imageNamed:@"sp_share_btn_normal"];
+        UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        shareBtn.tag = 1;
+        [shareBtn setTitle:@"改条件"
+                  forState:UIControlStateNormal];
+        shareBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+        [shareBtn setBackgroundImage:shareImg
+                            forState:UIControlStateNormal];
+        [shareBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_hlight"]
+                            forState:UIControlStateHighlighted];
+        shareBtn.frame = CGRectMake(0, 0,
+                                    shareImg.size.width,
+                                    shareImg.size.height);
+        [shareBtn addTarget:self
+                     action:@selector(doButtonClicked:)
+           forControlEvents:UIControlEventTouchUpInside];
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:shareBtn];
         return;
     }
     
     timeLab.text = [NSString stringWithFormat:@"%d", waitTimeInvite];
     waitTimeInvite--;
+    
+    //间隔5秒钟请求新的一页
+    timeTicker++;
+    int pageTime = ((NSNumber *)[[NSUserDefaults standardUserDefaults] objectForKey:PUSHPAGETIME]).intValue;
+    if (timeTicker==pageTime && !isLast)
+    {
+        timeTicker = 0;
+        curPage++;
+        [self searchNearTeacher];
+    }
+}
+
+- (void) searchNearTeacher
+{
+    //删除老师
+    [teacherArray removeAllObjects];
+    
+    NSString *log  = [[NSUserDefaults standardUserDefaults] objectForKey:LONGITUDE];
+    NSString *la   = [[NSUserDefaults standardUserDefaults] objectForKey:LATITUDE];
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    if (ssid)
+    {
+        //获得salary
+        NSString *salary = @"";
+        NSDictionary *salaryDic = [valueDic objectForKey:@"SalaryDic"];
+        if (salaryDic)
+        {
+            salary = [salaryDic objectForKey:@"name"];
+        }
+        
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"latitude",@"longitude",
+                              @"page",@"subjectId",@"selectXBIndex",
+                              @"kcbzIndex",@"zoom",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",la,log,
+                              [NSNumber numberWithInt:curPage],[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],
+                              salary,[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        CLog(@"pDic:%@", pDic);
+        NSString *webAddress = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        request.delegate = self;
+        NSData *resData  = [request requestSyncWith:kServerPostRequest
+                                             paramDic:pDic
+                                               urlStr:url];
+        if (resData)
+        {
+            NSString *resStr = [[[NSString alloc]initWithData:resData
+                                                     encoding:NSUTF8StringEncoding]autorelease];
+            NSDictionary *resDic  = [resStr JSONValue];
+            NSArray *items = [resDic objectForKey:@"teachers"];
+            if (items.count>0)
+            {
+                CLog(@"Cur Page Teachers:%@", items);
+                for (NSDictionary *item in items)
+                {
+                    //设置老师属性
+                    Teacher *obj = [Teacher setTeacherProperty:[item copy]];
+                    [teacherArray addObject:obj];
+                    
+                    //发送邀请
+                    [self sendInviteMsg];
+                }
+            }
+            else
+            {
+                CLog(@"The Last Page");
+                //已经是最后一页
+                isLast = YES;
+            }
+        }
+    }
+    else
+    {
+        [self.mapView removeAnnotation:self.mapView.userLocation];
+        [self.mapView removeOverlays:self.mapView.overlays];
+    }
 }
 
 - (NSString *) packageJsonStr
@@ -254,6 +360,7 @@
             else
                 salary = [salaryDic objectForKey:@"name"];
         }
+        CLog(@"validDIC:%@, %@", valueDic,[[valueDic objectForKey:@"AudioPath"] copy]);
         
         //总金额
         int studyTimes = ((NSString *)[valueDic objectForKey:@"Time"]).intValue;
@@ -262,7 +369,15 @@
         //封装订单
         NSArray *keyArr = [NSArray arrayWithObjects:@"type", @"nickname", @"grade",@"gender",@"subjectId",@"teacherGender",@"tamount",@"yjfdnum",@"sd",@"iaddress",@"longitude",@"latitude",@"otherText",@"audio",@"deviceId", @"keyId", nil];
         
-        NSArray *valArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, student.grade, student.gender,[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,[valueDic objectForKey:@"Message"],[valueDic objectForKey:@"AudioPath"],[SingleMQTT getCurrentDevTopic],timeSp, nil];
+        NSString *msg = [valueDic objectForKey:@"Message"];
+        if (!msg)
+            msg = @"";
+        
+        NSString *audioPath = [valueDic objectForKey:@"AudioPath"];
+        if (!audioPath)
+            audioPath = @"";
+        
+        NSArray *valArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, student.grade, student.gender,[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,msg,audioPath,[SingleMQTT getCurrentDevTopic],timeSp, nil];
         
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valArr
                                                          forKeys:keyArr];
@@ -328,7 +443,7 @@
     //封装iaddress_data
     NSDictionary *posDic = [valueDic objectForKey:@"POSDIC"];
     NSArray *addParamArr = [NSArray arrayWithObjects:@"name",@"type",@"latitude",@"longitude",@"provinceName",@"cityName",@"districtName",@"cityCode", nil];
-    
+    CLog(@"valueDic:%@", valueDic);
     //没有具体区名字
     NSString *dst = @"";
     if ([valueDic objectForKey:@"DIST"])
@@ -377,6 +492,45 @@
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
+}
+
+- (void) doBackBtnClicked:(id)sender
+{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark -
+#pragma mark - CustomNavigationDataSource
+- (UIBarButtonItem *)backBarButtomItem
+{
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0, 0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"放弃";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    
+    return [[UIBarButtonItem alloc]
+            initWithCustomView:backBtn];
 }
 
 #pragma mark -

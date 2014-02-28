@@ -14,7 +14,7 @@
 
 @implementation SearchConditionViewController
 @synthesize tObj;
-@synthesize teacherArray;
+//@synthesize teacherArray;
 @synthesize posDic;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -59,18 +59,20 @@
     
     recordAudio.delegate = nil;
     
-    [teacherArray removeAllObjects];
+//    [teacherArray removeAllObjects];
     [super viewDidUnload];
 }
 
 - (void) dealloc
 {
+    [posDic release];
     [recordAudio  release];
     [subValLab    release];
     [dateValLab   release];
-    [teacherArray release];
+//    [teacherArray release];
     [timeValueLab release];
     [messageField release];
+    [sexValLab release];
     [super dealloc];
 }
 
@@ -81,8 +83,9 @@
     UIImage *titleImg = [UIImage imageNamed:@"sd_title"];
     UIImageView *titleImgView = [[UIImageView alloc]init];
     titleImgView.image = titleImg;
-    titleImgView.frame = CGRectMake(20, 10,
-                                    titleImg.size.width, titleImg.size.height);
+    titleImgView.frame = [UIView fitCGRect:CGRectMake(20, 15,
+                                                      titleImg.size.width, titleImg.size.height)
+                                isBackView:NO];
     [self.view addSubview:titleImgView];
     
     orderTab = [[UITableView alloc]init];
@@ -91,7 +94,7 @@
     orderTab.scrollEnabled = NO;
     orderTab.frame = [UIView fitCGRect:CGRectMake(20, titleImg.size.height+10,
                                                   titleImg.size.width, 340)
-                            isBackView:NO];
+                            isBackView:YES];
     orderTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.view addSubview:orderTab];
     
@@ -112,6 +115,9 @@
                  action:@selector(doButtonClicked:)
        forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:orderBtn];
+    
+    NSDictionary *userDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"Condition"];
+    posDic = [[userDic objectForKey:@"POSDIC"] copy];
     
     //注册设置性别消息
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -285,6 +291,7 @@
                 return;
             }
             
+            
             NSString *path = @"";
             if (recordLongPressBtn.isRecord)
             {
@@ -333,12 +340,16 @@
 
             //封装所选条件
             NSDictionary *valueDic = [NSDictionary dictionaryWithObjectsAndKeys:dateValLab.text,@"Date",[Order searchSubjectID:subValLab.text],@"Subject",salaryDic,@"SalaryDic",[Student searchGenderID:sexValLab.text],@"Sex",timeValueLab.text,@"Time",posValLab.text,@"Pos",posDic,@"POSDIC",path,@"AudioPath",messageField.text,@"Message",nil];
+            
             CLog(@"codition:%@", valueDic);
             
+            //保存载入信息
+            [[NSUserDefaults standardUserDefaults] setObject:valueDic
+                                                      forKey:@"Condition"];
+            
             WaitConfirmViewController *wcVctr = [[WaitConfirmViewController alloc]init];
-            wcVctr.valueDic     = valueDic;
+            wcVctr.valueDic     = [valueDic copy];
             wcVctr.tObj         = tObj;
-            wcVctr.teacherArray = teacherArray;
             [self.navigationController pushViewController:wcVctr
                                                  animated:YES];
             [wcVctr release];
@@ -516,6 +527,8 @@
 {
     NSString *idString    = @"idString";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:idString];
+    NSDictionary *userDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"Condition"];
+    [self checkConditionIsFinish];
     if (!cell)
     {
         cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
@@ -528,16 +541,16 @@
                 UILabel *startDate = [[UILabel alloc]init];
                 startDate.text = @"开始日期";
                 startDate.backgroundColor = [UIColor clearColor];
-                startDate.frame = [UIView fitCGRect:CGRectMake(2, 2, 80, 42)
+                startDate.frame = [UIView fitCGRect:CGRectMake(2, 4.5, 80, 42)
                                          isBackView:NO];
                 [cell addSubview:startDate];
                 [startDate release];
                 
                 dateValLab = [[UILabel alloc]init];
-                dateValLab.text = @"";
+                dateValLab.text = [userDic objectForKey:@"Date"];
                 dateValLab.textAlignment   = NSTextAlignmentCenter;
                 dateValLab.backgroundColor = [UIColor clearColor];
-                dateValLab.frame = CGRectMake(80, 2, 170, 42);
+                dateValLab.frame = CGRectMake(80, 4.5, 170, 35);
                 [cell addSubview:dateValLab];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
@@ -549,14 +562,13 @@
                 UILabel *subLab = [[UILabel alloc]init];
                 subLab.text = [NSString stringWithFormat:@"辅导科目"];
                 subLab.backgroundColor = [UIColor clearColor];
-                subLab.frame = CGRectMake(2, 2, 140, 42);
+                subLab.frame = CGRectMake(2, 4.5, 140, 35);
                 [cell addSubview:subLab];
                 [subLab release];
                 
                 subValLab  = [[UILabel alloc]init];
-                subValLab.text      = tObj.pf;
-                subValLab.textColor = [UIColor lightGrayColor];
-                subValLab.frame = CGRectMake(140, 2, 120, 42);
+                subValLab.text  = [Order searchSubjectName:[userDic objectForKey:@"Subject"]];
+                subValLab.frame = CGRectMake(140, 4.5, 120, 35);
                 [cell addSubview:subValLab];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
@@ -568,12 +580,12 @@
                 UILabel *sexLab = [[UILabel alloc]init];
                 sexLab.text = @"老师性别 ";
                 sexLab.backgroundColor = [UIColor clearColor];
-                sexLab.frame = CGRectMake(2, 2, 140, 42);
+                sexLab.frame = CGRectMake(2, 4.5, 140, 35);
                 [cell addSubview:sexLab];
                 [sexLab release];
                 
                 sexValLab = [[UILabel alloc]init];
-                if (tObj.sex == 1)
+                if (((NSNumber *)[userDic objectForKey:@"Sex"]).intValue == 1)
                 {
                     sexValLab.text = @"男";
                 }
@@ -581,10 +593,8 @@
                 {
                     sexValLab.text = @"女";
                 }
-                sexValLab.textColor = [UIColor lightGrayColor];
-                sexValLab.frame = CGRectMake(140, 2, 120, 42);
+                sexValLab.frame = CGRectMake(140, 4.5, 120, 35);
                 [cell addSubview:sexValLab];
-                [sexValLab release];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
                                                        highlightedImage:[UIImage imageNamed:@"sd_cell_hlight_bg"]];
@@ -592,18 +602,27 @@
             }
             case 3:
             {
+                salaryDic = [[userDic objectForKey:@"SalaryDic"] copy];
+                
                 UILabel *salaryLab = [[UILabel alloc]init];
                 salaryLab.text = @"每小时课酬标准";
                 salaryLab.backgroundColor = [UIColor clearColor];
-                salaryLab.frame = [UIView fitCGRect:CGRectMake(2, 2, 140, 42)
+                salaryLab.frame = [UIView fitCGRect:CGRectMake(2, 4.5, 140, 35)
                                          isBackView:NO];
                 [cell addSubview:salaryLab];
                 [salaryLab release];
                 
+                NSString *salary  = @"";
+                
+                if ([[salaryDic objectForKey:@"name"] isEqualToString:@"0"])
+                    salary = @"师生协商";
+                else
+                    salary = [salaryDic objectForKey:@"name"];
+                
                 salaryValLab  = [[UILabel alloc]init];
-                salaryValLab.text      = @"";
+                salaryValLab.text = salary;
                 salaryValLab.backgroundColor = [UIColor clearColor];
-                salaryValLab.frame = CGRectMake(140, 2, 140, 42);
+                salaryValLab.frame = CGRectMake(140, 4.5, 140, 35);
                 [cell addSubview:salaryValLab];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
@@ -615,15 +634,15 @@
                 UILabel *timesLab = [[UILabel alloc]init];
                 timesLab.text = @"预计辅导小时数";
                 timesLab.backgroundColor = [UIColor clearColor];
-                timesLab.frame = [UIView fitCGRect:CGRectMake(2, 2, 140, 42)
+                timesLab.frame = [UIView fitCGRect:CGRectMake(2, 4.5, 140, 35)
                                          isBackView:NO];
                 [cell addSubview:timesLab];
                 [timesLab release];
                 
                 timeValueLab = [[UILabel alloc]init];
-                timeValueLab.text  = @"20";
+                timeValueLab.text = [userDic objectForKey:@"Time"];
                 timeValueLab.backgroundColor = [UIColor clearColor];
-                timeValueLab.frame = CGRectMake(140, 2, 140, 42);
+                timeValueLab.frame = CGRectMake(140, 4.5, 140, 35);
                 [cell addSubview:timeValueLab];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
@@ -635,15 +654,15 @@
                 UILabel *posLab = [[UILabel alloc]init];
                 posLab.text = @"授课地点";
                 posLab.backgroundColor = [UIColor clearColor];
-                posLab.frame = [UIView fitCGRect:CGRectMake(2, 2, 140, 42)
+                posLab.frame = [UIView fitCGRect:CGRectMake(2, 4.5, 140, 35)
                                       isBackView:NO];
                 [cell addSubview:posLab];
                 [posLab release];
                 
                 posValLab = [[UILabel alloc]init];
-                posValLab.text  = @"";
+                posValLab.text  = [userDic objectForKey:@"Pos"];
                 posValLab.backgroundColor = [UIColor clearColor];
-                posValLab.frame = CGRectMake(140, 2, 130, 42);
+                posValLab.frame = CGRectMake(140, 4.5, 130, 35);
                 posValLab.font  = [UIFont systemFontOfSize:12.f];
                 [cell addSubview:posValLab];
                 
@@ -689,10 +708,10 @@
                 [cell addSubview:emailImgView];
                 [cell addSubview:messageField];
                                 
-                recordLongPressBtn = [[UILongPressButton alloc]initWithFrame:CGRectMake(40, 7, 160, 30)];
+                recordLongPressBtn = [[UILongPressButton alloc]initWithFrame:CGRectMake(40, 7, 230, 37.5)];
                 recordLongPressBtn.tag      = 4;
                 recordLongPressBtn.delegate = self;
-                recordLongPressBtn.frame    = CGRectMake(40, 15, 160, 30);
+                recordLongPressBtn.frame    = CGRectMake(40, 15, 230, 37.5);
                 recordLongPressBtn.hidden   = YES;
                 [cell addSubview:recordLongPressBtn];
                 

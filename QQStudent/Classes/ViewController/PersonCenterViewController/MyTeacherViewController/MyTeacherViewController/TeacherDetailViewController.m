@@ -47,92 +47,181 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void) dealloc
+{
+    [bgScroll release];
+    [bgImgView release];
+    [headImageView release];
+    [super dealloc];
+}
+
 #pragma mark -
 #pragma mark - Custom Action
 - (void) initUI
 {
+    bgScroll = [[UIScrollView alloc]init];
+    bgScroll.delegate = self;
+    bgScroll.frame    = [UIView fitCGRect:CGRectMake(0, 0, 320, 426)
+                               isBackView:YES];
+    bgScroll.contentSize   = CGSizeMake(320, 446);
+    bgScroll.scrollEnabled = YES;
+    bgScroll.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
+    [self.view addSubview:bgScroll];
+    
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-    TTImageView *headImageView = [[TTImageView alloc]init];
-    headImageView.frame = CGRectMake(110, 30, 100, 120);
-    headImageView.URL   = [NSString stringWithFormat:@"%@%@", webAdd,tObj.headUrl];
-    [self.view addSubview:headImageView];
-    [headImageView release];
+    
+    headImageView = [[UIImageView alloc]init];
+    headImageView.frame = CGRectMake(110, 30, 100, 100);
+    [bgScroll addSubview:headImageView];
+    
+    TTImageView *hImageView = [[TTImageView alloc]init];
+    hImageView.delegate = self;
+    hImageView.URL   = [NSString stringWithFormat:@"%@%@", webAdd,tObj.headUrl];
+    
+    UIImage *bgImg = [UIImage imageNamed:@"tdp_bg"];
+    bgImgView = [[UIImageView alloc]initWithImage:bgImg];
+    bgImgView.frame = CGRectMake(160-bgImg.size.width/2, 150,
+                                 bgImg.size.width,
+                                 bgImg.size.height);
+    [bgScroll addSubview:bgImgView];
     
     UILabel *infoLab = [[UILabel alloc]init];
-    infoLab.text  = [NSString stringWithFormat:@"%@ %@ %@", tObj.name, [Student searchGenderName:[NSString stringWithFormat:@"%d",tObj.sex]], tObj.pf];
-    infoLab.frame = CGRectMake(20, 190, 200, 20);
+    infoLab.text  = [NSString stringWithFormat:@"%@  %@  %@", tObj.name, [Student searchGenderName:[NSString stringWithFormat:@"%d",tObj.sex]], tObj.pf];
+    infoLab.frame = CGRectMake(35, 170, 120, 20);
     infoLab.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:infoLab];
+    [bgScroll addSubview:infoLab];
     [infoLab release];
     
+    UIStartsImageView *starImgView = [[UIStartsImageView alloc]initWithFrame:CGRectMake(180, 170, 100, 20)];
+    [starImgView setHlightStar:tObj.comment];
+    [bgScroll addSubview:starImgView];
+    [starImgView release];
+
     UILabel *idNumsLab = [[UILabel alloc]init];
     idNumsLab.text = tObj.phoneNums;
-    idNumsLab.frame= CGRectMake(20, 210, 200, 20);
+    idNumsLab.frame= CGRectMake(35, 200, 120, 20);
     idNumsLab.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:idNumsLab];
+    [bgScroll addSubview:idNumsLab];
     [idNumsLab release];
-    
+
     UILabel *studyLab = [[UILabel alloc]init];
-    studyLab.text = [NSString stringWithFormat:@"已辅导%d位学生", tObj.studentCount];
-    studyLab.frame= CGRectMake(20, 230, 200, 20);
+    studyLab.text     = [NSString stringWithFormat:@"已辅导%d位学生", tObj.studentCount];
+    studyLab.frame    = CGRectMake(35, 230, 120, 20);
     studyLab.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:studyLab];
+    [bgScroll addSubview:studyLab];
     [studyLab release];
-    
+
     UILabel *commentLab = [[UILabel alloc]init];
     commentLab.text = @"口碑";
-    commentLab.frame=CGRectMake(20, 250, 40, 20);
+    commentLab.frame=CGRectMake(35, 260, 40, 20);
     commentLab.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:commentLab];
+    [bgScroll addSubview:commentLab];
     [commentLab release];
-    
+
     UIImageView *goodImgView = [[UIImageView alloc]init];
-    goodImgView.image = [UIImage imageNamed:@"zan_hao.png"];
-    goodImgView.frame = CGRectMake(65, 250, 20, 20);
-    [self.view addSubview:goodImgView];
+    goodImgView.image = [UIImage imageNamed:@"tdp_good_comment"];
+    goodImgView.frame = CGRectMake(85, 260, 20, 20);
+    [bgScroll addSubview:goodImgView];
     [goodImgView release];
     
     UILabel *goodLab = [[UILabel alloc]init];
     goodLab.font = [UIFont systemFontOfSize:14.f];
+    goodLab.textColor = [UIColor redColor];
     goodLab.text = [NSString stringWithFormat:@"%d",tObj.goodCount];
     goodLab.backgroundColor = [UIColor clearColor];
-    goodLab.frame = CGRectMake(90, 250, 20, 20);
-    [self.view addSubview:goodLab];
+    goodLab.frame = CGRectMake(115, 260, 20, 20);
+    [bgScroll addSubview:goodLab];
     [goodLab release];
     
     UIImageView *badImgView = [[UIImageView alloc]init];
-    badImgView.image = [UIImage imageNamed:@"xun_3.png"];
-    badImgView.frame = CGRectMake(115, 250, 20, 20);
-    [self.view addSubview:badImgView];
+    badImgView.image = [UIImage imageNamed:@"tdp_bad_comment"];
+    badImgView.frame = CGRectMake(145, 263, 20, 20);
+    [bgScroll addSubview:badImgView];
     [badImgView release];
     
     UILabel *badLab = [[UILabel alloc]init];
     badLab.font = [UIFont systemFontOfSize:14.f];
     badLab.text = [NSString stringWithFormat:@"%d",tObj.badCount];
     badLab.backgroundColor = [UIColor clearColor];
-    badLab.frame = CGRectMake(135, 250, 40, 20);
-    [self.view addSubview:badLab];
+    badLab.frame = CGRectMake(170, 260, 40, 20);
+    [bgScroll addSubview:badLab];
     [badLab release];
     
+    UIImage *lineImg = [UIImage imageNamed:@"tdp_splite_line"];
+    UIImageView *lineImgView = [[UIImageView alloc]initWithImage:lineImg];
+    lineImgView.frame = CGRectMake(0, 290,
+                                   lineImg.size.width,
+                                   lineImg.size.height);
+    [bgScroll addSubview:lineImgView];
+    [lineImgView release];
+
     UILabel *sayLab = [[UILabel alloc]init];
     sayLab.text = @"TA这样说";
-    sayLab.frame=CGRectMake(20, 290, 100, 20);
+    sayLab.frame=CGRectMake(35, 310, 100, 20);
     sayLab.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:sayLab];
+    [bgScroll addSubview:sayLab];
     [sayLab release];
+    
+    UIImageView *topImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"tdp_content_top"]];
+    topImgView.frame = CGRectMake(0, 330, topImgView.frame.size.width,
+                                  topImgView.frame.size.height);
+    [bgScroll addSubview:topImgView];
+    [topImgView release];
+    
+    UIImageView *bmImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"tdp_content_bottom"]];
+    bmImgView.frame = CGRectMake(0, 330+topImgView.frame.size.height-4,
+                                                    bmImgView.frame.size.width,
+                                                    bmImgView.frame.size.height+15);
+    [bgScroll addSubview:bmImgView];
+    [bmImgView release];
     
     UILabel *sayValueLab = [[UILabel alloc]init];
     sayValueLab.text = tObj.info;
-    sayValueLab.frame= CGRectMake(20, 330, 100, 20);
+    sayValueLab.frame= CGRectMake(45, bmImgView.frame.origin.y-17, 200, 40);
     sayValueLab.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:sayValueLab];
-    
+    sayValueLab.lineBreakMode   = NSLineBreakByWordWrapping;
+    sayValueLab.numberOfLines   = 0;
+    [bgScroll addSubview:sayValueLab];
+    [sayValueLab release];
+
     UILabel *qfLab = [[UILabel alloc]init];
     qfLab.text     = @"TA的资历";
     qfLab.backgroundColor = [UIColor clearColor];
-    qfLab.frame    = CGRectMake(20, 370, 100, 20);
-    [self.view addSubview:qfLab];
+    qfLab.frame    = CGRectMake(35,
+                                bmImgView.frame.origin.y+bmImgView.frame.size.height+10,
+                                100, 20);
+    [bgScroll addSubview:qfLab];
     [qfLab release];
+    
+    //判断是否有资历照片,设置Scroll高度
+    if (tObj.certArray)
+    {
+
+        for(int i=0; i<tObj.certArray.count; i++)
+        {
+            NSString *url = [tObj.certArray objectAtIndex:i];
+            NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+            url = [NSString stringWithFormat:@"%@%@", webAdd,url];
+            
+            TTImageView *certImgView = [[TTImageView alloc]init];
+            certImgView.tag      = 1111;
+            certImgView.delegate = self;
+            certImgView.URL      = url;
+            UIImage *defaultImg  = [UIImage imageNamed:@"tdp_cert_default_bg"];
+            certImgView.defaultImage = defaultImg;
+            if (i==0)
+                certImgView.frame = CGRectMake(40,
+                                              bmImgView.frame.origin.y+bmImgView.frame.size.height+40,
+                                              defaultImg.size.width,
+                                              defaultImg.size.height);
+            else
+                certImgView.frame = CGRectMake(40+i*70,
+                                           bmImgView.frame.origin.y+bmImgView.frame.size.height+40,
+                                           defaultImg.size.width,
+                                           defaultImg.size.height);
+            [bgScroll addSubview:certImgView];
+        }
+    }
 }
 
 - (void) getTeacherDetail
@@ -150,6 +239,36 @@
     [request requestASyncWith:kServerPostRequest
                      paramDic:pDic
                        urlStr:url];
+}
+
+#pragma mark - 
+#pragma mark - TTImageViewDelegate
+- (void) imageView:(TTImageView *)imageView didLoadImage:(UIImage *)image
+{
+    if (imageView.tag == 1111)
+    {
+        //修改TTImageView的高度
+        imageView.frame = CGRectMake(imageView.frame.origin.x,
+                                     imageView.frame.origin.y,
+                                     imageView.frame.size.width, 80);
+        
+        //修改背景高度
+        CGRect rect = CGRectMake(bgImgView.frame.origin.x,
+                                 150,
+                                 bgImgView.frame.size.width,
+                                 bgImgView.frame.size.height+40);
+        bgImgView.frame = rect;
+    
+        bgScroll.contentSize = CGSizeMake(bgScroll.contentSize.width,
+                                          bgScroll.contentSize.height+40);
+    }
+    else
+        headImageView.image = [UIImage circleImage:image withParam:0];
+}
+
+- (void) imageView:(TTImageView *)imageView didFailLoadWithError:(NSError *)error
+{
+    
 }
 
 #pragma mark -

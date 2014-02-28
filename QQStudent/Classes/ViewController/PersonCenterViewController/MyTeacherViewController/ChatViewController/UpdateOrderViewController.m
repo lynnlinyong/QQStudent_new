@@ -48,6 +48,8 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
+    [MainViewController setNavTitle:@"轻轻家教"];
+    
     //注册设置性别消息
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(setDateFromNotice:)
@@ -90,13 +92,27 @@
     upTab = [[UITableView alloc]init];
     upTab.delegate   = self;
     upTab.dataSource = self;
-    upTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 400)
+    upTab.frame = [UIView fitCGRect:CGRectMake(0, 10, 320, 400)
                          isBackView:NO];
     upTab.scrollEnabled  = NO;
-//    upTab.separatorStyle = UITableViewCellSeparatorStyleNone;
+    upTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.view addSubview:upTab];
+    
+    upTab.backgroundColor     = [UIColor colorWithHexString:@"E1E0DE"];
+    self.view.backgroundColor = [UIColor colorWithHexString:@"E1E0DE"];
 }
 
+- (void) sendUpdateOrderMsg
+{
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"phone",@"nickname",@"orderid",@"taPhone",@"deviceId", nil];
+//    NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_ORDER_EDIT],,@"", nil];
+    
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr forKeys:paramsArr];
+    NSString *json = [pDic JSONFragment];
+}
+
+#pragma mark -
+#pragma mark - Control Event
 - (void) doFinishBtnClicked:(id)sender
 {
     //修改订单
@@ -175,6 +191,11 @@
     return 6;
 }
 
+- (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 60;
+}
+
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *idString = @"idString";
@@ -191,17 +212,19 @@
                 infoLab = [[UILabel alloc]init];
                 infoLab.backgroundColor = [UIColor clearColor];
                 infoLab.text = @"开始日期";
-                infoLab.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+                infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
                 [cell addSubview:infoLab];
                 [infoLab release];
                 
                 dateValLab = [[UILabel alloc]init];
                 dateValLab.text = order.orderAddTimes;
-                dateValLab.textAlignment   = NSTextAlignmentCenter;
+                dateValLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
+                dateValLab.textAlignment   = NSTextAlignmentLeft;
                 dateValLab.backgroundColor = [UIColor clearColor];
-                dateValLab.frame = CGRectMake(80, 0, 170, 44);
+                dateValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
                 [cell addSubview:dateValLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+               cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
                 break;
             }
             case 1:
@@ -209,16 +232,18 @@
                 infoLab = [[UILabel alloc]init];
                 infoLab.backgroundColor = [UIColor clearColor];
                 infoLab.text = @"每小时课酬标准";
-                infoLab.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+                infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
                 [cell addSubview:infoLab];
                 [infoLab release];
                 
                 salaryValLab  = [[UILabel alloc]init];
                 salaryValLab.text      = @"师生协商";
                 salaryValLab.backgroundColor = [UIColor clearColor];
-                salaryValLab.frame = CGRectMake(140, 0, 140, 44);
+                salaryValLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
+                salaryValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
                 [cell addSubview:salaryValLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+               cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
                 break;
             }
             case 2:
@@ -226,16 +251,18 @@
                 infoLab = [[UILabel alloc]init];
                 infoLab.backgroundColor = [UIColor clearColor];
                 infoLab.text = @"预计辅导小时数";
-                infoLab.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+                infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
                 [cell addSubview:infoLab];
                 [infoLab release];
                 
                 timeValueLab = [[UILabel alloc]init];
                 timeValueLab.text  = order.orderStudyTimes;
+                timeValueLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
                 timeValueLab.backgroundColor = [UIColor clearColor];
-                timeValueLab.frame = CGRectMake(140, 0, 140, 44);
+                timeValueLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 160, cell.frame.size.height-10);
                 [cell addSubview:timeValueLab];
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                
+               cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
                 break;
             }
             case 3:
@@ -243,48 +270,82 @@
                 infoLab = [[UILabel alloc]init];
                 infoLab.backgroundColor = [UIColor clearColor];
                 infoLab.text  = @"授课地点";
-                infoLab.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+                infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
                 [cell addSubview:infoLab];
                 [infoLab release];
                 
                 posValLab = [[UILabel alloc]init];
                 posValLab.text  = order.orderStudyPos;
+                posValLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
                 posValLab.backgroundColor = [UIColor clearColor];
-                posValLab.frame = CGRectMake(140, 0, 140, 44);
+                posValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 160, cell.frame.size.height-10);
                 [cell addSubview:posValLab];
                 
-                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+               cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
+                
                 break;
             }
             case 4:
             {
-                cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                infoLab = [[UILabel alloc]init];
-                infoLab.backgroundColor = [UIColor clearColor];
-                infoLab.text  = @"总金额数";
-                infoLab.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
-                [cell addSubview:infoLab];
-                [infoLab release];
-                
-//                int money = timeValueLab.text.intValue*salaryValLab.text.intValue;
-                totalMoneyLab       = [[UILabel alloc]init];
-                totalMoneyLab.text  = @"待定";//[NSString stringWithFormat:@"%d", money];
-                totalMoneyLab.backgroundColor = [UIColor clearColor];
-                totalMoneyLab.frame = CGRectMake(140, 0, 140, 44);
-                [cell addSubview:totalMoneyLab];
-                break;
-            }
-            case 5:
-            {
-                cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-                [finishBtn setTitle:@"完成,等待老师确认"
-                           forState:UIControlStateNormal];
-                finishBtn.frame = CGRectMake(20, 5, 280, 34);
+                UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
+                UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+                [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                                forState:UIControlStateNormal];
+                [finishBtn setBackgroundImage:loginImg
+                                     forState:UIControlStateNormal];
+                [finishBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                                     forState:UIControlStateHighlighted];
+                finishBtn.frame = [UIView fitCGRect:CGRectMake(5,
+                                                               0,
+                                                               cell.frame.size.width-10,
+                                                               cell.frame.size.height)
+                                         isBackView:NO];
                 [finishBtn addTarget:self
                               action:@selector(doFinishBtnClicked:)
                     forControlEvents:UIControlEventTouchUpInside];
                 [cell addSubview:finishBtn];
+
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                infoLab = [[UILabel alloc]init];
+                infoLab.textColor  = [UIColor colorWithHexString:@"#ff6600"];
+                infoLab.backgroundColor = [UIColor clearColor];
+                infoLab.text  = @"总金额数";
+                infoLab.frame = CGRectMake(10, 0, cell.frame.size.width-20, cell.frame.size.height);
+                [finishBtn addSubview:infoLab];
+                [infoLab release];
+                
+                //                int money = timeValueLab.text.intValue*salaryValLab.text.intValue;
+                totalMoneyLab       = [[UILabel alloc]init];
+                totalMoneyLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
+                totalMoneyLab.text  = @"待定";   //[NSString stringWithFormat:@"%d", money];
+                totalMoneyLab.backgroundColor = [UIColor clearColor];
+                totalMoneyLab.frame = CGRectMake(finishBtn.frame.size.width-160-10, 0, 160, cell.frame.size.height);
+                [finishBtn addSubview:totalMoneyLab];
+                break;
+            }
+            case 5:
+            {
+                UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
+                UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+                [finishBtn setTitle:@"完成,等待老师确认"
+                          forState:UIControlStateNormal];
+                [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                               forState:UIControlStateNormal];
+                [finishBtn setBackgroundImage:loginImg
+                                    forState:UIControlStateNormal];
+                [finishBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                                    forState:UIControlStateHighlighted];
+                finishBtn.frame = [UIView fitCGRect:CGRectMake(5,
+                                                              0,
+                                                              cell.frame.size.width-10,
+                                                              cell.frame.size.height)
+                                        isBackView:NO];
+                [finishBtn addTarget:self
+                             action:@selector(doFinishBtnClicked:)
+                   forControlEvents:UIControlEventTouchUpInside];
+                [cell addSubview:finishBtn];
+                
+                cell.backgroundView = nil;
                 break;
             }
             default:
@@ -300,6 +361,7 @@
     [tableView deselectRowAtIndexPath:indexPath
                              animated:YES];
     
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     switch (indexPath.row)
     {
         case 0:
@@ -312,20 +374,22 @@
         case 1:
         {
             SelectSalaryViewController *ssVctr = [[SelectSalaryViewController alloc]init];
-            [self presentPopupViewController:ssVctr animationType:MJPopupViewAnimationFade];
+            [nav pushViewController:ssVctr animated:YES];
+            [ssVctr release];
             break;
         }
         case 2:
         {
             SelectTimesViewController *stVctr = [[SelectTimesViewController alloc]init];
             stVctr.curValue = timeValueLab.text;
-            [self presentPopupViewController:stVctr animationType:MJPopupViewAnimationFade];
+            [self presentPopupViewController:stVctr
+                               animationType:MJPopupViewAnimationFade];
             break;
         }
         case 3:
         {
             SelectPosViewController *spVctr = [[SelectPosViewController alloc]init];
-            [self presentPopupViewController:spVctr animationType:MJPopupViewAnimationFade];
+            [nav pushViewController:spVctr animated:YES];
             break;
         }
         default:
@@ -366,6 +430,9 @@
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
     {
+        //像老师端发送修改信息
+        
+        
         [self.navigationController popViewControllerAnimated:YES];
     }
     else
@@ -378,4 +445,12 @@
                otherButtonTitles:@"确定",nil];
     }
 }
+//{
+//type:6|7
+//phone:'手机'
+//nickname:'呢称'
+//orderid:'订单ID'
+//taPhone:'接收方手机号'
+//    deviceId :'ID'
+//}
 @end

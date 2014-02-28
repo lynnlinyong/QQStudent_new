@@ -174,7 +174,7 @@
 {
     BOOL isIn = NO;
     
-    UINavigationController *vctr = (UINavigationController *)self.window.rootViewController;
+    CustomNavigationViewController *vctr = (CustomNavigationViewController *)self.window.rootViewController;
     for (UIViewController *viewController in vctr.viewControllers)
     {
         if ([viewController isKindOfClass:[ChatViewController class]])
@@ -265,7 +265,7 @@
                 Teacher *tObj = [Teacher setTeacherProperty:pDic];
                 CLog(@"phone:%@, lynn:%@", tObj.phoneNums, tObj.name);
                 ChatViewController *cVctr   = [[ChatViewController alloc]init];
-                UINavigationController *nav = (UINavigationController *)self.window.rootViewController;
+                CustomNavigationViewController *nav = (CustomNavigationViewController *)self.window.rootViewController;
                 cVctr.tObj = tObj;
                 [nav pushViewController:cVctr
                                animated:YES];

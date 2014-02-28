@@ -88,7 +88,7 @@
     
     UIButton *complainButton = [self complainButton];
     complainButton.tag       = 0;
-    complainButton.frame     = CGRectMake(10, 8, 40, 26);
+    complainButton.frame     = CGRectMake(10, 2, 44.5, 40);
     [complainButton addTarget:self
                        action:@selector(doButtonPressed:)
              forControlEvents:UIControlEventTouchUpInside];
@@ -96,7 +96,7 @@
     
     UIButton *phoneButton    = [self phoneButton];
     phoneButton.tag          = 1;
-    phoneButton.frame        = CGRectMake(55, 8, 40, 26);
+    phoneButton.frame        = CGRectMake(55, 2, 44.5, 40);
     [phoneButton    addTarget:self
                        action:@selector(doButtonPressed:)
              forControlEvents:UIControlEventTouchUpInside];
@@ -104,7 +104,7 @@
     
     UIButton *voiceButton    = [self voiceButton];
     voiceButton.tag          = 2;
-    voiceButton.frame        = CGRectMake(100, 8, 40, 26);
+    voiceButton.frame        = CGRectMake(100, 2, 44.5, 40);
     [voiceButton    addTarget:self
                        action:@selector(doButtonPressed:)
              forControlEvents:UIControlEventTouchUpInside];

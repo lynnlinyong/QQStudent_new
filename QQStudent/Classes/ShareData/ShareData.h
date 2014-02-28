@@ -21,6 +21,16 @@
 //Push服务器地址变量
 #define PUSHADDRESS     @"PUSHADDRESS"
 
+//每轮最大推送时间
+#define PUSHMAXTIME     @"PUSHMAXTIME"
+
+//每页推送间隔
+#define PUSHPAGETIME    @"PUSHPAGETIME"
+
+#define LONGITUDE       @"LONGITUDE"
+
+#define LATITUDE        @"LATITUDE"
+
 //Push服务器端口
 #define PORT            @"PORT"
 
@@ -54,9 +64,6 @@
 
 //上传文件标识
 #define UPLOAD_FILE     @"UPLOAD_FILE"
-
-//发送邀请等待时间
-static int waitTimeInvite = 20;
 
 //策略服务器地址
 #define ServerAddress   @"http://app.changingedu.com:8085/Interfaces/app/"

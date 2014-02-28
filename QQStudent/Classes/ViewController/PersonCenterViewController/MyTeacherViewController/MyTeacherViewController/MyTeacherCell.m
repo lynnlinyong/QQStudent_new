@@ -18,7 +18,7 @@
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self)
     {
-        self.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lt_list_bg"]];
+//        self.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lt_list_bg"]];
         
         headBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         headBtn.frame =  CGRectMake(10, 15, 50, 50);
@@ -69,6 +69,7 @@
         [self addSubview:commBtn];
         [self addSubview:compBtn];
         [self addSubview:recommBtn];
+
     }
     
     return self;

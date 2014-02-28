@@ -61,12 +61,14 @@
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(suggestNotice:) name:@"suggestNotice"
+                                             selector:@selector(suggestNotice:)
+                                                 name:@"suggestNotice"
                                                object:nil];
     
     //注册选择年级消息
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setGradeFromNotice:) name:@"setGradeNotice"
+                                             selector:@selector(setGradeFromNotice:)
+                                                 name:@"setGradeNotice"
                                                object:nil];
     [super viewDidAppear:animated];
 }
@@ -98,7 +100,7 @@
     student = [[NSKeyedUnarchiver unarchiveObjectWithData:stuData] copy];
     
     setTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 398)
-                                                      isBackView:NO]
+                                                      isBackView:YES]
                                          style:UITableViewStyleGrouped];
     setTab.delegate   = self;
     setTab.dataSource = self;
@@ -169,7 +171,6 @@
 - (void) updateEmailInfoNotice:(NSNotification *) notice
 {
     CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
-    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
     int tag = ((NSNumber *)[notice.userInfo objectForKey:@"TAG"]).intValue;
     switch (tag)
     {
@@ -184,6 +185,7 @@
         default:
             break;
     }
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 - (void) updateEmailNotice:(NSNotification *) notice
@@ -592,25 +594,37 @@
                     versionValLab.backgroundColor = [UIColor clearColor];
                     versionValLab.frame    = CGRectMake(87, 16, 200, 20);
                     [cell addSubview:versionValLab];
+
+                    //当前版本
+                    NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
+                    NSString *oldVersion   = [infoDict objectForKey:@"CFBundleVersion"];
                     
-                    //对比版本号
-                    NSDictionary *newDic =  [[NSUserDefaults standardUserDefaults]
-                                                                        objectForKey:APP_VERSION];
-                    NSString *newVersion = [newDic objectForKey:@"Version"];
-                    versionValLab.text   = [NSString stringWithFormat:@"当前版本:V%@", newVersion];
+//                    NSString *Dic =  [[NSUserDefaults standardUserDefaults]
+//                                                                        objectForKey:APP_VERSION];
+//                    NSString *newVersion = [newDic objectForKey:@"Version"];
+                    versionValLab.text   = [NSString stringWithFormat:@"当前版本:V%@", oldVersion];
                     cell.userInteractionEnabled = NO;
                     [versionValLab release];
                     break;
                 }
                 case 3:
                 {
-                    UIButton *logoutBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+                    UIImage *loginImg   = [UIImage imageNamed:@"normal_btn"];
+                    UIButton *logoutBtn = [UIButton buttonWithType:UIButtonTypeCustom];
                     [logoutBtn setTitle:@"退出当前账号"
-                               forState:UIControlStateNormal];
+                              forState:UIControlStateNormal];
+                    [logoutBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                                   forState:UIControlStateNormal];
+                    [logoutBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                                   forState:UIControlStateHighlighted];
+                    [logoutBtn setBackgroundImage:loginImg
+                                        forState:UIControlStateNormal];
+                    [logoutBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
+                                        forState:UIControlStateHighlighted];
                     logoutBtn.frame = CGRectMake(20, 5, 280, 40);
                     [logoutBtn addTarget:self
-                                  action:@selector(doLogoutBtnClicked:)
-                        forControlEvents:UIControlEventTouchUpInside];
+                                 action:@selector(doLogoutBtnClicked:)
+                       forControlEvents:UIControlEventTouchUpInside];
                     [cell addSubview:logoutBtn];
                 }
                 default:

@@ -152,9 +152,7 @@
 {
     [self setCellBgImage:[UIImage imageNamed:@"sp_content_normal_cell"]
                   sender:sender];
-    
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     ShareAddressBookViewController *shareBook = [[ShareAddressBookViewController alloc]init];
     [nav pushViewController:shareBook animated:YES];
 //    [self.navigationController pushViewController:shareBook
@@ -192,8 +190,7 @@
     [self setCellBgImage:[UIImage imageNamed:@"sp_content_normal_cell"]
                   sender:sender];
     
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     SignalSinaWeibo *sgWeibo = [SignalSinaWeibo shareInstance:self];
     if (![sgWeibo.sinaWeibo isAuthValid])
     {
@@ -220,8 +217,7 @@
                   sender:sender];
     
     SingleTCWeibo *tcWeibo = [SingleTCWeibo shareInstance];
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     if (![tcWeibo.tcWeiboApi isAuthValid])
     {
         BoundTecentViewController *btVctr = [[BoundTecentViewController alloc]init];

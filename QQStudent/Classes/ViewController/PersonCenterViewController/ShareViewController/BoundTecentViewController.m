@@ -127,7 +127,7 @@
     CLog(@"result = %@",str);
     
     AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav     = (CustomNavigationViewController *)app.window.rootViewController;
     ShareTecentViewController *stVctr = [[ShareTecentViewController alloc]init];
     [nav pushViewController:stVctr
                    animated:YES];

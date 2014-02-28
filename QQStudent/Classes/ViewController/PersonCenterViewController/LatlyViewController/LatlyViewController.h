@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface LatlyViewController : UIViewController<
+                                                TTImageViewDelegate,
                                                 ServerRequestDelegate,
                                                 EGORefreshTableHeaderDelegate,
                                                 UITableViewDelegate,
@@ -18,6 +19,8 @@
     NSDictionary    *sysDic;
     EGORefreshTableHeaderView *_refreshHeaderView;
 	BOOL _reloading;
+    
+    UIButton *headBtn;
 }
 
 @property (nonatomic, copy) NSMutableArray  *msgArray;

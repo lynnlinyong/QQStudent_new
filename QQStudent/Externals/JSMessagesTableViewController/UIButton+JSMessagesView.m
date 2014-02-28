@@ -42,33 +42,39 @@
 
 + (UIButton *)defaultComplainButton
 {
-    UIButton *complainBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [complainBtn setTitle:@"投诉"
+    UIButton *complainBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [complainBtn setImage:[UIImage imageNamed:@"cp_complain_normal_btn"]
                  forState:UIControlStateNormal];
+    [complainBtn setImage:[UIImage imageNamed:@"cp_complain_hlight_btn"]
+                 forState:UIControlStateHighlighted];
     return complainBtn;
 }
 
 + (UIButton *)defaultVoiceButton
 {
-    UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [voiceBtn setTitle:@"声音"
-              forState:UIControlStateNormal];
+    UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [voiceBtn setImage:[UIImage imageNamed:@"cp_mic_btn"]
+                 forState:UIControlStateNormal];
     return voiceBtn;
 }
 
 + (UIButton *)defaultKeyBoardButton
 {
-    UIButton *keyBoardBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [keyBoardBtn setTitle:@"键盘"
-                 forState:UIControlStateNormal];
+    UIButton *keyBoardBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [keyBoardBtn setImage:[UIImage imageNamed:@"cp_input_btn"]
+              forState:UIControlStateNormal];
     return keyBoardBtn;
 }
 
 + (UIButton *)defaultPhoneButton
 {
-    UIButton *phoneBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [phoneBtn setTitle:@"电话"
-              forState:UIControlStateNormal];
+    UIImage *img = [UIImage imageNamed:@"cp_phone_normal_btn"];
+    CLog(@"sdfs%f,%f", img.size.width, img.size.height);
+    UIButton *phoneBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [phoneBtn setImage:[UIImage imageNamed:@"cp_phone_normal_btn"]
+                 forState:UIControlStateNormal];
+    [phoneBtn setImage:[UIImage imageNamed:@"cp_phone_hlight_btn"]
+                 forState:UIControlStateHighlighted];
     return phoneBtn;
 }
 

@@ -86,36 +86,52 @@
     self = [super initWithFrame:frame];
     if (self)
     {
-        float height = frame.size.height;
-        float width  = frame.size.width;
+        self.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
         
-        self.backgroundColor = [UIColor whiteColor];
-        
-        areaBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        UIImage *bgImg = [UIImage imageNamed:@"sd_ca_normal_btn"];
+        areaBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         areaBtn.tag = 0;
-        [areaBtn setTitle:@"切换区域"
+        [areaBtn setImage:bgImg
                  forState:UIControlStateNormal];
         [areaBtn addTarget:self
                     action:@selector(doButtonClicked:)
           forControlEvents:UIControlEventTouchUpInside];
-        areaBtn.frame = CGRectMake(5, 5, 60, height-10);
+        areaBtn.frame = CGRectMake(5, 7, bgImg.size.width,
+                                   bgImg.size.height);
         [self addSubview:areaBtn];
         
-        posFld = [[UITextView alloc]init];
-        posFld.delegate = self;
-//        posFld.borderStyle = UITextBorderStyleLine;
-        posFld.frame = CGRectMake(65, 0, width-110, height-10);
-        posFld.scrollEnabled = NO;
+        UIImage *okImg     = [UIImage imageNamed:@"sp_search_btn_normal"];
+        UIImage *normalImg = [UIImage imageNamed:@"normal_fld"];
+        UIImageView *emailImgView = [[UIImageView alloc]initWithImage:normalImg];
+        posFld  = [[UITextView alloc]init];
+        posFld.delegate    = self;
+        posFld.backgroundColor = [UIColor clearColor];
+        posFld.frame = CGRectMake(320-okImg.size.width-5-normalImg.size.width+42,7,
+                                  normalImg.size.width-42,
+                                  normalImg.size.height+4);
+        emailImgView.frame = CGRectMake(320-okImg.size.width-5-normalImg.size.width+40,7,
+                                        normalImg.size.width-40,
+                                        normalImg.size.height+8);
+        [self addSubview:emailImgView];
         [self addSubview:posFld];
         
-        okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        okBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         okBtn.tag = 1;
         [okBtn setTitle:@"确定"
-                 forState:UIControlStateNormal];
+               forState:UIControlStateNormal];
+        [okBtn setTitleColor:[UIColor blackColor]
+                    forState:UIControlStateNormal];
+        okBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+        [okBtn setBackgroundImage:okImg
+                         forState:UIControlStateNormal];
+        okBtn.frame = [UIView fitCGRect:CGRectMake(320-okImg.size.width-7,
+                                                   7,
+                                                   okImg.size.width,
+                                                   okImg.size.height+1)
+                             isBackView:NO];
         [okBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
-        okBtn.frame = CGRectMake(width-45, 5, 40, height-10);
         [self addSubview:okBtn];
     }
     
@@ -230,10 +246,11 @@
 - (void) initUI
 {
     //显示地图
-    self.mapView = [[MAMapView alloc] initWithFrame:CGRectMake(0,
-                                                               0,
-                                                               320,
-                                                               460)];
+    self.mapView = [[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0,
+                                                                                 0,
+                                                                                 320,
+                                                                                 480)
+                                                           isBackView:YES]];
     self.mapView.delegate   = self;
     self.mapView.showsScale = NO;
     [self.mapView setZoomLevel:13
@@ -247,9 +264,9 @@
     
     toolBar = [[BottomToolBar alloc]initWithFrame:
                                     [UIView fitCGRect:CGRectMake(0,
-                                                                 460-44-44,
+                                                                 480-55-44,
                                                                  320,
-                                                                 44)
+                                                                 55)
                                            isBackView:NO]];
     toolBar.delegate = self;
     [self.view addSubview:toolBar];
@@ -257,7 +274,7 @@
     //显示顶层Layer
     TopView *topView =[[TopView alloc]init];
     topView.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 460)
-                           isBackView:NO];
+                           isBackView:YES];
     [self.view addSubview:topView];
     
     posDic = [[NSMutableDictionary alloc]init];
@@ -456,21 +473,6 @@
         }
         case 1:     //确定
         {
-////            if ([toolBar.posFld isEditable])
-////            {
-////                [toolBar.posFld resignFirstResponder];
-////            }
-////            else
-////            {
-////                [self.locatePicker cancelPicker];
-////            }
-//            [self.locatePicker cancelPicker];
-//            [self repickView:self.view];
-
-            //获得地理编码
-//            NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [posDic objectForKey:@"PROVICE"],[posDic objectForKey:@"CITY"],[posDic objectForKey:@"DIST"]];
-//            CLog(@"posAddress:%@", posAddress);
-//            [self searchGeocode:posAddress];
             
             [[NSNotificationCenter defaultCenter] postNotificationName:@"setPosNotice"
                                                                 object:nil

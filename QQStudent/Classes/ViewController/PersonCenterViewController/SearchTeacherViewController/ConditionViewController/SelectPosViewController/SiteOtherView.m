@@ -24,6 +24,7 @@
     if (self) {
         siteNameLab = [[UILabel alloc]init];
         siteNameLab.font = [UIFont systemFontOfSize:12.f];
+        siteNameLab.textColor = [UIColor colorWithHexString:@"#009f66"];
         siteNameLab.frame= CGRectMake( 5, 5, 100, 20);
         siteNameLab.backgroundColor = [UIColor clearColor];
         [self addSubview:siteNameLab];
@@ -51,6 +52,7 @@
         telLab = [[UILabel alloc]init];
         telLab.font = [UIFont systemFontOfSize:12.f];
         telLab.frame= CGRectMake(5, 145, 100, 20);
+        telLab.textColor = [UIColor colorWithHexString:@"#ff6600"];
         telLab.backgroundColor = [UIColor clearColor];
         [self addSubview:telLab];
         

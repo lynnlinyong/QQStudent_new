@@ -89,7 +89,6 @@
     [bgImgView release];
     
     shareImgView = [[TTImageView alloc]init];
-//    shareImgView.image = [UIImage imageNamed:@"shareIcon.jpg"];
     shareImgView.frame = [UIView fitCGRect:CGRectMake(20, 20, 50, 50)
                                 isBackView:NO];
     [self.view addSubview:shareImgView];
@@ -199,8 +198,7 @@
     NSString *strResult = [[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:NSUTF8StringEncoding];
     CLog(@"result = %@",strResult);
     
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     [nav popToRootViewControllerAnimated:YES];
     
     [strResult release];

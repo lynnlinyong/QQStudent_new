@@ -30,11 +30,15 @@
     
     //设置Title
     [MainViewController setNavTitle:@"轻轻家教"];
+    
+    [self initBackBarItem];
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    teacherArray = [[NSMutableArray alloc]init];
     
     //初始化地图API
     [self initMapKey];
@@ -83,6 +87,12 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) initBackBarItem
+{
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+}
+
 - (void) initUI
 {
     _calloutMapAnnotation = [[CalloutMapAnnotation alloc]init];
@@ -208,8 +218,7 @@
 + (void) setNavTitle:(NSString *) title
 {
     BOOL isSet = NO;
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     NSArray *subArray = [nav.navigationBar subviews];
     for (UIView *view in subArray)
     {
@@ -256,15 +265,26 @@
         NSString *resStr = [[[NSString alloc]initWithData:resVal
                                                  encoding:NSUTF8StringEncoding]autorelease];
         NSDictionary *resDic  = [resStr JSONValue];
-        NSString *webAddress  = [resDic objectForKey:@"web"];
-        NSString *pushAddress = [MainViewController getPushAddress:[resDic objectForKey:@"push"]];
-        NSString *port = [MainViewController getPort:[resDic objectForKey:@"push"]];
-        [[NSUserDefaults standardUserDefaults] setObject:webAddress
-                                                  forKey:WEBADDRESS];
-        [[NSUserDefaults standardUserDefaults] setObject:pushAddress
-                                                  forKey:PUSHADDRESS];
-        [[NSUserDefaults standardUserDefaults] setObject:port
-                                                  forKey:PORT];
+        CLog(@"resDic:%@", resDic);
+        if (resDic)
+        {
+            NSString *webAddress  = [resDic objectForKey:@"web"];
+            NSString *pushAddress = [MainViewController getPushAddress:[resDic objectForKey:@"push"]];
+            NSString *port = [MainViewController getPort:[resDic objectForKey:@"push"]];
+            NSString *pushMaxTime = [resDic objectForKey:@"pushMaxTime"];
+            NSString *pushPageTime= [resDic objectForKey:@"pushPageTime"];
+            
+            [[NSUserDefaults standardUserDefaults] setObject:webAddress
+                                                      forKey:WEBADDRESS];
+            [[NSUserDefaults standardUserDefaults] setObject:pushAddress
+                                                      forKey:PUSHADDRESS];
+            [[NSUserDefaults standardUserDefaults] setObject:port
+                                                      forKey:PORT];
+            [[NSUserDefaults standardUserDefaults] setObject:pushMaxTime
+                                                      forKey:PUSHMAXTIME];
+            [[NSUserDefaults standardUserDefaults] setObject:pushPageTime
+                                                      forKey:PUSHPAGETIME];
+        }
     }
     else
     {
@@ -365,7 +385,7 @@
                               @"page",@"subjectId",@"selectXBIndex",
                               @"kcbzIndex",@"zoom",@"sessid", nil];
         NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",la,log,
-                              @"0",@"0",@"0",
+                              @"1",@"0",@"0",
                               @"0",[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
@@ -525,7 +545,7 @@
     else
     {
         SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
-        scVctr.teacherArray = teacherArray;
+//        scVctr.teacherArray = teacherArray;
         [self.navigationController pushViewController:scVctr
                                              animated:YES];
         [scVctr release];
@@ -600,12 +620,11 @@
         }
         else if ([action isEqualToString:@"findNearbyTeacher"])
         {
-            teacherArray = [[NSMutableArray alloc]init];
             NSArray *items = [resDic objectForKey:@"teachers"];
             for (NSDictionary *item in items)
             {
                 //设置老师属性
-                Teacher *tObj = [Teacher setTeacherProperty:[item copy]];
+                Teacher *tObj = [Teacher setTeacherProperty:item];
                 [teacherArray addObject:tObj];
             }
             
@@ -679,9 +698,9 @@
         NSString *log = [NSString stringWithFormat:@"%f",userLocation.coordinate.longitude];
         NSString *la  = [NSString stringWithFormat:@"%f", userLocation.coordinate.latitude];
         [[NSUserDefaults standardUserDefaults] setObject:log
-                                                  forKey:@"LONGITUDE"];
+                                                  forKey:LONGITUDE];
         [[NSUserDefaults standardUserDefaults] setObject:la
-                                                  forKey:@"LATITUDE"];
+                                                  forKey:LATITUDE];
 
         CLog(@"New Loc:%@,%@", log, la);
         //更新个人位置服务器

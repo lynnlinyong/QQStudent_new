@@ -59,6 +59,7 @@
         MyTeacherCell *cell = [[[MyTeacherCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:idString]autorelease];
         cell.teacher  = tObj;
         cell.order    = order;
+        
         return cell;
     }
     else            //代表订单
@@ -67,6 +68,7 @@
         Order *order = [Order setOrderProperty:orderDic];
         
         TeacherOrderCell *cell = [[[TeacherOrderCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:idString] autorelease];
+        
         cell.delegate = self;
         cell.order    = order;
         return cell;
@@ -97,37 +99,37 @@
 #pragma mark - TeacherOrderCellDelegate
 - (void) cell:(TeacherOrderCell *)cell buttonTag:(int)tag
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     switch (tag)
     {
-        case 0:      //评价
+        case 0:      //免费辅教
+        {
+            FreeBookViewController *fbVctr = [[FreeBookViewController alloc]init];
+            fbVctr.orderId = cell.order.orderId;
+            [nav pushViewController:fbVctr animated:YES];
+            [fbVctr release];
+            break;
+        }
+        case 1:      //评价
         {
             CommentView *cmmView = [[CommentView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 480) isBackView:NO]];
             cmmView.delegate = self;
             cmmView.orderId  = cell.order.orderId;
             
             CGRect rect = [cell convertRect:cell.commentBtn.frame toView:parentView];
-            [cmmView showView:[UIView fitCGRect:CGRectMake(rect.origin.x-30,
-                                         rect.origin.y-50, 150, 40) isBackView:NO]];
+            [cmmView showView:[UIView fitCGRect:CGRectMake(rect.origin.x-20,
+                                                           rect.origin.y-80, 220, 100) isBackView:NO]];
             [parentView addSubview:cmmView];
             [cmmView release];
+            
             break;
         }
-        case 1:      //修改订单
+        case 2:      //修改订单
         {
             UpdateOrderViewController *uoVctr = [[UpdateOrderViewController alloc]init];
             uoVctr.order = [cell.order copy];
             [nav pushViewController:uoVctr animated:YES];
             [uoVctr release];
-            break;
-        }
-        case 2:      //免费辅教
-        {
-            FreeBookViewController *fbVctr = [[FreeBookViewController alloc]init];
-            fbVctr.orderId = cell.order.orderId;
-            [nav pushViewController:fbVctr animated:YES];
-            [fbVctr release];
             break;
         }
         case 3:      //结算审批

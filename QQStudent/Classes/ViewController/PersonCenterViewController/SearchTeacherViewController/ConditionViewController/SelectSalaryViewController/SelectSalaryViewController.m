@@ -80,7 +80,7 @@
     [self.view addSubview:navgBtn];
     
     UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"xc_bg.9.png"]];
-    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 23,
+    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 20,
                                                 self.view.frame.size.width+4,
                                                 self.view.frame.size.height)
                           isBackView:NO];

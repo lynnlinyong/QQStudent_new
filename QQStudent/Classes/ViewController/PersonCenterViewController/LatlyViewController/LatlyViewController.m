@@ -28,13 +28,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
     msgArray = [[NSMutableArray alloc]init];
+    
+    //初始化UI
+    [self initUI];
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    
     self.navigationController.navigationBarHidden = YES;
     
     //获得新消息
@@ -52,16 +55,13 @@
 }
 
 - (void) viewDidDisappear:(BOOL)animated
-{    
-    [msgArray removeAllObjects];
+{   
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
 
 - (void) viewDidUnload
 {
-    [msgArray removeAllObjects];
-    
     latlyTab.delegate   = nil;
     latlyTab.dataSource = nil;
     
@@ -84,12 +84,16 @@
     latlyTab = [[UITableView alloc]init];
     latlyTab.delegate   = self;
     latlyTab.dataSource = self;
-    latlyTab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 420)
-                            isBackView:NO];
+    latlyTab.separatorStyle = UITableViewCellSeparatorStyleNone;
+    latlyTab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 376)
+                            isBackView:YES];
     [self.view addSubview:latlyTab];
     
     //初始化上拉刷新
     [self initPullView];
+    
+    latlyTab.backgroundColor  = [UIColor colorWithHexString:@"#E1E0DE"];
+    self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
 }
 
 - (void) initPullView
@@ -145,15 +149,14 @@
                        urlStr:url];
 }
 
-- (void) tapGestureRecongnizer:(UITapGestureRecognizer *) reg
+- (void) tapGestureRecongnizer:(id) sender
 {
-    TTImageView *headImgView = (TTImageView *)reg.view;
-    NSDictionary *item = [msgArray objectAtIndex:headImgView.tag];
+    NSDictionary *item = [msgArray objectAtIndex:headBtn.tag];
     Teacher *tObj = [Teacher setTeacherProperty:item];
     
     //教师详细信息
     AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    UINavigationController *nav     = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav     = (CustomNavigationViewController *)app.window.rootViewController;
     TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
     tdVctr.tObj = tObj;
     [nav pushViewController:tdVctr animated:YES];
@@ -168,6 +171,7 @@
 	//  put here just for demo
 	_reloading = YES;
 	
+    [self getMessageNewNumber];
 } 
 
 - (void)doneLoadingTableViewData
@@ -195,7 +199,7 @@
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view
 {
 	[self reloadTableViewDataSource];
-	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:3.0];
+//	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:3.0];
 }
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view
@@ -241,15 +245,17 @@
         if (sysDic)
         {
             UIImageView *flgImgView = [[UIImageView alloc]init];
-            flgImgView.image = [UIImage imageNamed:@"flag_bg.png"];
-            flgImgView.frame = CGRectMake(5, 2, 40, 40);
+            flgImgView.image = [UIImage imageNamed:@"lp_sys_cell_title"];
+            flgImgView.frame = CGRectMake(5, 0, 40, 40);
             [cell addSubview:flgImgView];
             [flgImgView release];
             
             UILabel *titleLab  = [[UILabel alloc]init];
             titleLab.text  = [sysDic objectForKey:@"name"];
             titleLab.backgroundColor = [UIColor clearColor];
-            titleLab.frame = CGRectMake(50, 0, 100, 20);
+            titleLab.font = [UIFont systemFontOfSize:14.f];
+            titleLab.textColor = [UIColor colorWithHexString:@"#ff6600"];
+            titleLab.frame = CGRectMake(50, 3, 100, 20);
             [cell addSubview:titleLab];
             [titleLab release];
             
@@ -269,25 +275,30 @@
             timeLab.frame = CGRectMake(320-60-10, 12, 60, 20);
             [cell addSubview:timeLab];
             [timeLab release];
+            
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lp_sys_cell_bg"]];
         }
     }
     else                     //显示聊天信息
     {
         if (msgArray.count>0)
         {
+            [cell setBackgroundView:[[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lt_list_bg"]]];
+            
             NSDictionary *teacherDic = [msgArray objectAtIndex:indexPath.row-1];
             
-            UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
-                                                                                    action:@selector(tapGestureRecongnizer:)];
-            TTImageView *headImgView = [[TTImageView alloc]init];
-            headImgView.tag   = indexPath.row-1;
-            headImgView.frame = CGRectMake(5, 15, 50, 50);
+            headBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            headBtn.tag      = indexPath.row-1;
+            headBtn.frame    =  CGRectMake(5, 15, 50, 50);
+            [headBtn addTarget:self
+                        action:@selector(tapGestureRecongnizer:)
+              forControlEvents:UIControlEventTouchUpInside];
+            [cell addSubview:headBtn];
+            
+            TTImageView *headImgView = [[[TTImageView alloc]init]autorelease];
+            headImgView.delegate = self;
             NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
             headImgView.URL   = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"icon"]];
-            [headImgView addGestureRecognizer:tapReg];
-            [cell addSubview:headImgView];
-            [headImgView release];
-            [tapReg release];
             
             UILabel *nameLab = [[UILabel alloc]init];
             nameLab.font  = [UIFont systemFontOfSize:12.f];
@@ -324,7 +335,7 @@
             UILabel *timeLab = [[UILabel alloc]init];
             timeLab.textAlignment = NSTextAlignmentRight;
             timeLab.font  = [UIFont systemFontOfSize:12.f];
-            timeLab.text  = [sysDic objectForKey:@"time"];
+            timeLab.text  = [teacherDic objectForKey:@"time"];
             timeLab.backgroundColor = [UIColor clearColor];
             timeLab.frame = CGRectMake(320-60-10, 30, 60, 20);
             [cell addSubview:timeLab];
@@ -337,20 +348,16 @@
 
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = [MainViewController getNavigationViewController];
     if (indexPath.row == 0)
     {
         SystemMessageViewController *smVctr= [[SystemMessageViewController alloc]init];
         [nav pushViewController:smVctr animated:YES];
-//        [self.navigationController pushViewController:smVctr
-//                                             animated:YES];
         [smVctr release];
     }
     else
     {
         NSDictionary *teacherDic = [msgArray objectAtIndex:indexPath.row-1];
-        
         Teacher *tObj = [[Teacher alloc]init];
         tObj.deviceId = [[teacherDic objectForKey:@"deviceId"] copy];
         tObj.sex = ((NSNumber *)[teacherDic objectForKey:@"gender"]).intValue;
@@ -363,8 +370,6 @@
         ChatViewController *cVctr = [[ChatViewController alloc]init];
         cVctr.tObj = tObj;
         [nav pushViewController:cVctr animated:YES];
-//        [self.navigationController pushViewController:cVctr
-//                                             animated:YES];
         [cVctr release];
         [tObj  release];
     }
@@ -399,6 +404,20 @@
 }
 
 #pragma mark -
+#pragma mark - TTImageViewDelegate
+- (void) imageView:(TTImageView *)imageView didLoadImage:(UIImage *)image
+{
+    UIImage *headImg = [UIImage circleImage:image withParam:0];
+    [headBtn setImage:headImg
+             forState:UIControlStateNormal];
+}
+
+- (void) imageView:(TTImageView *)imageView didFailLoadWithError:(NSError *)error
+{
+    
+}
+
+#pragma mark -
 #pragma mark - ServerRequest Delegate
 - (void) requestAsyncFailed:(ASIHTTPRequest *)request
 {
@@ -411,6 +430,8 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    [self doneLoadingTableViewData];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
@@ -437,14 +458,9 @@
             sysDic   = [[resDic objectForKey:@"sys_message"] copy];
             
             //添加老师沟通消息
-            NSArray *teacherArr = [resDic objectForKey:@"teachers"];
-            for (NSDictionary *item in teacherArr)
-            {
-                [msgArray addObject:item];
-            }
+            msgArray = [[resDic objectForKey:@"teachers"] copy];
             
-            //初始化UI
-            [self initUI];
+            [latlyTab reloadData];
         }
         else if ([action isEqualToString:@"deleteNewMember"])
         {
@@ -462,5 +478,7 @@
     }
     
     [latlyTab reloadData];
+    
+    [self doneLoadingTableViewData];
 }
 @end

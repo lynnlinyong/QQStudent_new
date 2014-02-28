@@ -24,6 +24,13 @@
     return self;
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    [MainViewController setNavTitle:@"第三方场地"];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -86,6 +93,7 @@
     nameLab.backgroundColor = [UIColor clearColor];
     nameLab.frame = [UIView fitCGRect:CGRectMake(20, 250, 150, 20)
                            isBackView:NO];
+    nameLab.textColor = [UIColor colorWithHexString:@"#009f66"];
     [self.view addSubview:nameLab];
     [nameLab release];
     
@@ -96,6 +104,7 @@
     phoneLab.backgroundColor = [UIColor clearColor];
     phoneLab.frame= [UIView fitCGRect:CGRectMake(180, 250, 140, 20)
                            isBackView:NO];
+    phoneLab.textColor = [UIColor colorWithHexString:@"#ff6600"];
     [self.view addSubview:phoneLab];
     [phoneLab release];
     
@@ -117,6 +126,7 @@
     roomLab.frame= [UIView fitCGRect:CGRectMake(20, 310, 280, 20)
                           isBackView:NO];
     roomLab.backgroundColor = [UIColor clearColor];
+    roomLab.textColor = [UIColor colorWithHexString:@"#ff6600"];
     [self.view addSubview:roomLab];
     [roomLab release];
     
@@ -126,6 +136,7 @@
     infoLab.backgroundColor = [UIColor clearColor];
     infoLab.frame= [UIView fitCGRect:CGRectMake(20, 360, 200, 20)
                           isBackView:NO];
+    infoLab.textColor = [UIColor colorWithHexString:@"#ff6600"];
     [self.view addSubview:infoLab];
     [infoLab release];
     

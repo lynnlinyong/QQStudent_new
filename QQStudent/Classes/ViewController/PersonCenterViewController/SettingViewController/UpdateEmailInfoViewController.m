@@ -40,42 +40,30 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
+    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
     UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0,
-                                                   titleImg.size.width,
-                                                   150)
-                             isBackView:NO];
+    self.view.frame = CGRectMake(0, 0,
+                                 titleImg.size.width,150+bottomImg.size.height);
     self.view.backgroundColor = [UIColor whiteColor];
     
-    LBorderView *groupView = [[LBorderView alloc]initWithFrame:CGRectMake(-10, -5,
-                                                                          self.view.frame.size.width+20,
-                                                                          self.view.frame.size.height+10)];
-    groupView.borderType   = BorderTypeSolid;
-    groupView.dashPattern  = 8;
-    groupView.spacePattern = 8;
-    groupView.borderWidth  = 1;
-    groupView.cornerRadius = 5;
-    groupView.borderColor  = [UIColor whiteColor];
-    groupView.backgroundColor = [UIColor whiteColor];
-    [self.view addSubview:groupView];
     
     UIImageView *titleImgView = [[UIImageView alloc]init];
-    titleImgView.frame = [UIView fitCGRect:CGRectMake(-2.5, -2,
-                                                      groupView.frame.size.width+5, titleImg.size.height)
-                                isBackView:NO];
+    titleImgView.frame = CGRectMake(-2, -titleImg.size.height,
+                                    self.view.frame.size.width+5,
+                                    titleImg.size.height);
     titleImgView.image = titleImg;
-    [groupView addSubview:titleImgView];
+    [self.view addSubview:titleImgView];
     [titleImgView release];
     
     UILabel *titleLab = [[UILabel alloc]init];
     titleLab.text     = @"邮箱修改提醒";
     titleLab.textColor= [UIColor whiteColor];
     titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame= [UIView fitCGRect:CGRectMake(-2.5, -2,
-                                                 groupView.frame.size.width+5, titleImg.size.height)
+    titleLab.frame= [UIView fitCGRect:CGRectMake(0, -titleImg.size.height+3,
+                                                 self.view.frame.size.width+5, titleImg.size.height)
                            isBackView:NO];
     titleLab.backgroundColor = [UIColor clearColor];
-    [groupView addSubview:titleLab];
+    [self.view addSubview:titleLab];
     [titleLab release];
     
     UILabel *infoLab = [[UILabel alloc]init];
@@ -93,13 +81,12 @@
     [self.view addSubview:infoLab];
     [infoLab release];
     
-    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
+
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
-    bottomImgView.frame = [UIView fitCGRect:CGRectMake(-11,
-                                                       self.view.frame.size.height-bottomImg.size.height+6,
-                                                       self.view.frame.size.width+23, bottomImg.size.height)
-                                 isBackView:NO];
+    bottomImgView.frame = CGRectMake(-2,
+                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.width+4, bottomImg.size.height);
     [self.view addSubview:bottomImgView];
     [bottomImgView release];
     
@@ -110,7 +97,7 @@
                 forState:UIControlStateNormal];
     okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
-                             self.view.frame.size.height-okBtnImg.size.height+3,
+                             self.view.frame.size.height-bottomImg.size.height+6,
                              okBtnImg.size.width,
                              okBtnImg.size.height);
     [okBtn setTitle:@"确定"
@@ -131,7 +118,7 @@
                     forState:UIControlStateNormal];
     cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
-                                 self.view.frame.size.height-cancelImg.size.height+3,
+                                 self.view.frame.size.height-bottomImg.size.height+6,
                                  cancelImg.size.width,
                                  cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
@@ -144,6 +131,7 @@
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:cancelBtn];
+
 }
 
 - (void) doButtonClicked:(id)sender

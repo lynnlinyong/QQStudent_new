@@ -20,15 +20,16 @@
         
         UIImage *btnImg   = [UIImage imageNamed:@"normal_btn"];
         UIImage *micImg   = [UIImage imageNamed:@"sd_mic_btn"];
+        CLog(@"btnImg:%f,%f", btnImg.size.width, btnImg.size.height);
         UIImageView *micImgView = [[UIImageView alloc]initWithImage:micImg];
-        micImgView.frame = CGRectMake(20, btnImg.size.height/2-micImg.size.height/2,
+        micImgView.frame = CGRectMake(20, frame.size.height/2-micImg.size.height/2,
                                               micImg.size.width, micImg.size.height);
         
         pressButton = [UIButton buttonWithType:UIButtonTypeCustom];
         pressButton.frame = CGRectMake(0,
                                        0,
-                                       btnImg.size.width,
-                                       btnImg.size.height);
+                                       frame.size.width,
+                                       frame.size.height);
         pressButton.titleLabel.font = [UIFont systemFontOfSize:14.f];
         [pressButton addSubview:micImgView];
         [pressButton setTitleColor:[UIColor blackColor]

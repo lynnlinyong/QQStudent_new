@@ -26,8 +26,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    [self initUI];
 }
 
 - (void) viewDidAppear:(BOOL)animated
@@ -35,6 +33,8 @@
     [super viewDidAppear:animated];
     
     [MainViewController setNavTitle:@"登陆中"];
+    
+    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -56,6 +56,7 @@
 - (void) viewDidDisappear:(BOOL)animated
 {
     [registBtn removeFromSuperview];
+    registBtn = nil;
     [super viewDidDisappear:animated];
 }
 
@@ -97,8 +98,7 @@
     [registBtn addSubview:regTitleLab];
     [regTitleLab release];
     
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    UINavigationController *nav = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     [nav.navigationBar addSubview:registBtn];
     
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];

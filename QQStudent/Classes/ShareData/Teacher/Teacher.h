@@ -32,6 +32,8 @@
     NSString   *teacherId;  //工号
     int        goodCount;   //好评
     int        badCount;    //差评
+    
+    NSArray    *certArray;  //证书
 }
 
 @property (nonatomic, retain) NSString     *name;
@@ -54,6 +56,7 @@
 @property (nonatomic, retain) NSString     *teacherId;
 @property (nonatomic, assign) int          goodCount;
 @property (nonatomic, assign) int          badCount;
+@property (nonatomic, retain) NSArray      *certArray;  //证书
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic;
 @end

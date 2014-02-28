@@ -58,22 +58,87 @@
 #pragma mark - Custom Action
 - (void) initUI
 {
-    self.view.frame = [UIView fitCGRect:CGRectMake(0, 0, 240, 250)
-                             isBackView:NO];
+    UIImage *bottomImg        = [UIImage imageNamed:@"dialog_bottom"];
+    UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
+    self.view.frame = CGRectMake(0, 0,
+                                 titleImg.size.width,
+                                 320+bottomImg.size.height);
     self.view.backgroundColor = [UIColor whiteColor];
- 
-    UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text = @"投诉TA";
+    
+    UIImageView *titleImgView = [[UIImageView alloc]init];
+    titleImgView.frame = CGRectMake(-2, -titleImg.size.height,
+                                    self.view.frame.size.width+5, titleImg.size.height);
+    titleImgView.image = titleImg;
+    [self.view addSubview:titleImgView];
+    [titleImgView release];
+    
+    UILabel *titleLab  = [[UILabel alloc]init];
+    titleLab.text      = @"投诉TA";
+    titleLab.textColor = [UIColor whiteColor];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame= CGRectMake(0, -titleImg.size.height,
+                               self.view.frame.size.width+5, titleImg.size.height);
     titleLab.backgroundColor = [UIColor clearColor];
-    titleLab.frame = CGRectMake(85, 0, 100, 20);
+    titleLab.textAlignment   = NSTextAlignmentCenter;
     [self.view addSubview:titleLab];
     [titleLab release];
     
+//    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
+    UIImageView *bottomImgView = [[UIImageView alloc]init];
+    bottomImgView.image = bottomImg;
+    bottomImgView.frame = CGRectMake(-2,
+                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.width+4, bottomImg.size.height);
+    [self.view addSubview:bottomImgView];
+    [bottomImgView release];
+    
+    UIImage *okBtnImg = [UIImage imageNamed:@"dialog_ok_normal_btn"];
+    UIButton *okBtn   = [UIButton buttonWithType:UIButtonTypeCustom];
+    okBtn.tag   = 0;
+    [okBtn setTitleColor:[UIColor blackColor]
+                forState:UIControlStateNormal];
+    okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
+                             self.view.frame.size.height-bottomImg.size.height+6,
+                             okBtnImg.size.width,
+                             okBtnImg.size.height);
+    [okBtn setTitle:@"确定"
+           forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_normal_btn"]
+                     forState:UIControlStateNormal];
+    [okBtn setBackgroundImage:[UIImage imageNamed:@"dialog_ok_hlight_btn"]
+                     forState:UIControlStateHighlighted];
+    [okBtn addTarget:self
+              action:@selector(doButtonClicked:)
+    forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:okBtn];
+    
+    UIImage *cancelImg  = [UIImage imageNamed:@"dialog_cancel_normal_btn"];
+    UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    cancelBtn.tag = 1;
+    [cancelBtn setTitleColor:[UIColor blackColor]
+                    forState:UIControlStateNormal];
+    cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
+    cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
+                                 self.view.frame.size.height-bottomImg.size.height+6,
+                                 cancelImg.size.width,
+                                 cancelImg.size.height);
+    [cancelBtn setTitle:@"取消"
+               forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_normal_btn"]
+                         forState:UIControlStateNormal];
+    [cancelBtn setBackgroundImage:[UIImage imageNamed:@"dialog_cancel_hlight_btn"]
+                         forState:UIControlStateHighlighted];
+    [cancelBtn addTarget:self
+                  action:@selector(doButtonClicked:)
+        forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:cancelBtn];
+ 
     cmpTab = [[UITableView alloc]init];
     cmpTab.delegate = self;
     cmpTab.dataSource = self;
     cmpTab.scrollEnabled = NO;
-    cmpTab.frame = CGRectMake(0, 20, 240, 200);
+    cmpTab.frame = CGRectMake(0, 20, 240, 300);
     [self.view addSubview:cmpTab];
 }
 
@@ -86,7 +151,7 @@
 
 - (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 6;
+    return 5;
 }
 
 - (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -98,17 +163,12 @@
         case 2:
         case 3:
         {
-            return 30;
+            return 50;
             break;
         }
         case 4:
         {
-            return 50;
-            break;
-        }
-        case 5:
-        {
-            return 30;
+            return 100;
             break;
         }
         default:
@@ -136,7 +196,8 @@
             UILabel *titleLab = [[UILabel alloc]init];
             titleLab.text = @"选择投诉理由,我们将为您处理:";
             titleLab.backgroundColor = [UIColor clearColor];
-            titleLab.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+            titleLab.frame = CGRectMake(0, 0, cell.frame.size.width,
+                                        cell.frame.size.height);
             [cell addSubview:titleLab];
             [titleLab release];
             break;
@@ -194,36 +255,19 @@
         }
         case 4:
         {
+            UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"spg_input_bg"]];
+            bgView.frame = CGRectMake(0,
+                                      0,
+                                      242, 92);
+            [cell addSubview:bgView];
+            
             contentView = [[UITextField alloc] init];
             contentView.text  = @"";
             contentView.delegate     = self;
+            contentView.font = [UIFont systemFontOfSize:14.f];
             contentView.placeholder  = @"其他理由(140字以内)";
-            contentView.borderStyle  = UITextBorderStyleLine;
-            contentView.frame = CGRectMake(5, 5, 230, 40);
+            contentView.frame = CGRectMake(5, 5, 230, 90);
             [cell addSubview:contentView];
-            break;
-        }
-        case 5:
-        {
-            UIButton *okBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-            okBtn.tag = 0;
-            okBtn.frame = CGRectMake(55, 5, 50, 20);
-            [okBtn setTitle:@"确定"
-                   forState:UIControlStateNormal];
-            [okBtn addTarget:self
-                      action:@selector(doButtonClicked:)
-            forControlEvents:UIControlEventTouchUpInside];
-            [cell addSubview:okBtn];
-            
-            UIButton *cancelBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-            cancelBtn.tag = 1;
-            cancelBtn.frame = CGRectMake(125, 5, 50, 20);
-            [cancelBtn setTitle:@"取消"
-                   forState:UIControlStateNormal];
-            [cancelBtn addTarget:self
-                      action:@selector(doButtonClicked:)
-            forControlEvents:UIControlEventTouchUpInside];
-            [cell addSubview:cancelBtn];
             break;
         }
         default:
@@ -291,6 +335,38 @@
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"dismissComplainNotice"
                                                         object:nil];
+}
+
+#pragma mark -
+#pragma mark - UIViewController Custom Methods
+- (void) repickView:(UIView *)parent
+{
+    NSTimeInterval animationDuration = 0.30f;
+    [UIView beginAnimations:@"ResizeForKeyboard" context:nil];
+    
+    [UIView setAnimationDuration:animationDuration];
+    CGRect rect  = CGRectMake(parent.frame.origin.x,
+                              parent.frame.origin.y+205,
+                              parent.frame.size.width,
+                              parent.frame.size.height);
+    parent.frame = rect;
+    
+    [UIView commitAnimations];
+}
+
+- (void) moveViewWhenViewHidden:(UIView *)view parent:(UIView *) parentView
+{
+    //键盘高度216
+    NSTimeInterval animationDuration = 0.30f;
+    [UIView beginAnimations:@"ResizeForKeyBoard" context:nil];
+    [UIView setAnimationDuration:animationDuration];
+    
+    int width  = parentView.frame.size.width;
+    int height = parentView.frame.size.height;
+    CGRect rect= CGRectMake(parentView.frame.origin.x,
+                            parentView.frame.origin.y-205,width, height);
+    parentView.frame = rect;
+    [UIView commitAnimations];
 }
 
 #pragma mark -

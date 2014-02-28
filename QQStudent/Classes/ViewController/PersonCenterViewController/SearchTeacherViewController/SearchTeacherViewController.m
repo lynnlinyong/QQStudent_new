@@ -85,8 +85,8 @@
     searchTab.delegate   = self;
     searchTab.dataSource = self;
     searchTab.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
-    searchTab.frame = [UIView fitCGRect:CGRectMake(0, 10, 320, 300)
-                             isBackView:NO];
+    searchTab.frame = [UIView fitCGRect:CGRectMake(0, 10, 320, 372)
+                             isBackView:YES];
     [self.view addSubview:searchTab];
     
     UIImage *bgImg = [UIImage imageNamed:@"pp_nodata_bg"];
@@ -120,7 +120,7 @@
     
     UIImage *okImg  = [UIImage imageNamed:@"sp_search_btn_normal"];
     UIImageView *fldBgImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"normal_fld"]];
-    fldBgImgView.frame = [UIView fitCGRect:CGRectMake(33, 372-55, 230, okImg.size.height-3)
+    fldBgImgView.frame = [UIView fitCGRect:CGRectMake(33, 372-55, 240, okImg.size.height-3)
                                 isBackView:NO];
     [self.view addSubview:fldBgImgView];
     [fldBgImgView release];
@@ -129,7 +129,7 @@
     searchFld.delegate = self;
     searchFld.font  = [UIFont systemFontOfSize:14];
     searchFld.placeholder = @"输入手机号/前14位身份证号/9位搜索码";
-    searchFld.frame = [UIView fitCGRect:CGRectMake(38, 372-48, 225, okImg.size.height-3)
+    searchFld.frame = [UIView fitCGRect:CGRectMake(38, 372-48, 235, okImg.size.height-3)
                              isBackView:NO];
     [self.view addSubview:searchFld];
     
@@ -301,8 +301,7 @@
 {
     Teacher *tObj = [searchArray objectAtIndex:indexPath.row];
 
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    UINavigationController *nav    = (UINavigationController *)app.window.rootViewController;
+    CustomNavigationViewController *nav    = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
     
     //订单编辑
     SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
