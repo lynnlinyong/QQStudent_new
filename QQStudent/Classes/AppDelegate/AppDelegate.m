@@ -18,12 +18,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    //初始化MQTT Server
-    [self initMQTTServer];
-    
-    //向微信注册
-    [WXApi registerApp:WeiXinAppID withDescription:@"QQ_Student_IOS v1.0"];
-    
+    CLog(@"%s", __func__);
     //注册设备推送通知
     [[UIApplication sharedApplication]registerForRemoteNotificationTypes:
                                                          (UIRemoteNotificationTypeAlert |
@@ -34,13 +29,13 @@
     UIViewController *pVctr = nil;
     if ([self isFirstLauncher])
     {
-        SplashViewController *spVctr = [[SplashViewController alloc]init];
+        SplashViewController *spVctr = [[[SplashViewController alloc]init]autorelease];
         pVctr = spVctr;
     }
     else
     {
-        MainViewController *mVctr     = [[MainViewController alloc]init];
-        CustomNavigationViewController *nVctr = [[CustomNavigationViewController alloc]initWithRootViewController:mVctr];
+        MainViewController *mVctr     = [[[MainViewController alloc]init]autorelease];
+        CustomNavigationViewController *nVctr = [[[CustomNavigationViewController alloc]initWithRootViewController:mVctr]autorelease];
         pVctr = nVctr;
     }
     
@@ -48,7 +43,7 @@
     [self isIos5ToUpdateNav];
     
     self.window.rootViewController = pVctr;
-    self.window.backgroundColor = [UIColor whiteColor];
+    self.window.backgroundColor = [[UIColor whiteColor] retain];
     [self.window makeKeyAndVisible];
     return YES;
 }
@@ -71,14 +66,40 @@
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    CLog(@"%s", __func__);
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     
+    CLog(@"%s", __func__);
+    
+    //清除消息中心消息
+    [[UIApplication sharedApplication ] setApplicationIconBadgeNumber:0];
+    
+    //初始化MQTT Server
+    [self initMQTTServer];
+    
+//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    
+    //获得Web服务器地址
+    [MainViewController getWebServerAddress];
+    
+    //获取未读消息列表
+    [self getPushMessage];
+    
     //上线更新
     [self updateLoginStatus:1];
+    
+        
+//        dispatch_async(dispatch_get_main_queue(), ^{
+    
+//        });
+//    });
+    
+    //向微信注册
+    [WXApi registerApp:WeiXinAppID withDescription:@"QQ_Student_IOS v1.0"];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -100,6 +121,32 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
+- (void) getPushMessage
+{
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    if (!webAdd)
+    {
+        [MainViewController getWebServerAddress];
+    }
+    
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    if (ssid)
+    {
+        NSArray *paramsArray = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+        NSArray *valuesArray = [NSArray arrayWithObjects:@"getPushMessage",ssid,nil];
+        
+        NSDictionary *pDic     = [NSDictionary dictionaryWithObjects:valuesArray
+                                                             forKeys:paramsArray];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        request.delegate = self;
+        NSString *url = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
+        [request requestASyncWith:kServerPostRequest
+                         paramDic:pDic
+                           urlStr:url];
+    }
+}
+
 - (void) updateLoginStatus:(int) isBackgroud
 {
     //判断是否显示试听和聘请
@@ -170,26 +217,237 @@
 #endif
 }
 
-- (BOOL) isInChatView
++ (BOOL) isInView:(NSString *) vctrName
 {
     BOOL isIn = NO;
     
-    CustomNavigationViewController *vctr = (CustomNavigationViewController *)self.window.rootViewController;
-    for (UIViewController *viewController in vctr.viewControllers)
+    CustomNavigationViewController *vctr = [MainViewController getNavigationViewController];
+    
+    UIViewController *lastVctr = [vctr.viewControllers objectAtIndex:vctr.viewControllers.count-1];
+    if ([lastVctr isKindOfClass:NSClassFromString(vctrName)])
     {
-        if ([viewController isKindOfClass:[ChatViewController class]])
-        {
-            isIn = YES;
-            break;
-        }
+        isIn = YES;
     }
     
     return isIn;
 }
 
-- (void) getMessageOutline
++(void) dealWithMessage:(NSDictionary *)msgDic isPlayVoice:(BOOL) isPlay
+{    
+    //解析MQTT接收消息
+    int msgType = ((NSString *)[msgDic objectForKey:@"type"]).intValue;
+    switch (msgType)
+    {
+        case PUSH_TYPE_APPLY:       //接收到老师抢单信息
+        {
+            //添加到联系人,订单.等待老师确认。
+            Teacher *tObj  = [[Teacher alloc]init];
+            tObj.deviceId  = [msgDic objectForKey:@"deviceId"];
+            tObj.sex       = ((NSNumber *) [msgDic objectForKey:@"gender"]).intValue;
+            tObj.headUrl   = [msgDic objectForKey:@"icon"];
+            tObj.idNums    = [msgDic objectForKey:@"idnumber"];
+            tObj.info      = [msgDic objectForKey:@"info"];
+            tObj.name      = [msgDic objectForKey:@"nickname"];
+            tObj.phoneNums = [msgDic objectForKey:@"phone"];
+            tObj.comment   = ((NSNumber *) [msgDic objectForKey:@"stars"]).intValue;
+            tObj.studentCount = ((NSNumber *) [msgDic objectForKey:@"students"]).intValue;
+            tObj.pf = [msgDic objectForKey:@"subjectText"];
+            
+            //获得是否已经抢单
+            BOOL isConfirm = [[NSUserDefaults standardUserDefaults] boolForKey:IS_ORDER_CONFIRM];
+            if (!isConfirm)
+            {
+                NSDictionary *infoDic = [[NSDictionary alloc]initWithObjectsAndKeys:tObj,@"OrderTeacher",nil];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"OrderConfirm"
+                                                                    object:nil
+                                                                  userInfo:infoDic];
+            }
+            else
+            {
+                //发送订单失败信息
+                NSString *orderId  = [[msgDic objectForKey:@"keyId"] copy];
+                NSData *stuData    = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
+                Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+                NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",
+                                      @"nickname",@"keyId",@"taPhone", nil];
+                NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_CONFIRM],@"failure",
+                                      student.phoneNumber,
+                                      student.nickName,orderId,tObj.phoneNums, nil];
+                NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                                 forKeys:paramsArr];
+                NSString *jsonDic  = [pDic JSONFragment];
+                NSData *data = [jsonDic dataUsingEncoding:NSUTF8StringEncoding];
+                
+                //发送抢单失败消息
+                SingleMQTT *session = [SingleMQTT shareInstance];
+                [session.session publishData:data
+                                     onTopic:tObj.deviceId];
+            }
+            break;
+        }
+        case PUSH_TYPE_CONFIRM:     //确认老师的确认消息
+        {
+            break;
+        }
+        case PUSH_TYPE_IMAGE:       //接收到图片消息
+        case PUSH_TYPE_AUDIO:       //接收到音频消息
+        {
+            //判断是否在聊天界面
+            if ([AppDelegate isInView:@"ChatViewController"] )
+            {
+                if (isPlay)
+                {
+                    //提示音播放,刷新页面显示
+                    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_record_start"
+                                                                        ofType:@"wav"];
+                    NSData *infoSound = [NSData dataWithContentsOfFile:path];
+                    [RecordAudio playVoice:infoSound];
+                }
+                
+                //发送刷新数据Notice
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshNewData"
+                                                                    object:nil];
+            }
+            else
+            {
+                
+                //播放您有一条新消息,跳转聊天界面显示
+                if (isPlay)
+                {
+                    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
+                                                                        ofType:@"wav"];
+                    NSData *infoSound = [NSData dataWithContentsOfFile:path];
+                    [RecordAudio playVoice:infoSound];
+                }
+                
+                //pop当前页显示提示
+                NoticePopView *popView  = [NoticePopView shareInstance];
+                popView.noticeType      = NOTICE_MSG;
+                popView.contentDic      = msgDic;
+                popView.titleLab.text   = @"您有一条新消息";
+                popView.contentLab.text = @"语音消息";
+                [popView popView];
+            }
+            break;
+        }
+        case PUSH_TYPE_TEXT:        //接收到文本消息
+        {
+            //判断是否在聊天界面
+            if ([AppDelegate isInView:@"ChatViewController"] )
+            {
+                //提示音播放,刷新页面显示
+                if (isPlay)
+                {
+                    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_record_start"
+                                                                        ofType:@"wav"];
+                    NSData *infoSound = [NSData dataWithContentsOfFile:path];
+                    [RecordAudio playVoice:infoSound];
+                }
+                
+                //发送刷新数据Notice
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshNewData"
+                                                                    object:nil];
+            }
+            else
+            {
+                //播放您有一条新消息,点击跳转聊天界面显示
+                if (isPlay)
+                {
+                    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
+                                                                        ofType:@"wav"];
+                    NSData *infoSound = [NSData dataWithContentsOfFile:path];
+                    [RecordAudio playVoice:infoSound];
+                }
+                
+                //pop当前页显示提示
+                NoticePopView *popView = [NoticePopView shareInstance];
+                popView.noticeType     = NOTICE_MSG;
+                popView.contentDic     = msgDic;
+                popView.titleLab.text  = @"您有一条新消息";
+                popView.contentLab.text= [msgDic objectForKey:@"text"];
+                [popView popView];
+            }
+            break;
+        }
+        case PUSH_TYPE_ORDER_EDIT:    //发送修改订单消息
+        {
+            break;
+        }
+        case PUSH_TYPE_ORDER_CONFIRM:
+        {
+            break;
+        }
+        case PUSH_TYPE_ORDER_EDIT_SUCCESS:
+        {
+            CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+            [nav showAlertWithTitle:@"恭喜您"
+                                tag:0
+                            message:@"老师已经确认了您的聘请修改!"
+                           delegate:self
+                  otherButtonTitles:@"确定",nil];
+            break;
+        }
+        case PUSH_TYPE_ORDER_CONFIRM_SUCCESS:  //订单修改确认
+        {
+            CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+            [nav showAlertWithTitle:@"提示"
+                                tag:0
+                            message:@"老师已经确认了您的订单修改!"
+                           delegate:self
+                  otherButtonTitles:@"确定",nil];
+            break;
+        }
+        case PUSH_TYPE_LISTENING_CHANG:
+        {
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+#pragma mark -
+#pragma mark ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
 {
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
     
+    NSString *errorid = (NSString *)[[resDic objectForKey:@"errorid"] copy];
+    if (errorid.intValue == 0)
+    {
+        NSString *action = [[resDic objectForKey:@"action"] copy];
+        if ([action isEqualToString:@"getPushMessage"])
+        {
+            //处理未处理消息
+            NSArray *messageArr = [resDic objectForKey:@"messages"];
+            for (int i=0; i<messageArr.count; i++)
+            {
+                NSDictionary *msgDic = [messageArr objectAtIndex:messageArr.count-1-i];
+                [AppDelegate dealWithMessage:msgDic
+                                 isPlayVoice:NO];
+            }
+        }
+        [action release];
+    }
+    [errorid release];
 }
 
 #pragma mark - MQtt Callback methods
@@ -202,102 +460,33 @@
     NSString *payloadString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     if (payloadString)
     {
-        pDic = [payloadString JSONValue];
+        pDic = [[payloadString JSONValue] retain];
         CLog(@"DIC:%@", pDic);
     }
     
-    //解析MQTT接收消息
-    int msgType = ((NSString *)[pDic objectForKey:@"type"]).intValue;
-    switch (msgType)
+    if ([topic isEqualToString:@"adtopic"])  //广告消息
     {
-        case PUSH_TYPE_APPLY:       //接收到老师抢单信息
-        {
-            //添加到联系人,订单.等待老师确认。
-            Teacher *tObj = [[Teacher alloc]init];
-            tObj.deviceId = [pDic objectForKey:@"deviceId"];
-            tObj.sex      = ((NSNumber *) [pDic objectForKey:@"gender"]).intValue;
-            tObj.headUrl  = [pDic objectForKey:@"icon"];
-            tObj.idNums   = [pDic objectForKey:@"idnumber"];
-            tObj.info = [pDic objectForKey:@"info"];
-            tObj.name = [pDic objectForKey:@"nickname"];
-            tObj.phoneNums = [pDic objectForKey:@"phone"];
-            tObj.comment = ((NSNumber *) [pDic objectForKey:@"stars"]).intValue;
-            tObj.studentCount = ((NSNumber *) [pDic objectForKey:@"students"]).intValue;
-            tObj.pf = [pDic objectForKey:@"subjectText"];
-            NSDictionary *infoDic = [NSDictionary dictionaryWithObjectsAndKeys:tObj,@"OrderTeacher",nil];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"OrderConfirm"
-                                                                object:nil
-                                                              userInfo:infoDic];
-            break;
-        }
-        case PUSH_TYPE_CONFIRM:     //确认老师的确认消息
-        {
-            break;
-        }
-        case PUSH_TYPE_IMAGE:       //接收到图片消息
-        case PUSH_TYPE_AUDIO:       //接收到音频消息
-        case PUSH_TYPE_TEXT:        //接收到文本消息
-        {
-            //判断是否在聊天界面
-            if ([self isInChatView])
-            {
-                CLog(@"Chat Message:%@", pDic);
-                //提示音播放,刷新页面显示
-                NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_record_start"
-                                                                    ofType:@"wav"];
-                NSData *infoSound = [NSData dataWithContentsOfFile:path];
-                [RecordAudio playWav:infoSound];
-                
-                //发送刷新数据Notice
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshNewData"
-                                                                    object:nil];
-            }
-            else
-            {
-                //播放您有一条新消息,跳转聊天界面显示
-                CLog(@"Not Chat Message:%@", pDic);
-                NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
-                                                                    ofType:@"wav"];
-                NSData *infoSound = [NSData dataWithContentsOfFile:path];
-                [RecordAudio playWav:infoSound];
-                
-                //跳转聊天记录
-                Teacher *tObj = [Teacher setTeacherProperty:pDic];
-                CLog(@"phone:%@, lynn:%@", tObj.phoneNums, tObj.name);
-                ChatViewController *cVctr   = [[ChatViewController alloc]init];
-                CustomNavigationViewController *nav = (CustomNavigationViewController *)self.window.rootViewController;
-                cVctr.tObj = tObj;
-                [nav pushViewController:cVctr
-                               animated:YES];
-                [cVctr release];
-            }
-            break;
-        }
-        case PUSH_TYPE_ORDER_EDIT:  //发送修改订单消息
-        {
-            break;
-        }
-        case PUSH_TYPE_ORDER_CONFIRM:
-        {
-            break;
-        }
-        case PUSH_TYPE_ORDER_EDIT_SUCCESS:
-        {
-            break;
-        }
-        case PUSH_TYPE_ORDER_CONFIRM_SUCCESS:
-        {
-            break;
-        }
-        case PUSH_TYPE_LISTENING_CHANG:
-        {
-            break;
-        }
-        default:
-            break;
+        NoticePopView *popView = [NoticePopView shareInstance];
+        popView.noticeType = NOTICE_AD;
+        popView.contentDic = pDic;
+        popView.titleLab   = [pDic objectForKey:@"title"];
+        popView.contentLab = [pDic objectForKey:@"content"];
+        [popView popView];
     }
-    
-    //转发给各个ViewControllers
+    else if ([topic isEqualToString:@"ggtopic"])    //公告消息
+    {
+        NoticePopView *popView = [NoticePopView shareInstance];
+        popView.noticeType = NOTICE_GG;
+        popView.contentDic = pDic;
+        popView.titleLab   = [pDic objectForKey:@"title"];
+        popView.contentLab = [pDic objectForKey:@"content"];
+        [popView popView];
+    }
+    else //交互消息  1.沟通消息(文本,语音) 2.修改订单确认 3.聘请修改 4.订单确认 5.抢单)
+    {
+        [AppDelegate dealWithMessage:pDic
+                         isPlayVoice:YES];
+    }
 }
 
 - (void)session:(MQTTSession*)sender handleEvent:(MQTTSessionEvent)eventCode {
@@ -344,14 +533,6 @@
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
     CLog(@"New APNS Message:%@", userInfo);
-//    //提示有一条新消息
-//    NSString *path    = [[NSBundle mainBundle] pathForResource:@"sfx_message_text_new"
-//                                                        ofType:@"wav"];
-//    NSData *infoSound = [NSData dataWithContentsOfFile:path];
-//    [RecordAudio playWav:infoSound];
-    
-    //清除消息中心消息
-    [[UIApplication sharedApplication ] setApplicationIconBadgeNumber:0];
 }
 
 #pragma mark -

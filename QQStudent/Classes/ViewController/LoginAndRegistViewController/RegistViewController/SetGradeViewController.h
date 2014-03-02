@@ -10,6 +10,7 @@
 @class UIGridView;
 @class QRadioButton;
 @interface SetGradeViewController : UIViewController<
+                                                    MBProgressHUDDelegate,
                                                     ServerRequestDelegate,
                                                     UIGridViewDelegate,
                                                     QRadioButtonDelegate>
@@ -20,6 +21,9 @@
     NSMutableArray  *gradeArr;
     
     int index;
+    
+    MBProgressHUD *HUD;
 }
 
+@property (nonatomic, retain) NSString *gradeName;
 @end

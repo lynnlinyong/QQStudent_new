@@ -77,6 +77,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {
     self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
@@ -110,17 +111,17 @@
     
     searchArray = [[NSMutableArray alloc]init];
     
+    UIImage *okImg  = [UIImage imageNamed:@"sp_search_btn_normal"];
     searchLab = [[UILabel alloc]init];
     searchLab.text  = @"搜索:";
     searchLab.font  = [UIFont systemFontOfSize:14];
     searchLab.backgroundColor = [UIColor clearColor];
-    searchLab.frame = [UIView fitCGRect:CGRectMake(0, 372-50, 40, 20)
+    searchLab.frame = [UIView fitCGRect:CGRectMake(0, 480-55-44-okImg.size.height/2-10, 40, 20)
                              isBackView:NO];
     [self.view addSubview:searchLab];
     
-    UIImage *okImg  = [UIImage imageNamed:@"sp_search_btn_normal"];
     UIImageView *fldBgImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"normal_fld"]];
-    fldBgImgView.frame = [UIView fitCGRect:CGRectMake(33, 372-55, 240, okImg.size.height-3)
+    fldBgImgView.frame = [UIView fitCGRect:CGRectMake(33, 480-55-44-okImg.size.height, 240, okImg.size.height-3)
                                 isBackView:NO];
     [self.view addSubview:fldBgImgView];
     [fldBgImgView release];
@@ -129,7 +130,7 @@
     searchFld.delegate = self;
     searchFld.font  = [UIFont systemFontOfSize:14];
     searchFld.placeholder = @"输入手机号/前14位身份证号/9位搜索码";
-    searchFld.frame = [UIView fitCGRect:CGRectMake(38, 372-48, 235, okImg.size.height-3)
+    searchFld.frame = [UIView fitCGRect:CGRectMake(38, 480-48-44-okImg.size.height, 235, okImg.size.height-3)
                              isBackView:NO];
     [self.view addSubview:searchFld];
     
@@ -142,7 +143,7 @@
     [okBtn setBackgroundImage:okImg
                      forState:UIControlStateNormal];
     okBtn.frame = [UIView fitCGRect:CGRectMake(320-10-okImg.size.width,
-                                               372-55,
+                                               480-55-44-okImg.size.height,
                                                okImg.size.width,
                                                okImg.size.height-3)
                          isBackView:NO];
@@ -178,6 +179,9 @@
 
 - (void) searchTeacherFromServer
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"text",@"sessid", nil];
     NSArray *valusArr  = [NSArray arrayWithObjects:@"findTeacher",
@@ -247,23 +251,22 @@
         NSString *webAddress  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
         NSString *imgUrl = [NSString stringWithFormat:@"%@%@",webAddress,tObj.headUrl];
         
-        headBtn = [UIButton buttonWithType:UIButtonTypeCustom];//[[UIImageView alloc]init];
+        headBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        headBtn.tag   = indexPath.row;
         headBtn.frame = CGRectMake(10, 10, 60, 60);
         [cell addSubview:headBtn];
-        
-        TTImageView *hImgView = [[[TTImageView alloc]init]autorelease];
-        hImgView.delegate = self;
-        hImgView.URL      = imgUrl;
         
         UILabel *itrLab = [[UILabel alloc]init];
         if (tObj.sex==1)
         {
-//            headImgView.image = [UIImage imageNamed:@"sp_abook_btn"];
+            [headBtn setImage:[UIImage imageNamed:@"s_boy"]
+                     forState:UIControlStateNormal];
             itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",tObj.name,@"男",tObj.pf];
         }
         else
         {
-//            headImgView.image = [UIImage imageNamed:@"sp_head_img"];
+            [headBtn setImage:[UIImage imageNamed:@"s_girl"]
+                     forState:UIControlStateNormal];
             itrLab.text = [NSString stringWithFormat:@"%@ %@ %@",tObj.name,@"女",tObj.pf];
         }
         itrLab.backgroundColor = [UIColor clearColor];
@@ -271,6 +274,10 @@
         itrLab.font  = [UIFont systemFontOfSize:12.f];
         [cell addSubview:itrLab];
         [itrLab release];
+        
+        TTImageView *hImgView = [[[TTImageView alloc]init]autorelease];
+        hImgView.delegate = self;
+        hImgView.URL      = imgUrl;
         
         UILabel *cntLab = [[UILabel alloc]init];
         cntLab.text = [NSString stringWithFormat:@"辅导%d个学生", tObj.studentCount];
@@ -307,8 +314,6 @@
     SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
     scVctr.tObj = tObj;
     [nav pushViewController:scVctr animated:YES];
-    //    [self.navigationController pushViewController:scVctr
-//                                         animated:YES];
     [scVctr release];
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -319,7 +324,9 @@
 - (void)imageView:(TTImageView*)imageView didLoadImage:(UIImage*)image
 {
     CLog(@"Enter LoadImage");
-    [headBtn setImage:[UIImage circleImage:image withParam:0]
+    [headBtn setImage:[UIImage circleImage:image
+                                 withParam:0
+                                 withColor:[UIColor redColor]]
              forState:UIControlStateNormal];
 }
 
@@ -341,10 +348,16 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];

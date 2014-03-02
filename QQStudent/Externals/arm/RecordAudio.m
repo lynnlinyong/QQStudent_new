@@ -11,7 +11,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import "amrFileCodec.h"
 
-#define WAVE_UPDATE_FREQUENCY   0.05
+#define WAVE_UPDATE_FREQUENCY   0.1
 
 @implementation RecordAudio
 
@@ -122,9 +122,27 @@
     }
 }
 
-+ (void) playWav:(NSData *)wavData
+- (void) playMP3:(NSData *) data
 {
-    AVAudioPlayer *theAudio=[[AVAudioPlayer alloc] initWithData:wavData
+    if (avPlayer!=nil) {
+        [self stopPlay];
+        return;
+    }
+    
+    avPlayer = [[AVAudioPlayer alloc] initWithData:data error:&error];
+    avPlayer.delegate = self;
+	[avPlayer prepareToPlay];
+    [avPlayer setVolume:1.0];
+	if(![avPlayer play]){
+        [self sendStatus:1];
+    } else {
+        [self sendStatus:0];
+    }
+}
+
++ (void) playVoice:(NSData *)data;
+{
+    AVAudioPlayer *theAudio=[[AVAudioPlayer alloc] initWithData:data
                                                           error:NULL];
     [theAudio play];
 }
@@ -208,12 +226,13 @@
     [recorder record];
     [self resetTimer];
     
+    cntTime = 0;
 	timer_ = [NSTimer scheduledTimerWithTimeInterval:WAVE_UPDATE_FREQUENCY
                                               target:self
                                             selector:@selector(updateMeters)
                                             userInfo:nil
                                              repeats:YES];
-    
+    [recorder recordForDuration:60];
     //There is an optional method for doing the recording for a limited time see
     //[recorder recordForDuration:(NSTimeInterval) 10]
 }
@@ -229,7 +248,9 @@
         if (recorder) {
             [recorder updateMeters];
         }
-        
+    
+        cntTime += WAVE_UPDATE_FREQUENCY;
+    
         float peakPower = [recorder averagePowerForChannel:0];
         double ALPHA    = 0.05;
         double peakPowerForChannel = pow(10, (ALPHA * peakPower));
@@ -238,6 +259,6 @@
         VoiceLevel vl = (int)(peakPowerForChannel*10);
         [[NSNotificationCenter defaultCenter] postNotificationName:@"setVoiceLevelNotice"
                                                             object:nil
-                                                          userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:vl],@"LEVEL", nil]];
+                                                          userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:vl],@"LEVEL",[NSNumber numberWithInt:cntTime],@"TIME", nil]];
 }
 @end

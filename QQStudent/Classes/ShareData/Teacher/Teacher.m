@@ -33,50 +33,50 @@
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic
 {
-    Teacher *teacherObj = [[Teacher alloc]init];
+    Teacher *teacherObj = [[[Teacher alloc]init] autorelease];
     NSString *stuCount  = [[resDic objectForKey:@"TS"] copy];
     if (stuCount)
         teacherObj.studentCount = stuCount.intValue;
     else
-        teacherObj.studentCount = ((NSNumber *)[resDic objectForKey:@"students"]).intValue;
+        teacherObj.studentCount = ((NSString *)[resDic objectForKey:@"students"]).intValue;
     teacherObj.deviceId  = [[resDic objectForKey:@"deviceId"] copy];
-    teacherObj.expense   = ((NSNumber *)[resDic objectForKey:@"expense"]).intValue;
-    teacherObj.sex       = ((NSNumber *)[resDic objectForKey:@"gender"]).intValue;
+    teacherObj.expense   = [((NSString *)[resDic objectForKey:@"expense"])retain].intValue;
+    teacherObj.sex       = ((NSString *)[resDic objectForKey:@"gender"]).intValue;
     teacherObj.headUrl   = [[resDic objectForKey:@"icon"] copy];
-    teacherObj.idNums    = [[resDic objectForKey:@"idnumber"] copy];
-    int isIos = ((NSNumber *)[resDic objectForKey:@"ios"]).intValue;
+    teacherObj.idNums    = [[[resDic objectForKey:@"idnumber"] retain] copy];
+    int isIos = ([(NSString *)[resDic objectForKey:@"ios"] retain]).intValue;
     if (isIos==1)
         teacherObj.isIos = YES;
     else
         teacherObj.isIos = NO;
     teacherObj.latitude  = [[resDic objectForKey:@"latitude"] copy];
-    teacherObj.longitude = [[resDic objectForKey:@"longitude"] copy];
-    NSString *tmpName    = [[resDic objectForKey:@"name"] copy];
+    teacherObj.longitude = [[[resDic objectForKey:@"longitude"] retain] copy];
+    NSString *tmpName    = [[[resDic objectForKey:@"name"]retain] copy];
     if (tmpName)
         teacherObj.name  = tmpName;
     else
         teacherObj.name      = [[resDic objectForKey:@"nickname"] copy];
-    int isOnline = ((NSNumber *) [resDic objectForKey:@"online"]).intValue;
+    int isOnline = ([(NSString *) [resDic objectForKey:@"online"] retain]).intValue;
     if (isOnline==1)
         teacherObj.isOnline = YES;
     else
         teacherObj.isOnline = NO;
     teacherObj.phoneNums = [[resDic objectForKey:@"phone"] copy];
-    teacherObj.pfId      = ((NSNumber *) [resDic objectForKey:@"subject"]).intValue;
+    teacherObj.pfId      = ([(NSString *) [resDic objectForKey:@"subject"] retain]).intValue;
     
     NSString *subject    = [[resDic objectForKey:@"subjectText"] copy];
     if (subject)
         teacherObj.pf    = subject;
     else
         teacherObj.pf    = [[resDic objectForKey:@"subject"] copy];
-    NSString *starCnt    = [[resDic objectForKey:@"tstars"] copy];
+    NSString *starCnt    = [[[resDic objectForKey:@"tstars"] retain] copy];
     if (starCnt)
         teacherObj.comment   = starCnt.intValue;
     else
-        teacherObj.comment   = ((NSNumber *) [resDic objectForKey:@"teacher_stars"]).intValue;
+        teacherObj.comment   = ((NSString *) [resDic objectForKey:@"teacher_stars"]).intValue;
     teacherObj.info      = [resDic objectForKey:@"info"];
-    teacherObj.badCount  = ((NSNumber *)[resDic objectForKey:@"xunNum"]).intValue;
-    teacherObj.goodCount = ((NSNumber *) [resDic objectForKey:@"zanNum"]).intValue;
+    teacherObj.badCount  = ((NSString *)[resDic objectForKey:@"xunNum"]).intValue;
+    teacherObj.goodCount = ((NSString *) [resDic objectForKey:@"zanNum"]).intValue;
     teacherObj.certArray = [[resDic objectForKey:@"certificates"] copy];
     
     return teacherObj;

@@ -95,7 +95,7 @@
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = [UIView fitCGRect:CGRectMake(-11,
-                                                       self.view.frame.size.height-bottomImg.size.height+6,
+                                                       self.view.frame.size.height-bottomImg.size.height+5,
                                                        self.view.frame.size.width+23, bottomImg.size.height)
                                  isBackView:NO];
     [self.view addSubview:bottomImgView];

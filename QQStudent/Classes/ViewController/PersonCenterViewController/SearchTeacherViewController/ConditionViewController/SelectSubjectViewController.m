@@ -13,6 +13,7 @@
 @end
 
 @implementation SelectSubjectViewController
+@synthesize subName;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -85,7 +86,7 @@
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = CGRectMake(-2,
-                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.height-bottomImg.size.height+5,
                                      self.view.frame.size.width+4, bottomImg.size.height);
     [self.view addSubview:bottomImgView];
     [bottomImgView release];
@@ -97,7 +98,7 @@
                 forState:UIControlStateNormal];
     okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
-                             self.view.frame.size.height-bottomImg.size.height+6,
+                             self.view.frame.size.height-bottomImg.size.height+11,
                              okBtnImg.size.width,
                              okBtnImg.size.height);
     [okBtn setTitle:@"确定"
@@ -118,7 +119,7 @@
                     forState:UIControlStateNormal];
     cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
-                                 self.view.frame.size.height-bottomImg.size.height+6,
+                                 self.view.frame.size.height-bottomImg.size.height+11,
                                  cancelImg.size.width,
                                  cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
@@ -205,11 +206,14 @@
     QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
                                                         groupId:@"grade"];
     qrBtn.tag = indexTag;
+    NSString *curName = [subDic objectForKey:@"name"];
+    if ([curName isEqualToString:subName])
+        [qrBtn setChecked:YES];
     [qrBtn setTitle:[subDic objectForKey:@"name"]
            forState:UIControlStateNormal];
     [qrBtn setTitleColor:[UIColor grayColor]
                 forState:UIControlStateNormal];
-    qrBtn.frame = CGRectMake(0, 0, 80, 30);
+    qrBtn.frame = CGRectMake(40, 0, 80, 30);
     [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
     [cell addSubview:qrBtn];
     qrBtn.exclusiveTouch = YES;

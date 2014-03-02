@@ -151,12 +151,23 @@
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    NSDictionary *shareDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"ShareContent"];
+    NSDictionary *studentShareDic = [shareDic objectForKey:@"student"];
+    
+    NSString *content = @"";
+    if (studentShareDic)
+    {
+        if ([studentShareDic objectForKey:@"text"])
+            content = [studentShareDic objectForKey:@"text"];
+    }
+    
     switch (indexPath.row)
     {
         case 1:    //分享给好友
         {
             SendMessageToWXReq* req = [[[SendMessageToWXReq alloc] init]autorelease];
-            req.text  = @"轻轻家教非常不错,马上去下载吧!";
+            req.text  = content;
             req.bText = YES;
             req.scene = WXSceneSession;
             [WXApi sendReq:req];
@@ -165,7 +176,7 @@
         case 2:    //分享到朋友圈
         {
             SendMessageToWXReq* req = [[[SendMessageToWXReq alloc] init]autorelease];
-            req.text  = @"轻轻家教非常不错,马上去下载吧!";
+            req.text  = content;
             req.bText = YES;
             req.scene = WXSceneTimeline;
             [WXApi sendReq:req];

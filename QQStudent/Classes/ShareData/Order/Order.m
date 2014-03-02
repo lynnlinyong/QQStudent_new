@@ -52,7 +52,6 @@
 
 - (void) dealloc
 {
-    [teacher         release];
     [payMoney        release];
     [backMoney       release];
     [orderDist       release];
@@ -111,8 +110,8 @@
         order.orderCity    = [orderCity copy];
         order.orderDist    = [orderDist copy];
         
-        order.payMoney        = [payMoney copy];
-        order.backMoney       = [backMoney copy];
+        order.payMoney     = [payMoney copy];
+        order.backMoney    = [backMoney copy];
         
         order.teacher      = [teacher copy];
     }
@@ -122,7 +121,7 @@
 
 + (Order *) setOrderProperty:(NSDictionary *) dic
 {
-    Order *order  = [[[Order alloc]init]autorelease];
+    Order *order  = [[Order alloc]init];
     int oid = ((NSNumber *)[dic objectForKey:@"oid"]).intValue;
     order.orderId = [NSString stringWithFormat:@"%d", oid];
     order.orderAddTimes   = [[dic objectForKey:@"order_addtime"]  copy];
@@ -148,6 +147,9 @@
     order.totalMoney = [[dic objectForKey:@"order_tamount"]  copy];
     order.backMoney  = [[dic objectForKey:@"order_tfamount"] copy];
     order.payMoney   = [[dic objectForKey:@"order_xfamount"] copy];
+    
+    NSDictionary *teacherDic = [dic objectForKey:@"teacher"];
+    order.teacher = [Teacher setTeacherProperty:teacherDic];
     
     return order;
 }

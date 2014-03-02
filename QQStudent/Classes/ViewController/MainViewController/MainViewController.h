@@ -22,6 +22,8 @@ CustomNavigationDataSource,
     AMapSearchAPI   *search;
     CalloutMapAnnotation *_calloutMapAnnotation;
     CustomPointAnnotation *meAnn;
+    
+    CLLocation      *originPoint;
 }
 
 @property (nonatomic, retain) MAMapView *mapView;

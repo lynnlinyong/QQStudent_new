@@ -1930,6 +1930,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
+
 	if ([self isPACFileRequest]) {
 		[self reportFinished];
 	} else {

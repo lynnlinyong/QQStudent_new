@@ -65,6 +65,9 @@
 //上传文件标识
 #define UPLOAD_FILE     @"UPLOAD_FILE"
 
+//是否已经抢单
+#define IS_ORDER_CONFIRM  @"IS_ORDER_CONFIRM"
+
 //策略服务器地址
 #define ServerAddress   @"http://app.changingedu.com:8085/Interfaces/app/"
 
@@ -87,6 +90,13 @@ typedef enum _tagMsgType
     PUSH_TYPE_LISTENING_CHANG
 }MsgType;
 
+typedef enum _noticeType
+{
+    NOTICE_AD=0,  //广告
+    NOTICE_GG,  //公告
+    NOTICE_MSG  //交互消息
+}NoticeType;
+
 //腾讯微博
 #define WiressSDKDemoAppKey     @"801443616"
 #define WiressSDKDemoAppSecret  @"ed6625d85bac645b213207a67dfb6b31"
@@ -101,4 +111,5 @@ typedef enum _tagMsgType
 #define WeiXinAppID             @"wx6b649532e1431a06"
 #define WeiXinAppKey            @"868323d2e1985c15e6c19d5e5eab85b8"
 
+#define iPhone5 ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(640, 1136), [[UIScreen mainScreen] currentMode].size) : NO)
 #endif

@@ -9,13 +9,12 @@
 #import <UIKit/UIKit.h>
 
 @interface WaitConfirmViewController : UIViewController<
+                                                    ThreadTimerDelegate,
                                                     MAMapViewDelegate,
                                                     ServerRequestDelegate,
                                                     CustomNavigationDataSource>
 {
     SingleMQTT *session;
-    NSTimer    *timer;
-    UILabel    *timeLab;
     UIButton   *showBtn;
     UIButton   *reBtn;
     
@@ -24,6 +23,19 @@
     int        waitTimeInvite;
     BOOL       isLast;
     NSMutableArray *teacherArray;
+    
+    LBorderView *borderView;
+    
+    LBorderView *infoView;
+    
+    CustomPointAnnotation *distAnn;
+    
+    int cnt;
+    UILabel *cntLab;
+    UILabel     *inviteCountLab;
+    UIImageView *cntTimeImageView;
+    
+    ThreadTimer *timer;
 }
 
 @property (nonatomic, copy)   Teacher        *tObj;

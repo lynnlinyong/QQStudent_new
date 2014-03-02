@@ -50,8 +50,7 @@
 #pragma mark - Custom Action
 - (void) initBackBarItem
 {
-    AppDelegate *app = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    CustomNavigationViewController *nav = (CustomNavigationViewController *) app.window.rootViewController;
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     nav.dataSource = self;
 }
 

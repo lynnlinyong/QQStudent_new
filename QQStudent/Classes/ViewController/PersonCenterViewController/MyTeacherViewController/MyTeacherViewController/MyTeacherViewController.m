@@ -152,7 +152,13 @@
 }
 
 - (void) getOrderTeachers
-{    
+{
+    if ([AppDelegate isInView:@"MyTeacherViewController"])
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    }
+    
     NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"caches_time",@"sessid",nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getOrders",@"", ssid, nil];
@@ -201,7 +207,8 @@
     {
         cell = (MyTeacherCell *)[sectionController cellForRow:indexPath.row];
         cell.delegate = self;
-        cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"mtp_tcell_bg"]];
+        cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage
+                                                                 imageNamed:@"mtp_tcell_bg"]];
         return cell;
     }
 
@@ -253,7 +260,6 @@
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view
 {
 	[self reloadTableViewDataSource];
-//	[self performSelector:@selector(doneLoadingTableViewData) withObject:nil afterDelay:3.0];
 }
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view
@@ -311,7 +317,7 @@
         case 0:     //教师详情
         {
             TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
-            tdVctr.tObj = cell.teacher;
+            tdVctr.tObj = cell.order.teacher;
             [nav pushViewController:tdVctr animated:YES];
             [tdVctr release];
             break;
@@ -319,7 +325,7 @@
         case 1:     //沟通
         {
             ChatViewController *cVctr = [[ChatViewController alloc]init];
-            cVctr.tObj    = cell.teacher;
+            cVctr.tObj    = cell.order.teacher;
             [nav pushViewController:cVctr animated:YES];
             [cVctr release];
             break;
@@ -328,21 +334,31 @@
         {
             CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
             ComplainViewController *cpVctr = [[ComplainViewController alloc]init];
-            cpVctr.tObj = cell.teacher;
+            cpVctr.tObj = cell.order.teacher;
             [nav presentPopupViewController:cpVctr
                                animationType:MJPopupViewAnimationFade];
             break;
         }
         case 3:     //推荐给同学
         {
+            NSDictionary *shareDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"ShareContent"];
+            NSDictionary *contactsDic = [shareDic objectForKey:@"contacts"];
+            NSString *content = @"";
+            if (contactsDic)
+            {
+                if ([contactsDic objectForKey:@"studentapp"])
+                    content = [contactsDic objectForKey:@"studentapp"];
+            }
+
+            
             //调用短信
             if( [MFMessageComposeViewController canSendText] )
             {
                 MFMessageComposeViewController * controller = [[MFMessageComposeViewController alloc]init];
-                controller.body = @"轻轻家教赶快去下载哦!!!www.baidu.com";
+                controller.body = content;
                 controller.messageComposeDelegate = self;
                 [nav presentModalViewController:controller animated:YES];
-                [[[[controller viewControllers] lastObject] navigationItem] setTitle:@"测试短信"];//修改短信界面标题
+//                [[[[controller viewControllers] lastObject] navigationItem] setTitle:@"测试短信"];//修改短信界面标题
             }else
             {
                 [self showAlertWithTitle:@"提示"
@@ -373,10 +389,16 @@
     CLog(@"***********Result****************");
     
     [self doneLoadingTableViewData];
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];

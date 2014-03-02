@@ -15,6 +15,7 @@ ServerRequestDelegate,UITableViewDelegate,UITableViewDataSource>
     UILabel    *classValLab;
     UILabel    *sexValLab;
     UITableView *upTab;
+    UIButton *finishBtn;
 }
 
 @end

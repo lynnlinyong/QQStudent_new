@@ -23,6 +23,11 @@
     return self;
 }
 
+- (void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -57,7 +62,7 @@
     upTab = [[UITableView alloc]init];
     upTab.delegate     = self;
     upTab.dataSource   = self;
-    upTab.frame = CGRectMake(0, 10, 320, 400);
+    upTab.frame = CGRectMake(0, 40, 320, 400);
     upTab.scrollEnabled  = NO;
     upTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.view addSubview:upTab];
@@ -85,34 +90,13 @@
 
 - (void) checkInfoComplete
 {
-    NSData *stuData  = [[NSUserDefaults standardUserDefaults] dataForKey:STUDENT];
-    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
-    NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     if ((nameValLab.text.length!=0) && (classValLab.text.length!=0)
                                     && (sexValLab.text.length!=0))
     {
-        NSString *valSex = nil;
-        if ([sexValLab.text isEqualToString:@"男"])
-            valSex = @"1";
-        else
-            valSex = @"2";
+        finishBtn.enabled = YES;
         
-        //更新个人资料
-        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phone",@"email", @"grade",@"gender",@"nick",@"phone_stars",@"location_stars",@"sessid",nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:@"upinfo",student.phoneNumber,
-                                                       student.email,student.grade,valSex,
-                                                       nameValLab.text,@"1",
-                                                       @"1",ssid,nil];
-        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
-                                                         forKeys:paramsArr];
-        CLog(@"updateInfo:%@", pDic);
-        ServerRequest *serverReq = [ServerRequest sharedServerRequest];
-        serverReq.delegate   = self;
-        NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-        NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
-        [serverReq requestASyncWith:kServerPostRequest
-                           paramDic:pDic
-                             urlStr:url];
+        [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                        forState:UIControlStateNormal];
     }
 }
 
@@ -148,11 +132,9 @@
     int tag = ((NSNumber *)[userInfoDic objectForKey:@"TAG"]).intValue;
     if (tag == 0)  //确定
     {
-        CLog(@"name:%@", [userInfoDic objectForKey:@"name"]);
         classValLab.text = [userInfoDic objectForKey:@"name"];
         student.grade    = [userInfoDic objectForKey:@"id"];
     }
-    CLog(@"jiwejiweiweui");
     
     stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
     [[NSUserDefaults standardUserDefaults] setObject:stuData forKey:STUDENT];
@@ -171,15 +153,15 @@
     Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
     if (userInfoDic)
     {
-        NSNumber *index = [userInfoDic objectForKey:@"sexIndex"];
-        switch (index.intValue)
+        int index = ((NSNumber *)[userInfoDic objectForKey:@"Index"]).intValue;
+        switch (index)
         {
-            case 0:
+            case 1:
             {
                 sexValLab.text = @"男";
                 break;
             }
-            case 1:
+            case 2:
             {
                 sexValLab.text = @"女";
                 break;
@@ -188,7 +170,7 @@
                 break;
         }
         
-        student.gender = [NSString stringWithFormat:@"%d", index.intValue];
+        student.gender = [NSString stringWithFormat:@"%d", index];
     }
     
     stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
@@ -201,12 +183,32 @@
 
 - (void) doButtonClicked:(id)sender
 {
-    UIButton *button = (UIButton *)sender;
-    switch (button.tag)
-    {
-                default:
-            break;
-    }
+    NSData *stuData  = [[NSUserDefaults standardUserDefaults] dataForKey:STUDENT];
+    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    
+    NSString *valSex = nil;
+    if ([sexValLab.text isEqualToString:@"男"])
+        valSex = @"1";
+    else
+        valSex = @"2";
+    
+    //更新个人资料
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phone",@"email", @"grade",@"gender",@"nick",@"phone_stars",@"location_stars",@"sessid",nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"upinfo",student.phoneNumber,
+                          student.email,student.grade,valSex,
+                          nameValLab.text,@"1",
+                          @"1",ssid,nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    CLog(@"updateInfo:%@", pDic);
+    ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+    serverReq.delegate   = self;
+    NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    [serverReq requestASyncWith:kServerPostRequest
+                       paramDic:pDic
+                         urlStr:url];
 }
 
 #pragma mark -
@@ -218,7 +220,17 @@
 
 - (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 5;
+    return 6;
+}
+
+- (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row == 5)
+    {
+        return 80;
+    }
+    
+    return 44;
 }
 
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -229,6 +241,7 @@
     {
         cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
                                      reuseIdentifier:idString];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
     //获得Student
@@ -238,125 +251,127 @@
     {
         case 0:
         {
-            UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
-            UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
-                            forState:UIControlStateNormal];
-            [finishBtn setBackgroundImage:loginImg
-                                 forState:UIControlStateNormal];
-            [finishBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
-                                 forState:UIControlStateHighlighted];
-            finishBtn.frame = CGRectMake(5,
-                                                           0,
-                                                           cell.frame.size.width-10,
-                                                           cell.frame.size.height);
-            [cell addSubview:finishBtn];
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_hlight_cell"]];
             
             UILabel *infoLab = [[UILabel alloc]init];
             infoLab.backgroundColor = [UIColor clearColor];
-            infoLab.text = @"邮箱";
-            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
-            [finishBtn addSubview:infoLab];
+            infoLab.text  = @"邮箱";
+            infoLab.frame = CGRectMake(10, 12, 40, 20);
+            [cell addSubview:infoLab];
             [infoLab release];
             
             UILabel *emailValLab = [[UILabel alloc]init];
             emailValLab.text = student.email;
-            emailValLab.textAlignment   = NSTextAlignmentCenter;
+            emailValLab.textAlignment   = NSTextAlignmentLeft;
             emailValLab.backgroundColor = [UIColor clearColor];
-            emailValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
-            [finishBtn addSubview:emailValLab];
+            emailValLab.frame = CGRectMake(50, 12, 170, 20);
+            [cell addSubview:emailValLab];
             
             break;
         }
         case 1:
         {
-            UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
-            UIButton *finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
-                            forState:UIControlStateNormal];
-            [finishBtn setBackgroundImage:loginImg
-                                 forState:UIControlStateNormal];
-            [finishBtn setBackgroundImage:[UIImage imageNamed:@"hight_btn"]
-                                 forState:UIControlStateHighlighted];
-            finishBtn.frame = CGRectMake(5,
-                                                           0,
-                                                           cell.frame.size.width-10,
-                                                           cell.frame.size.height);
-            [cell addSubview:finishBtn];
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_hlight_cell"]];
             
             UILabel *infoLab = [[UILabel alloc]init];
             infoLab.backgroundColor = [UIColor clearColor];
             infoLab.text = @"手机";
-            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
-            [finishBtn addSubview:infoLab];
+            infoLab.frame = CGRectMake(10, 12, 40, 20);
+            [cell addSubview:infoLab];
             [infoLab release];
             
             UILabel *phoneValLab = [[UILabel alloc]init];
             phoneValLab.text  = student.phoneNumber;
-            phoneValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
+            phoneValLab.frame = CGRectMake(50, 12, 170, 20);
             phoneValLab.backgroundColor = [UIColor clearColor];
-            phoneValLab.textAlignment   = NSTextAlignmentCenter;
-            [finishBtn addSubview:phoneValLab];
+            phoneValLab.textAlignment   = NSTextAlignmentLeft;
+            [cell addSubview:phoneValLab];
             [phoneValLab release];
             break;
         }
         case 2:
         {
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"] highlightedImage:[UIImage imageNamed:@"sp_content_hlight_cell"]];
+            
             UILabel *infoLab = [[UILabel alloc]init];
             infoLab.backgroundColor = [UIColor clearColor];
             infoLab.text = @"昵称";
-            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            infoLab.frame = CGRectMake(10, 12, 40, 20);
             [cell addSubview:infoLab];
             [infoLab release];
             
             nameValLab = [[UILabel alloc]init];
-            nameValLab.text = student.nickName;
-            nameValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
+            nameValLab.text = @"";
+            nameValLab.frame = CGRectMake(50, 12, 170, 20);
             nameValLab.backgroundColor = [UIColor clearColor];
             nameValLab.textAlignment   = NSTextAlignmentCenter;
             [cell addSubview:nameValLab];
             
-            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
+            
             break;
         }
         case 3:
         {
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"] highlightedImage:[UIImage imageNamed:@"sp_content_hlight_cell"]];
+            
             UILabel *infoLab = [[UILabel alloc]init];
             infoLab.backgroundColor = [UIColor clearColor];
             infoLab.text = @"年级";
-            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            infoLab.frame = CGRectMake(10, 12, 40, 20);
             [cell addSubview:infoLab];
             [infoLab release];
             
             classValLab = [[UILabel alloc]init];
             classValLab.text = @"";
-            classValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170,
-                                           cell.frame.size.height-10);
+            classValLab.frame = CGRectMake(50, 12, 170,
+                                           20);
             classValLab.backgroundColor = [UIColor clearColor];
             classValLab.textAlignment   = NSTextAlignmentCenter;
             [cell addSubview:classValLab];
             
-            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
             break;
         }
         case 4:
         {
+            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"] highlightedImage:[UIImage imageNamed:@"sp_content_hlight_cell"]];
+            
             UILabel *infoLab = [[UILabel alloc]init];
             infoLab.backgroundColor = [UIColor clearColor];
             infoLab.text = @"性别";
-            infoLab.frame = CGRectMake(10, 10, cell.frame.size.width-20, cell.frame.size.height-10);
+            infoLab.frame = CGRectMake(10, 12, 40, 20);
             [cell addSubview:infoLab];
             [infoLab release];
             
             sexValLab = [[UILabel alloc]init];
             sexValLab.text  = @"";
             sexValLab.textAlignment = NSTextAlignmentCenter;
-            sexValLab.frame = CGRectMake(40, 0, 220, 20);
+            sexValLab.frame = CGRectMake(50, 12, 170, 20);
             sexValLab.backgroundColor = [UIColor clearColor];
-            sexValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
             [cell addSubview:sexValLab];
             
-            cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sp_content_normal_cell"]];
+            break;
+        }
+        case 5:
+        {
+            UIImage *loginImg  = [UIImage imageNamed:@"normal_btn"];
+            finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            finishBtn.enabled = NO;
+            [finishBtn setTitle:@"完成"
+                       forState:UIControlStateNormal];
+            [finishBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                            forState:UIControlStateNormal];
+            [finishBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                            forState:UIControlStateHighlighted];
+            [finishBtn setBackgroundImage:loginImg
+                                 forState:UIControlStateNormal];
+            finishBtn.frame = CGRectMake(5,
+                                         30,
+                                         cell.frame.size.width-10,
+                                         cell.frame.size.height);
+            [finishBtn addTarget:self
+                          action:@selector(doButtonClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+            [cell addSubview:finishBtn];
             break;
         }
         default:
@@ -371,7 +386,7 @@
     [tableView deselectRowAtIndexPath:indexPath
                              animated:YES];
     CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
-    
+   
     switch (indexPath.row)
     {
         case 2:

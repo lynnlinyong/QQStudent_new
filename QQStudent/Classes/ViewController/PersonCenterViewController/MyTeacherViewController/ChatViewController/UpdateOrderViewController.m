@@ -14,6 +14,7 @@
 
 @implementation UpdateOrderViewController
 @synthesize order;
+@synthesize isEmploy;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -76,7 +77,8 @@
 - (void) dealloc
 {
     [upTab release];
-    [order release];
+    if (order)
+        [order release];
     [dateValLab    release];
     [posValLab     release];
     [timeValueLab  release];
@@ -87,6 +89,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {
     upTab = [[UITableView alloc]init];
@@ -100,23 +103,57 @@
     
     upTab.backgroundColor     = [UIColor colorWithHexString:@"E1E0DE"];
     self.view.backgroundColor = [UIColor colorWithHexString:@"E1E0DE"];
+    
+    CLog(@"order Teacher:%@", order.teacher.name);
 }
 
 - (void) sendUpdateOrderMsg
 {
-    NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"phone",@"nickname",@"orderid",@"taPhone",@"deviceId", nil];
-//    NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_ORDER_EDIT],,@"", nil];
+    NSData *stuData    = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
+    Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
     
-    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr forKeys:paramsArr];
-    NSString *json = [pDic JSONFragment];
+    //聘请时修改订单,还是修改订单按钮点击
+    if (!isEmploy)
+    {
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"phone",@"nickname",@"orderid",@"taPhone",@"deviceId", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_ORDER_CONFIRM],student.phoneNumber,order.teacher.name,order.orderId,order.teacher.phoneNums,[SingleMQTT getCurrentDevTopic], nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        //发送消息
+        NSString *json = [pDic JSONFragment];
+        CLog(@"update Order Msg:%@,%@", json, order.teacher.deviceId);
+        NSData *data   = [json dataUsingEncoding:NSUTF8StringEncoding];
+        SingleMQTT *session = [SingleMQTT shareInstance];
+        
+        [session.session publishData:data
+                             onTopic:order.teacher.deviceId];
+    }
+    else
+    {
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"phone",@"nickname",@"orderid",@"taPhone",@"deviceId", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_ORDER_EDIT],student.phoneNumber,order.teacher.name,order.orderId,order.teacher.phoneNums,[SingleMQTT getCurrentDevTopic], nil];
+        CLog(@"valArr:%@", valuesArr);
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        //发送消息
+        NSString *json = [pDic JSONFragment];
+        CLog(@"update Order Msg:%@,%@", json, order.teacher.deviceId);
+        NSData *data   = [json dataUsingEncoding:NSUTF8StringEncoding];
+        SingleMQTT *session = [SingleMQTT shareInstance];
+        
+        [session.session publishData:data
+                             onTopic:order.teacher.deviceId];
+    }
 }
 
 #pragma mark -
 #pragma mark - Control Event
 - (void) doFinishBtnClicked:(id)sender
 {
-    //修改订单
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];;
     
+    //修改订单
     NSString *log = [[NSUserDefaults standardUserDefaults] objectForKey:@"LONGITUDE"];
     NSString *la  = [[NSUserDefaults standardUserDefaults] objectForKey:@"LATITUDE"];
     
@@ -150,6 +187,16 @@
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
+}
+
+#pragma mark -
+#pragma mark MBProgressHUDDelegate methods
+- (void)hudWasHidden:(MBProgressHUD *)hud
+{
+    // Remove HUD from screen when the HUD was hidded
+    [HUD removeFromSuperview];
+    [HUD release];
+	HUD = nil;
 }
 
 #pragma mark -
@@ -410,10 +457,16 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[NSString alloc]initWithData:resVal
                                             encoding:NSUTF8StringEncoding];
@@ -430,8 +483,8 @@
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
     {
-        //像老师端发送修改信息
-        
+        //向老师端发送修改信息
+        [self sendUpdateOrderMsg];
         
         [self.navigationController popViewControllerAnimated:YES];
     }

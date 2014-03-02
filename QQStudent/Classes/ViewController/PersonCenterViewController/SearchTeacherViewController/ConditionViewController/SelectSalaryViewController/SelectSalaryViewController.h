@@ -17,4 +17,6 @@
     
     int          selIndex;
 }
+
+@property (nonatomic, retain) NSString *money;
 @end

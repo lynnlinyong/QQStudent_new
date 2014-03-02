@@ -97,11 +97,11 @@
     CGFloat width = self.frame.size.width-SEND_BUTTON_WIDTH-SEND_TEXT_WIDTH;
     CGFloat height = [JSMessageInputView textViewLineHeight];
     
-    self.textView = [[JSDismissiveTextView  alloc] initWithFrame:CGRectMake(width+6.0f, 3.0f, SEND_TEXT_WIDTH, height)];
+    self.textView = [[JSDismissiveTextView  alloc] initWithFrame:CGRectMake(width+13.0f, 8, SEND_TEXT_WIDTH, height-2)];
     self.textView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     self.textView.backgroundColor = [UIColor whiteColor];
     self.textView.scrollIndicatorInsets = UIEdgeInsetsMake(10.0f, 0.0f, 10.0f, 8.0f);
-    self.textView.contentInset = UIEdgeInsetsMake(0.0f, 0.0f, 0.0f, 0.0f);
+    self.textView.contentInset = UIEdgeInsetsMake(-4.0f, 4.0f, 0.0f, 0.0f);
     self.textView.scrollEnabled = YES;
     self.textView.scrollsToTop = NO;
     self.textView.userInteractionEnabled = YES;
@@ -117,7 +117,7 @@
                                                                                 0.0f,
                                                                                 self.textView.frame.size.width + 2.0f,
                                                                                 self.frame.size.height)];
-    inputFieldBack.image = [UIImage inputField];
+//    inputFieldBack.image = [UIImage inputField];
     inputFieldBack.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
     inputFieldBack.backgroundColor = [UIColor clearColor];
     [self addSubview:inputFieldBack];
@@ -191,9 +191,9 @@
                                      prevFrame.size.width,
                                      prevFrame.size.height + changeInHeight);
     
-    self.textView.contentInset = UIEdgeInsetsMake((numLines >= 6 ? 4.0f : 0.0f),
-                                                  0.0f,
-                                                  (numLines >= 6 ? 4.0f : 0.0f),
+    self.textView.contentInset = UIEdgeInsetsMake((numLines >= 6 ? 8.0f : -4.0f),
+                                                  4.0f,
+                                                  (numLines >= 6 ? 8.0f : 0.0f),
                                                   0.0f);
     
     self.textView.scrollEnabled = (numLines >= 4);

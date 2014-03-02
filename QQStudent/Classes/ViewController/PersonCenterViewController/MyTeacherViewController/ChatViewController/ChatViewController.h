@@ -13,7 +13,7 @@
                                                         ServerRequestDelegate,
                                                         EGORefreshTableHeaderDelegate,
                                                         JSMessagesViewDelegate,
-                                                        JSMessagesViewDataSource>
+                                                        JSMessagesViewDataSource,CustomNavigationDataSource>
 {
     UIButton   *listenBtn;
     UIButton   *employBtn;
@@ -22,10 +22,15 @@
 	BOOL _reloading;
     
     RecordAudio *recordAudio;
+    
+    LBorderView *infoView;
+    UIView      *employInfoView;
 }
 
 @property (nonatomic, copy)   Order   *order;
 @property (nonatomic, copy)   Teacher *tObj;
+@property (nonatomic, retain) UIButton *listenBtn;
+@property (nonatomic, retain) UIButton *employBtn;
 @property (retain, nonatomic) NSMutableArray   *messages;
 
 - (void)reloadTableViewDataSource;

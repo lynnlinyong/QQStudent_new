@@ -112,7 +112,7 @@
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = CGRectMake(-2,
-                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.height-bottomImg.size.height+5,
                                      self.view.frame.size.width+4, bottomImg.size.height);
     [self.view addSubview:bottomImgView];
     [bottomImgView release];
@@ -124,7 +124,7 @@
                 forState:UIControlStateNormal];
     okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
-                             self.view.frame.size.height-bottomImg.size.height+6,
+                             self.view.frame.size.height-bottomImg.size.height+11,
                              okBtnImg.size.width,
                              okBtnImg.size.height);
     [okBtn setTitle:@"确定"
@@ -145,7 +145,7 @@
                     forState:UIControlStateNormal];
     cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
-                                 self.view.frame.size.height-bottomImg.size.height+6,
+                                 self.view.frame.size.height-bottomImg.size.height+11,
                                  cancelImg.size.width,
                                  cancelImg.size.height);
     [cancelBtn setTitle:@"取消"

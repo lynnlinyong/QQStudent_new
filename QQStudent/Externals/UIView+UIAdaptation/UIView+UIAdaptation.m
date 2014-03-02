@@ -17,7 +17,7 @@
     
     //一般屏幕为1,Retina为2
     CGFloat screen_scale   = [[UIScreen mainScreen]scale];  
-    float baseResolution_h = 460 * screen_scale;
+    float baseResolution_h = 480 * screen_scale;
     float baseResolution_w = 320 * screen_scale;
     
     float currentResolution_h;
@@ -26,7 +26,18 @@
     //当前设备的分辨率
     currentResolution_h = screen_size.height * screen_scale;
     currentResolution_w = screen_size.width  * screen_scale;
-    currentResolution_h -= 20;
+    
+    if (!iPhone5)
+    {
+        CLog(@"It's is not iphone5");
+        currentResolution_h -= 44;
+    }
+    else
+    {
+        CLog(@"It's is iphone5");
+        currentResolution_h += 20;
+    }
+    
     //高度与宽度分辨比例
     if (h)
     {

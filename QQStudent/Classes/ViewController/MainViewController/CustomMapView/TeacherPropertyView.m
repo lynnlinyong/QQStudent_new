@@ -64,15 +64,17 @@
     tObj = nil;
     tObj = [obj copy];
     
-    self.headImgView.URL = tObj.headUrl;
     if (tObj.sex == 1)
     {
+        self.headImgView.defaultImage = [UIImage imageNamed:@"s_boy"];
         self.introLab.text = [NSString stringWithFormat:@"%@ 男", tObj.name];
     }
     else
     {
+        self.headImgView.defaultImage = [UIImage imageNamed:@"s_girl"];
         self.introLab.text = [NSString stringWithFormat:@"%@ 女", tObj.name];
     }
+    self.headImgView.URL = tObj.headUrl;
     self.tsLab.text = [NSString stringWithFormat:@"已辅导%d位学生", tObj.studentCount];
     [self.sImgView setHlightStar:tObj.comment];
 }

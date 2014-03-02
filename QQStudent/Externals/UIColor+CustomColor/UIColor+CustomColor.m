@@ -12,10 +12,8 @@
 + (UIColor *) colorWithHexString: (NSString *)color
 {
     NSString *cString = [[color stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] uppercaseString];
-    CLog(@"cString:%@", cString);
     // String should be 6 or 8 characters
     if ([cString length] < 6) {
-        CLog(@"wjfiwjefi");
         return [UIColor clearColor];
     }
     
@@ -48,7 +46,6 @@
     [[NSScanner scannerWithString:rString] scanHexInt:&r];
     [[NSScanner scannerWithString:gString] scanHexInt:&g];
     [[NSScanner scannerWithString:bString] scanHexInt:&b];
-    CLog(@"rgb:%d %d %d", r,g,b);
     return [UIColor colorWithRed:((float) r / 255.0f) green:((float) g / 255.0f) blue:((float) b / 255.0f) alpha:1.0f];
 }
 @end

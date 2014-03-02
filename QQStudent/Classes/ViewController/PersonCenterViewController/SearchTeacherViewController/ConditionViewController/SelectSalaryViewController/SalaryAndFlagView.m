@@ -105,10 +105,12 @@
     if (select)
     {
         flagImgView.hidden = NO;
+        potImgView.hidden  = YES;
     }
     else
     {
         flagImgView.hidden = YES;
+        potImgView.hidden  = NO;
     }
     
     isSelect = select;

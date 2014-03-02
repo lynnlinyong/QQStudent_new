@@ -9,7 +9,7 @@
 #import "MyTeacherCell.h"
 #import "TTImageView.h"
 @implementation MyTeacherCell
-@synthesize teacher;
+//@synthesize teacher;
 @synthesize delegate;
 @synthesize order;
 
@@ -18,8 +18,6 @@
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self)
     {
-//        self.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lt_list_bg"]];
-        
         headBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         headBtn.frame =  CGRectMake(10, 15, 50, 50);
         [headBtn addTarget:self
@@ -89,37 +87,51 @@
 
 #pragma mark -
 #pragma mark - Custom Action
-- (void) setTeacher:(Teacher *)tObj
+- (void) setOrder:(Order *)tOrder
 {
+    Teacher *tObj = tOrder.teacher;
     if (tObj.sex == 1)
     {
+        [headBtn setImage:[UIImage imageNamed:@"s_boy"]
+                 forState:UIControlStateNormal];
         introduceLab.text = [NSString stringWithFormat:@"%@ 男 %@", tObj.name,tObj.pf];
     }
     else
     {
+        [headBtn setImage:[UIImage imageNamed:@"s_girl"]
+                 forState:UIControlStateNormal];
         introduceLab.text = [NSString stringWithFormat:@"%@ 女 %@", tObj.name,tObj.pf];
     }
-    TTImageView *hImgView = [[[TTImageView alloc]init]autorelease];
+    TTImageView *hImgView = [[TTImageView alloc]init];
     hImgView.delegate = self;
     hImgView.URL = tObj.headUrl;
+    CLog(@"URL:%@", tObj.headUrl);
     
     [starImageView setHlightStar:tObj.comment];
     
-    teacher = nil;
-    teacher = [tObj copy];
-}
-
-- (id) teacher
-{
-    return teacher;
+//    order = nil;
+    order = [tOrder copy];
 }
 
 #pragma mark -
 #pragma mark - TTImageViewDelegate
 - (void)imageView:(TTImageView*)imageView didLoadImage:(UIImage*)image
 {
-    [headBtn setImage:[UIImage circleImage:image withParam:0]
-             forState:UIControlStateNormal];
+    CLog(@"sdhjfishfishdfuishdfiu:%d", order.teacher.sex);
+    if (order.teacher.sex == 1)
+    {
+        [headBtn setImage:[UIImage circleImage:image
+                                     withParam:0
+                                     withColor:[UIColor greenColor]]
+                 forState:UIControlStateNormal];
+    }
+    else
+    {
+        [headBtn setImage:[UIImage circleImage:image
+                                     withParam:0
+                                     withColor:[UIColor orangeColor]]
+                 forState:UIControlStateNormal];
+    }
 }
 
 - (void)imageView:(TTImageView*)imageView didFailLoadWithError:(NSError*)error

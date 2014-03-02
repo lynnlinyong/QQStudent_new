@@ -8,11 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TeacherDetailViewController : UIViewController<ServerRequestDelegate,TTImageViewDelegate,UIScrollViewDelegate>
+@interface TeacherDetailViewController : UIViewController<ServerRequestDelegate,TTImageViewDelegate,UIScrollViewDelegate,MBProgressHUDDelegate>
 {
     UIImageView *headImageView;
     UIImageView *bgImgView;
     UIScrollView *bgScroll;
+    
+    MBProgressHUD *HUD;
 }
 @property (nonatomic, copy) Teacher  *tObj;
 @end

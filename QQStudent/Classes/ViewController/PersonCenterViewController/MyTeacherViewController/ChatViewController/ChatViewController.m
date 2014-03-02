@@ -16,6 +16,8 @@
 @synthesize tObj;
 @synthesize messages;
 @synthesize order;
+@synthesize listenBtn;
+@synthesize employBtn;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -37,9 +39,6 @@
     //初始化UI
     [self initUI];
     [self initPullView];
-    
-    //获得聊天记录
-    [self getChatRecords];
 }
 
 - (void) viewDidUnload
@@ -53,6 +52,12 @@
     [super viewDidAppear:animated];
     
     [MainViewController setNavTitle:@"和老师沟通"];
+    
+    [self initBackBarItem];
+    
+    
+    //获得聊天记录
+    [self getChatRecords];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(showTeacherDetailNotice:)
@@ -85,7 +90,8 @@
 
 - (void) dealloc
 {
-    [order release];
+    [infoView release];
+    [employInfoView release];
     [recordAudio release];
     [super dealloc];
 }
@@ -98,11 +104,107 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) initInfoPopView
+{
+    infoView = [[LBorderView alloc]initWithFrame:CGRectMake(10, 20,
+                                                            300,
+                                                            60)];
+    infoView.hidden = NO;
+    infoView.borderType   = BorderTypeSolid;
+    infoView.dashPattern  = 8;
+    infoView.spacePattern = 8;
+    infoView.borderWidth  = 1;
+    infoView.cornerRadius = 5;
+    infoView.alpha = 0.8;
+    infoView.borderColor  = [UIColor orangeColor];
+    infoView.backgroundColor = [UIColor orangeColor];
+    [self.view addSubview:infoView];
+    
+    UITapGestureRecognizer *tapReg = [[UITapGestureRecognizer alloc]initWithTarget:self
+                                                                            action:@selector(doTapGestureReg:)];
+    [infoView addGestureRecognizer:tapReg];
+    
+    UILabel *infoLab = [[UILabel alloc]init];
+    infoLab.textColor = [UIColor whiteColor];
+    infoLab.text = @"请注意:正式上课一般为2小时/次,上课前试听一般为1小时/次,同一学生同一教师试听一般不超过1次";
+    infoLab.backgroundColor = [UIColor clearColor];
+    infoLab.frame = CGRectMake(10,0,
+                               280,
+                               60);
+    infoLab.numberOfLines = 0;
+    infoLab.font = [UIFont systemFontOfSize:14.f];
+    infoLab.lineBreakMode = NSLineBreakByWordWrapping;
+    [infoView addSubview:infoLab];
+    [infoLab release];
+
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self
+                                                                         action:@selector(doEmployClicked:)];
+    employInfoView = [[UIView alloc]init];
+    employInfoView.hidden = YES;
+    employInfoView.frame  = CGRectMake(10, 30, 300, 40);
+    [employInfoView addGestureRecognizer:tap];
+    [self.view addSubview:employInfoView];
+    [tap release];
+    
+    UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"cp_chatinfo_bg"]];
+    bgView.frame = CGRectMake(0,0, 300, 40);
+    [employInfoView addSubview:bgView];
+    [bgView release];
+    
+    UILabel *employLab  = [[UILabel alloc]init];
+    employLab.textColor = [UIColor whiteColor];
+    employLab.text = @"选择免费试听一次(1小时)之后聘请更安心！";
+    employLab.backgroundColor = [UIColor clearColor];
+    employLab.frame = CGRectMake(7,10,300,30);
+    employLab.numberOfLines = 0;
+    employLab.font = [UIFont systemFontOfSize:14.f];
+    employLab.lineBreakMode = NSLineBreakByWordWrapping;
+    [employInfoView addSubview:employLab];
+    [employLab release];
+}
+
+- (void) doTapGestureReg:(UIGestureRecognizer *) reg
+{
+    infoView.hidden = YES;
+}
+
+- (void) doEmployClicked:(UIGestureRecognizer *) reg
+{
+    employInfoView.hidden = YES;
+}
+
+- (void) initBackBarItem
+{
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = self;
+}
+
+- (void) convertAmrToMp3:(NSString *)audioURL
+{
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *paramsArray = [NSArray arrayWithObjects:@"action",@"audio",@"sessid", nil];
+    NSArray *valuesArray = [NSArray arrayWithObjects:@"amrToMp3", audioURL, ssid, nil];
+    
+    NSDictionary *pDic   = [NSDictionary dictionaryWithObjects:valuesArray
+                                                     forKeys:paramsArray];
+    NSString *webAdd     = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url        = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+    ServerRequest *request = [ServerRequest sharedServerRequest];
+    request.delegate = self;
+    NSData *resVal   = [request requestSyncWith:kServerPostRequest
+                                       paramDic:pDic
+                                         urlStr:url];
+    if (resVal)
+    {
+        [recordAudio playMP3:resVal];
+    }
+}
+
 - (void) initUI
 {
     self.delegate = self;
     self.dataSource = self;
-    self.messages   = [[NSMutableArray alloc]init];
+    messages   = [[NSMutableArray alloc]init];
 
     listenBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [listenBtn setTitle:@"试听"
@@ -110,8 +212,11 @@
     listenBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
     [listenBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
                     forState:UIControlStateNormal];
-    [listenBtn setBackgroundImage:[UIImage imageNamed:@"normal_btn"]
+    [listenBtn setBackgroundImage:[UIImage imageNamed:@"cp_shiting_normal_bg"]
                          forState:UIControlStateNormal];
+    [listenBtn setBackgroundImage:[UIImage imageNamed:@"cp_shiting_hlight_bg"]
+                         forState:UIControlStateNormal];
+    
     listenBtn.tag   = 0;
     listenBtn.frame = CGRectMake(320-110, 12, 40, 20);
     [listenBtn addTarget:self
@@ -120,6 +225,7 @@
     [self.navigationController.navigationBar addSubview:listenBtn];
     
     employBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    employBtn.hidden = NO;
     employBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
     [employBtn setTitle:@"聘请TA"
                forState:UIControlStateNormal];
@@ -132,7 +238,10 @@
     [employBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
-    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+    
+    [self initInfoPopView];
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     [nav.navigationBar addSubview:employBtn];
     
     //是否支持试听、聘用
@@ -204,20 +313,23 @@
         NSString *action = [resDic objectForKey:@"action"];
         if ([action isEqualToString:@"getListening"])
         {
-            int isListening = ((NSNumber *)[resDic objectForKey:@"isListening"]).intValue;
+            int isListening = ((NSString *)[resDic objectForKey:@"isListening"]).intValue;
             if (isListening == 1)
             {
                 listenBtn.hidden = NO;
+                employInfoView.hidden = NO;
             }
             else
             {
                 listenBtn.hidden = YES;
+                employInfoView.hidden = YES;
             }
         }
     }
     else
     {
         listenBtn.hidden = YES;
+        employInfoView.hidden = YES;
     }
 }
 
@@ -262,10 +374,21 @@
     {
         employBtn.hidden = YES;
     }
+    
+    //聘请按钮隐藏试听按钮后移动
+    if (employBtn.hidden)
+        listenBtn.frame = CGRectMake(employBtn.frame.origin.x,
+                                     employBtn.frame.origin.y,
+                                     listenBtn.frame.size.width,
+                                     listenBtn.frame.size.height);
 }
 
 - (void) getChatRecords
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view
+                         animated:YES];
+    
     [self.messages removeAllObjects];
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"messageId",@"phone",@"sessid", nil];
@@ -413,8 +536,7 @@
         case LONG_PRESS_BUTTON_DOWN:
         {
             //显示动画
-            [SVProgressHUD show];
-            
+            [SVProgressHUD showWithStatus:@""];
             [self startRecord];
             break;
         }
@@ -425,6 +547,7 @@
                              message:@"录音时间太短"
                             delegate:self
                    otherButtonTitles:@"确定",nil];
+            
             //停止动画
             [SVProgressHUD dismiss];
             [self stopRecord];
@@ -457,6 +580,11 @@
             break;
     }
 }
+- (void) doBackBtnClicked:(id)sender
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [nav popViewControllerAnimated:YES];
+}
 
 - (void) doButtonClicked:(id)sender
 {
@@ -484,15 +612,21 @@
             //跳转到
             if (order)
             {
-                AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-                CustomNavigationViewController *nav     = (CustomNavigationViewController *)app.window.rootViewController;
+                CustomNavigationViewController *nav     = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
                 UpdateOrderViewController *upVctr = [[UpdateOrderViewController alloc]init];
-                upVctr.order = [order copy];
+                upVctr.isEmploy = YES;
+                upVctr.order = order;
                 [nav pushViewController:upVctr
                                animated:YES];
-//                [self.navigationController pushViewController:upVctr
-//                                                     animated:YES];
                 [upVctr release];
+            }
+            else
+            {
+                //新建订单
+                 CustomNavigationViewController *nav     = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+                 SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
+                 scVctr.tObj = tObj;
+                 [nav pushViewController:scVctr animated:YES];
             }
             break;
         }
@@ -718,8 +852,8 @@
         NSString *resStr = [[[NSString alloc]initWithData:resVal
                                                  encoding:NSUTF8StringEncoding]autorelease];
         NSDictionary *resDic  = [resStr JSONValue];
-        NSString *action = [resDic objectForKey:@"action"];
-        if ([action isEqualToString:@"callPhone"])
+        NSString *errorid = [resDic objectForKey:@"errorid"];
+        if (errorid.integerValue==0)
         {
             //拨打电话
             NSString *phone = [NSString stringWithFormat:@"tel://%@", tObj.phoneNums];
@@ -761,10 +895,7 @@
     [self uploadMessageToServer:jsonMsg];
     
     //播放声音
-    if((self.messages.count - 1) % 2)
-        [JSMessageSoundEffect playMessageSentSound];
-    else
-        [JSMessageSoundEffect playMessageReceivedSound];
+    [JSMessageSoundEffect playMessageSentSound];
     
     [self finishSend];
 }
@@ -775,23 +906,43 @@
     {
         int index = self.messages.count-1-indexPath.row;
         NSDictionary *item = [messages objectAtIndex:index];
-        NSString *soundPath= [item objectForKey:@"sound"];
+        NSString *soundPath= [[item objectForKey:@"sound"] retain];
         if (soundPath)
         {
             //下载播放
+//            NSString *downPath = [[self getRecordURL] retain];
+//            NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+//            soundPath = [NSString stringWithFormat:@"%@%@", webAdd, soundPath];
             
-            NSString *downPath = [self getRecordURL];
-            NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-            soundPath = [NSString stringWithFormat:@"%@%@", webAdd, soundPath];
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+               
+                //amr转换mp3文件
+                [self convertAmrToMp3:soundPath];
             
-            CLog(@"It's Sound:%@", soundPath);
+//                //下载音频文件
+//                ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:soundPath]];
+//                request.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:indexPath.row],@"TAG", nil];
+//                [request setDelegate:self];
+//                [request setDownloadProgressDelegate:self];
+//                [request setDownloadDestinationPath:downPath];
+//                [request startAsynchronous];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    //更新UI
+                    NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:indexPath.row],@"TAG", nil];
+                    
+                    //停止动画
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"stopVoiceAnimation"
+                                                                        object:nil
+                                                                      userInfo:dic];
+                    
+                    //显示动画
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"startVoiceAnimation"
+                                                                        object:nil
+                                                                      userInfo:dic];
+                });
+                
+            });
             
-            ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:soundPath]];
-            request.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:indexPath.row],@"TAG", nil];
-            [request setDelegate:self];
-            [request setDownloadProgressDelegate:self];
-            [request setDownloadDestinationPath:downPath];
-            [request startAsynchronous];
         }
     }
 }
@@ -912,10 +1063,39 @@
     return @"我";
 }
 
-//- (NSString *)avatarNameForOutgoingMessage
-//{
-//    return tObj.name;
-//}
+#pragma mark -
+#pragma mark - CustomNavigationDataSource
+- (UIBarButtonItem *) backBarButtomItem
+{
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0, 0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    
+    return [[UIBarButtonItem alloc]
+            initWithCustomView:backBtn];
+}
 
 #pragma mark -
 #pragma mark ServerRequest Delegate
@@ -924,7 +1104,7 @@
     CLog(@"Down Load Success!");
     
     //播放声音
-    NSString *soundPath = [self getRecordURL];
+    NSString *soundPath = [[self getRecordURL] retain];
     NSData *soundData   = [NSData dataWithContentsOfFile:soundPath];
     [recordAudio play:soundData];
     
@@ -949,9 +1129,9 @@
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
-    NSData   *resVal = [request responseData];
-    NSString *resStr = [[NSString alloc]initWithData:resVal
-                                            encoding:NSUTF8StringEncoding];
+    NSData   *resVal = [[request responseData] retain];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                            encoding:NSUTF8StringEncoding]retain];
     NSDictionary *resDic   = [resStr JSONValue];
     NSArray      *keysArr  = [resDic allKeys];
     NSArray      *valsArr  = [resDic allValues];
@@ -999,6 +1179,10 @@
     
     //聊天记录刷新完成
     [self doneLoadingTableViewData];
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view
+                         animated:YES];
 }
 
 @end

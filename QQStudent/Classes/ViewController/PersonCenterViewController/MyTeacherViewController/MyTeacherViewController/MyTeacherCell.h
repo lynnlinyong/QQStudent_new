@@ -28,7 +28,7 @@
 }
 
 @property (nonatomic, copy) Order    *order;
-@property (nonatomic, copy) Teacher  *teacher;
+//@property (nonatomic, copy) Teacher  *teacher;
 @property (nonatomic, assign) id<MyTeacherCellDelegate> delegate;
 
 

@@ -14,6 +14,7 @@
 
 @implementation SelectSexViewController
 @synthesize isSetSex;
+@synthesize sexName;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -79,7 +80,7 @@
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = CGRectMake(-2,
-                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.height-bottomImg.size.height+5,
                                      self.view.frame.size.width+4, bottomImg.size.height);
     [self.view addSubview:bottomImgView];
     [bottomImgView release];
@@ -91,7 +92,7 @@
                 forState:UIControlStateNormal];
     okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
-                             self.view.frame.size.height-bottomImg.size.height+6,
+                             self.view.frame.size.height-bottomImg.size.height+11,
                              okBtnImg.size.width,
                              okBtnImg.size.height);
     [okBtn setTitle:@"确定"
@@ -112,7 +113,7 @@
                     forState:UIControlStateNormal];
     cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
-                                 self.view.frame.size.height-bottomImg.size.height+6,
+                                 self.view.frame.size.height-bottomImg.size.height+11,
                                  cancelImg.size.width,
                                  cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
@@ -176,6 +177,8 @@
                 QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
                                                                     groupId:@"sex"];
                 qrBtn.tag = 1;
+                if ([sexName isEqualToString:@"男"])
+                    [qrBtn setChecked:YES];
                 [qrBtn setTitle:@"男"
                        forState:UIControlStateNormal];
                 [qrBtn setTitleColor:[UIColor grayColor]
@@ -194,6 +197,8 @@
                 QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
                                                                     groupId:@"sex"];
                 qrBtn.tag = 2;
+                if ([sexName isEqualToString:@"女"])
+                    [qrBtn setChecked:YES];
                 [qrBtn setTitle:@"女"
                        forState:UIControlStateNormal];
                 [qrBtn setTitleColor:[UIColor grayColor]
@@ -211,6 +216,8 @@
                 QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
                                                                     groupId:@"sex"];
                 qrBtn.tag = 3;
+                if ([sexName isEqualToString:@"不限"])
+                    [qrBtn setChecked:YES];
                 [qrBtn setTitle:@"不限"
                        forState:UIControlStateNormal];
                 [qrBtn setTitleColor:[UIColor grayColor]

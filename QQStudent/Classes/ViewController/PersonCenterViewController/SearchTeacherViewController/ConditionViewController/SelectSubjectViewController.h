@@ -19,4 +19,6 @@
     NSMutableArray *subArr;
     int index;
 }
+
+@property (nonatomic, retain) NSString *subName;
 @end

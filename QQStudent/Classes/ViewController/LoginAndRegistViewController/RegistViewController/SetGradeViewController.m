@@ -13,6 +13,7 @@
 @end
 
 @implementation SetGradeViewController
+@synthesize gradeName;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -49,6 +50,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {
     UIImage *bottomImg = [UIImage imageNamed:@"dialog_bottom"];
@@ -86,7 +88,7 @@
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = CGRectMake(-2,
-                                     self.view.frame.size.height-bottomImg.size.height,
+                                     self.view.frame.size.height-bottomImg.size.height+5,
                                      self.view.frame.size.width+4, bottomImg.size.height);
     [self.view addSubview:bottomImgView];
     [bottomImgView release];
@@ -98,7 +100,7 @@
                 forState:UIControlStateNormal];
     okBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     okBtn.frame = CGRectMake(self.view.frame.size.width/2-okBtnImg.size.width-10,
-                             self.view.frame.size.height-bottomImg.size.height+6,
+                             self.view.frame.size.height-bottomImg.size.height+11,
                              okBtnImg.size.width,
                              okBtnImg.size.height);
     [okBtn setTitle:@"确定"
@@ -119,7 +121,7 @@
                     forState:UIControlStateNormal];
     cancelBtn.titleLabel.font = [UIFont systemFontOfSize:13.f];
     cancelBtn.frame = CGRectMake(self.view.frame.size.width/2+10,
-                                 self.view.frame.size.height-bottomImg.size.height+6,
+                                 self.view.frame.size.height-bottomImg.size.height+11,
                                  cancelImg.size.width,
                                  cancelImg.size.height);
     [cancelBtn setTitle:@"取消"
@@ -136,6 +138,9 @@
 
 - (void) getGrade
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    
     NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getgrade",ssid, nil];
@@ -214,11 +219,14 @@
     QRadioButton *qrBtn = [[QRadioButton alloc]initWithDelegate:self
                                                         groupId:@"grade"];
     qrBtn.tag = rowIndex*2+columnIndex;
-    [qrBtn setTitle:[gradDic objectForKey:@"name"]
+    NSString *curName = [gradDic objectForKey:@"name"];
+    if ([curName isEqualToString:gradeName])
+        [qrBtn setChecked:YES];
+    [qrBtn setTitle:curName
            forState:UIControlStateNormal];
     [qrBtn setTitleColor:[UIColor grayColor]
                 forState:UIControlStateNormal];
-    qrBtn.frame = CGRectMake(0, 0, 80, 30);
+    qrBtn.frame = CGRectMake(40, 0, 80, 30);
     [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
     [qrBtn setChecked:YES];
     [cell addSubview:qrBtn];
@@ -242,10 +250,16 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];

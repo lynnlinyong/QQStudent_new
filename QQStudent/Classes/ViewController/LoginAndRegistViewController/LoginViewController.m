@@ -71,6 +71,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {    
     UIImage *registImg  = [UIImage imageNamed:@"nav_right_normal_btn@2x"];
@@ -107,7 +108,11 @@
     UIImage *normalImg = [UIImage imageNamed:@"normal_fld"];
     emailImgView = [[UIImageView alloc]initWithImage:normalImg];
     userNameFld  = [[UITextField alloc]init];
+    userNameFld.tag = 0;
     userNameFld.delegate    = self;
+    [userNameFld addTarget:self
+                    action:@selector(valueChanged:)
+          forControlEvents:UIControlEventEditingChanged];
     userNameFld.text        = student.email;
     userNameFld.borderStyle = UITextBorderStyleNone;
     userNameFld.placeholder = @"输入注册邮箱";
@@ -125,7 +130,11 @@
     [self.view addSubview:userNameFld];
     
     phoneFld = [[UITextField alloc]init];
+    phoneFld.tag  = 1;
     phoneImgView  = [[UIImageView alloc]initWithImage:normalImg];
+    [phoneFld addTarget:self
+                    action:@selector(valueChanged:)
+          forControlEvents:UIControlEventEditingChanged];
     phoneFld.delegate = self;
     phoneFld.text     = student.phoneNumber;
     phoneFld.borderStyle = UITextBorderStyleNone;
@@ -212,35 +221,19 @@
 - (BOOL) checkInfo
 {
     if (userNameFld.text.length == 0 || phoneFld.text.length == 0)
-    {
-        [self showAlertWithTitle:@"提示"
-                             tag:1
-                         message:@"登录信息不完整!"
-                        delegate:self
-               otherButtonTitles:@"确定", nil];
-        
+    {   
         return NO;
     }
     
     BOOL isEmailType = [userNameFld.text isMatchedByRegex:@"\\b([a-zA-Z0-9%_.+\\-]+)@([a-zA-Z0-9.\\-]+?\\.[a-zA-Z]{2,6})\\b"];
     if (!isEmailType)
     {
-        [self showAlertWithTitle:@"提示"
-                             tag:1
-                         message:@"邮箱格式不正确"
-                        delegate:self
-               otherButtonTitles:@"确定", nil];
         return NO;
     }
     
     BOOL isPhone = [phoneFld.text isMatchedByRegex:@"^(13[0-9]|15[0-9]|18[0-9])\\d{8}$"];
     if (!isPhone)
     {
-        [self showAlertWithTitle:@"提示"
-                             tag:1
-                         message:@"手机号格式不正确"
-                        delegate:self
-               otherButtonTitles:@"确定",nil];
         return NO;
     }
     
@@ -254,15 +247,37 @@
     [rVctr release];
 }
 
+- (void) valueChanged:(id)sender
+{
+    if (![self checkInfo])
+    {
+        [loginBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                       forState:UIControlStateNormal];
+    }
+    else
+    {
+        [loginBtn setTitleColor:[UIColor colorWithHexString:@"#ff6600"]
+                       forState:UIControlStateNormal];
+    }
+}
+
 - (void) doLoginBtnClicked:(id)sender
 {
     if (![self checkInfo])
     {
-        return;
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:@"请输入邮箱和手机号!"
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
     }
     
     //恢复视图
     [self repickView:self.view];
+    
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
     
     NSString *idString    = [SingleMQTT getCurrentDevTopic];
     NSString *deviceToken = [[NSUserDefaults standardUserDefaults] objectForKey:QQ_STUDENT];
@@ -272,6 +287,7 @@
                                                    idString, IOS,deviceToken, nil];
     NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
+    CLog(@"LoginPic:%@", pDic);
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate = self;
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
@@ -288,6 +304,9 @@
 }
 
 #pragma mark -
+#pragma mark MBProgressHUDDelegate methods
+
+#pragma mark -
 #pragma mark - UITextFieldDelegate
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
@@ -295,6 +314,8 @@
     [textField resignFirstResponder];
     return YES;
 }
+
+
 
 - (void) textFieldDidBeginEditing:(UITextField *)textField
 {
@@ -325,10 +346,16 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];
@@ -342,11 +369,12 @@
     }
     CLog(@"***********Result****************");
     
-    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    NSNumber *errorid = [[resDic objectForKey:@"errorid"] copy];
     if (errorid.intValue == 0)
     {        
-        NSString *ssid = [resDic objectForKey:@"sessid"];
-        [[NSUserDefaults standardUserDefaults] setObject:ssid forKey:SSID];
+        NSString *ssid = [[resDic objectForKey:@"sessid"] retain];
+        [[NSUserDefaults standardUserDefaults] setObject:ssid
+                                                  forKey:SSID];
         CLog(@"ssid:%@", ssid);
         
         NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
@@ -356,7 +384,7 @@
         student.email       = [stuDic objectForKey:@"email"];
         student.gender      = [[stuDic objectForKey:@"gender"] copy];
         student.grade       = [[stuDic objectForKey:@"grade"]  copy];
-        student.icon        = [stuDic objectForKey:@"icon"];
+        student.icon        = [[stuDic objectForKey:@"icon"] copy];
         student.latltude    = [stuDic objectForKey:@"latitude"];
         student.longltude   = [stuDic objectForKey:@"longitude"];
         student.lltime      = [stuDic objectForKey:@"lltime"];
@@ -366,22 +394,34 @@
         student.phoneStars  = [[stuDic objectForKey:@"phone_stars"] copy];
         student.locStars    = [[stuDic objectForKey:@"location_stars"] copy];
         
-        NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
+        NSData *stuData = [[NSKeyedArchiver archivedDataWithRootObject:student] retain];
         [[NSUserDefaults standardUserDefaults] setObject:stuData
                                                   forKey:STUDENT];
-        [student release];
-        
-        //写入登录成功标识
-        [[NSUserDefaults standardUserDefaults] setBool:YES
-                                                forKey:LOGINE_SUCCESS];
-        
-        //跳转个人中心
-        [self.navigationController popToRootViewControllerAnimated:NO];
-        
-        PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
-        [self.navigationController pushViewController:pcVctr
-                                             animated:YES];
-        [pcVctr release];
+        [stuData release];
+        //判断用户是否完善个人资料
+        if (student.status.intValue == 0)
+        {
+            //跳转到完善个人资料页
+            CompletePersonalInfoViewController *cpVctr = [[[CompletePersonalInfoViewController alloc]init]autorelease];
+            [self.navigationController pushViewController:cpVctr
+                                                 animated:YES];
+            [student release];
+        }
+        else
+        {
+            //写入登录成功标识
+            [[NSUserDefaults standardUserDefaults] setBool:YES
+                                                    forKey:LOGINE_SUCCESS];
+            
+            //跳转个人中心
+            [self.navigationController popToRootViewControllerAnimated:NO];
+            
+            PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
+            [self.navigationController pushViewController:pcVctr
+                                                 animated:YES];
+            [pcVctr release];
+            [student release];
+        }
     }
     else
     {

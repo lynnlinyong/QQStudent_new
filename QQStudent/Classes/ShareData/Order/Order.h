@@ -17,6 +17,7 @@ typedef enum _tagOrderStatus
     FINISH                  //已结单
 }OrderStatus;
 
+@class Teacher;
 @interface Order : NSObject<NSCopying,NSMutableCopying>
 {
     NSString  *orderId;            //订单号
@@ -35,9 +36,9 @@ typedef enum _tagOrderStatus
     NSString  *payMoney;           //消费金额
     NSString  *backMoney;          //应退金额
     
-    Teahcer   *teacher;            //订单的老师
+    Teacher   *teacher;            //订单的老师
 }
-@property (nonatomic, copy)   Teahcer   *teacher;
+@property (nonatomic, copy)   Teacher   *teacher;
 @property (nonatomic, assign) NSString  *payMoney;
 @property (nonatomic, assign) NSString  *backMoney;
 @property (nonatomic, retain) NSString  *orderId;

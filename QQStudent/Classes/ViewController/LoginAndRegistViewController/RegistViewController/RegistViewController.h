@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface RegistViewController : UIViewController<
+                                                MBProgressHUDDelegate,
                                                 UIAlertViewDelegate,
                                                 UITextFieldDelegate,
                                                 ServerRequestDelegate>
@@ -19,5 +20,7 @@
     
     UIImageView *emailImgView;
     UIImageView *phoneImgView;
+    
+    MBProgressHUD *HUD;
 }
 @end

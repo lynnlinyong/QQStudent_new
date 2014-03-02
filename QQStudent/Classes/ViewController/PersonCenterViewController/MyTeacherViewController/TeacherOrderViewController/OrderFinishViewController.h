@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface OrderFinishViewController : UIViewController<
+                                                    MBProgressHUDDelegate,
                                                     UITableViewDelegate,
                                                     UITableViewDataSource,
                                                     ServerRequestDelegate>
@@ -16,6 +17,8 @@
     UITableView *finishOrderTab;
     UILabel     *payLab;
     UILabel     *backMoneyLab;
+    
+    MBProgressHUD *HUD;
 }
 
 @property (nonatomic, copy) Order *order;

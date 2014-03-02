@@ -42,7 +42,7 @@
     
     //获得新消息
     [self getMessageNewNumber];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(getMessageFromTeacher:)
                                                  name:@"MessageComing"
@@ -74,25 +74,37 @@
     [sysDic release];
     [msgArray release];
     [latlyTab release];
+    [bgImgView release];
     [super dealloc];
 }
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {
+    UIImage *bgImg = [UIImage imageNamed:@"pp_nodata_bg"];
+    bgImgView      = [[UIImageView alloc]initWithImage:bgImg];
+    bgImgView.frame= [UIView fitCGRect:CGRectMake(160-50,
+                                                  280/2-40,
+                                                  100,
+                                                  80)
+                            isBackView:NO];
+    [self.view addSubview:bgImgView];
+
+    
     latlyTab = [[UITableView alloc]init];
     latlyTab.delegate   = self;
     latlyTab.dataSource = self;
     latlyTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     latlyTab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 376)
-                            isBackView:YES];
+                            isBackView:NO];
     [self.view addSubview:latlyTab];
     
     //初始化上拉刷新
     [self initPullView];
     
-    latlyTab.backgroundColor  = [UIColor colorWithHexString:@"#E1E0DE"];
+    latlyTab.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
     self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
 }
 
@@ -119,6 +131,12 @@
 
 - (void) getMessageNewNumber
 {
+    if ([AppDelegate isInView:@"LatlyViewController"])
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action", @"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getMessageNewNumber", ssid, nil];
@@ -147,20 +165,6 @@
     [request requestASyncWith:kServerPostRequest
                      paramDic:dic
                        urlStr:url];
-}
-
-- (void) tapGestureRecongnizer:(id) sender
-{
-    NSDictionary *item = [msgArray objectAtIndex:headBtn.tag];
-    Teacher *tObj = [Teacher setTeacherProperty:item];
-    
-    //教师详细信息
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    CustomNavigationViewController *nav     = (CustomNavigationViewController *)app.window.rootViewController;
-    TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
-    tdVctr.tObj = tObj;
-    [nav pushViewController:tdVctr animated:YES];
-    [tdVctr release];
 }
 
 #pragma mark -
@@ -221,6 +225,12 @@
 
 - (int) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
+    int count = msgArray.count;
+    if (count>0)
+        bgImgView.hidden = YES;
+    else
+        bgImgView.hidden = NO;
+    
     return msgArray.count+1;
 }
 
@@ -237,11 +247,10 @@
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *idString    = @"idString";
-    UITableViewCell *cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
-                                     reuseIdentifier:idString]autorelease];
-    
     if (indexPath.row == 0)  //显示系统消息
     {
+        UITableViewCell *cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
+                                                       reuseIdentifier:idString]autorelease];
         if (sysDic)
         {
             UIImageView *flgImgView = [[UIImageView alloc]init];
@@ -249,6 +258,15 @@
             flgImgView.frame = CGRectMake(5, 0, 40, 40);
             [cell addSubview:flgImgView];
             [flgImgView release];
+            
+            int num = ((NSNumber *)[sysDic objectForKey:@"allNumber"]).intValue;
+            if (num!=0)
+            {
+                NoticeNumberView *numView = [[NoticeNumberView alloc]initWithFrame:CGRectMake(flgImgView.frame.size.width-3, 5, 40, 40)];
+                [numView setTitle:[NSString stringWithFormat:@"%d", num]];
+                [flgImgView addSubview:numView];
+                [numView release];
+            }
             
             UILabel *titleLab  = [[UILabel alloc]init];
             titleLab.text  = [sysDic objectForKey:@"name"];
@@ -278,72 +296,25 @@
             
             cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lp_sys_cell_bg"]];
         }
+        return cell;
     }
     else                     //显示聊天信息
     {
+        LatlyViewCell *cell = [[LatlyViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"idString"];
+        cell.delegate = self;
+        cell.tag = indexPath.row-1;
+        
         if (msgArray.count>0)
         {
             [cell setBackgroundView:[[UIImageView alloc]initWithImage:[UIImage imageNamed:@"lt_list_bg"]]];
-            
             NSDictionary *teacherDic = [msgArray objectAtIndex:indexPath.row-1];
-            
-            headBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-            headBtn.tag      = indexPath.row-1;
-            headBtn.frame    =  CGRectMake(5, 15, 50, 50);
-            [headBtn addTarget:self
-                        action:@selector(tapGestureRecongnizer:)
-              forControlEvents:UIControlEventTouchUpInside];
-            [cell addSubview:headBtn];
-            
-            TTImageView *headImgView = [[[TTImageView alloc]init]autorelease];
-            headImgView.delegate = self;
-            NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-            headImgView.URL   = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"icon"]];
-            
-            UILabel *nameLab = [[UILabel alloc]init];
-            nameLab.font  = [UIFont systemFontOfSize:12.f];
-            nameLab.text  = [teacherDic objectForKey:@"nickname"];
-            nameLab.backgroundColor = [UIColor clearColor];
-            nameLab.frame = CGRectMake(70, 10, 60, 20);
-            [cell addSubview:nameLab];
-            [nameLab release];
-            
-            UILabel *infoLab = [[UILabel alloc]init];
-            infoLab.font  = [UIFont systemFontOfSize:12.f];
-            int sex = ((NSNumber *)[teacherDic objectForKey:@"gender"]).intValue;
-            if (sex == 1)
-            {
-                infoLab.text  = [NSString stringWithFormat:@"男   %@",[teacherDic objectForKey:@"subjectText"]];
-            }
-            else
-            {
-                infoLab.text  = [NSString stringWithFormat:@"女   %@",[teacherDic objectForKey:@"subjectText"]];
-            }
-            infoLab.backgroundColor = [UIColor clearColor];
-            infoLab.frame = CGRectMake(70, 30, 60, 20);
-            [cell addSubview:infoLab];
-            [infoLab release];
-            
-            UILabel *msgLab = [[UILabel alloc]init];
-            msgLab.font  = [UIFont systemFontOfSize:12.f];
-            msgLab.text  = [teacherDic objectForKey:@"message"];
-            msgLab.backgroundColor = [UIColor clearColor];
-            msgLab.frame = CGRectMake(70, 50, 60, 20);
-            [cell addSubview:msgLab];
-            [msgLab release];
-            
-            UILabel *timeLab = [[UILabel alloc]init];
-            timeLab.textAlignment = NSTextAlignmentRight;
-            timeLab.font  = [UIFont systemFontOfSize:12.f];
-            timeLab.text  = [teacherDic objectForKey:@"time"];
-            timeLab.backgroundColor = [UIColor clearColor];
-            timeLab.frame = CGRectMake(320-60-10, 30, 60, 20);
-            [cell addSubview:timeLab];
-            [timeLab release];
+            cell.msgDic = teacherDic;
         }
+        
+        return cell;
     }
     
-    return cell;
+    return nil;
 }
 
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -403,18 +374,24 @@
     }
 }
 
-#pragma mark -
-#pragma mark - TTImageViewDelegate
-- (void) imageView:(TTImageView *)imageView didLoadImage:(UIImage *)image
-{
-    UIImage *headImg = [UIImage circleImage:image withParam:0];
-    [headBtn setImage:headImg
-             forState:UIControlStateNormal];
-}
-
 - (void) imageView:(TTImageView *)imageView didFailLoadWithError:(NSError *)error
 {
     
+}
+
+#pragma mark -
+#pragma mark - LatlyViewCellDelegate
+- (void) view:(LatlyViewCell *) view clickedIndex:(int)index
+{
+    NSDictionary *item = [msgArray objectAtIndex:view.tag];
+    Teacher *tObj = [Teacher setTeacherProperty:item];
+    
+    //教师详细信息
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    TeacherDetailViewController *tdVctr = [[TeacherDetailViewController alloc]init];
+    tdVctr.tObj = tObj;
+    [nav pushViewController:tdVctr animated:YES];
+    [tdVctr release];
 }
 
 #pragma mark -
@@ -432,10 +409,16 @@
     CLog(@"***********Result****************");
     
     [self doneLoadingTableViewData];
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];
@@ -459,6 +442,10 @@
             
             //添加老师沟通消息
             msgArray = [[resDic objectForKey:@"teachers"] copy];
+            
+            [headArray removeAllObjects];
+            headArray = nil;
+            headArray = [[NSMutableArray alloc]init];
             
             [latlyTab reloadData];
         }

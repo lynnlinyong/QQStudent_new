@@ -27,6 +27,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
     [self initUI];
 }
 
@@ -62,6 +63,7 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {
     self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
@@ -290,6 +292,9 @@
 #pragma mark - Control Event
 - (void) doButtonClicked:(id)sender
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    
     UIButton *btn  = sender;
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
@@ -321,10 +326,16 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];

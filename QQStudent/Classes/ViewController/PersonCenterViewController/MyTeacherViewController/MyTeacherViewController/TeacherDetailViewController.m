@@ -37,8 +37,6 @@
     
     //获得老师个人信息
     [self getTeacherDetail];
-    
-//    [self initUI];
 }
 
 - (void)didReceiveMemoryWarning
@@ -175,9 +173,19 @@
     [bgScroll addSubview:bmImgView];
     [bmImgView release];
     
+    if (tObj.info)
+    {
+        CGSize size = [tObj.info sizeWithFont:[UIFont systemFontOfSize:14.f]
+                            constrainedToSize:CGSizeMake(bmImgView.frame.size.width, MAXFLOAT)];
+        bmImgView.frame = CGRectMake(bmImgView.frame.origin.x,
+                                     bmImgView.frame.origin.y,
+                                     bmImgView.frame.size.width, size.height);
+    }
+    
     UILabel *sayValueLab = [[UILabel alloc]init];
     sayValueLab.text = tObj.info;
-    sayValueLab.frame= CGRectMake(45, bmImgView.frame.origin.y-17, 200, 40);
+    sayValueLab.font = [UIFont systemFontOfSize:14.f];
+    sayValueLab.frame= CGRectMake(45, topImgView.frame.origin.y+8, 240, 20);
     sayValueLab.backgroundColor = [UIColor clearColor];
     sayValueLab.lineBreakMode   = NSLineBreakByWordWrapping;
     sayValueLab.numberOfLines   = 0;
@@ -196,7 +204,6 @@
     //判断是否有资历照片,设置Scroll高度
     if (tObj.certArray)
     {
-
         for(int i=0; i<tObj.certArray.count; i++)
         {
             NSString *url = [tObj.certArray objectAtIndex:i];
@@ -212,20 +219,33 @@
             if (i==0)
                 certImgView.frame = CGRectMake(40,
                                               bmImgView.frame.origin.y+bmImgView.frame.size.height+40,
-                                              defaultImg.size.width,
-                                              defaultImg.size.height);
+                                              50,
+                                              80);
             else
                 certImgView.frame = CGRectMake(40+i*70,
                                            bmImgView.frame.origin.y+bmImgView.frame.size.height+40,
-                                           defaultImg.size.width,
-                                           defaultImg.size.height);
+                                           50,
+                                           80);
             [bgScroll addSubview:certImgView];
         }
+        
+        //修改背景高度
+        CGRect rect = CGRectMake(bgImgView.frame.origin.x,
+                                 150,
+                                 bgImgView.frame.size.width,
+                                 bgImgView.frame.size.height+80);
+        bgImgView.frame = rect;
+        
+        bgScroll.contentSize = CGSizeMake(bgScroll.contentSize.width,
+                                          bgScroll.contentSize.height+80);
     }
 }
 
 - (void) getTeacherDetail
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    
     NSString *ssid      = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray  *paramsArr = [NSArray arrayWithObjects:@"action",@"teacher_phone",@"sessid",nil];
     NSArray  *valuesArr = [NSArray arrayWithObjects:@"getTeacher",tObj.phoneNums,ssid,nil];
@@ -256,14 +276,23 @@
         CGRect rect = CGRectMake(bgImgView.frame.origin.x,
                                  150,
                                  bgImgView.frame.size.width,
-                                 bgImgView.frame.size.height+40);
+                                 bgImgView.frame.size.height);
         bgImgView.frame = rect;
     
         bgScroll.contentSize = CGSizeMake(bgScroll.contentSize.width,
-                                          bgScroll.contentSize.height+40);
+                                          bgScroll.contentSize.height);
     }
     else
-        headImageView.image = [UIImage circleImage:image withParam:0];
+    {
+        if (tObj.sex==1)
+            headImageView.image = [UIImage circleImage:image
+                                             withParam:0
+                                             withColor:[UIColor greenColor]];
+        else
+            headImageView.image = [UIImage circleImage:image
+                                             withParam:0
+                                             withColor:[UIColor orangeColor]];
+    }
 }
 
 - (void) imageView:(TTImageView *)imageView didFailLoadWithError:(NSError *)error
@@ -284,10 +313,16 @@
     CLog(@"***********Result****************");
     CLog(@"ERROR");
     CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];

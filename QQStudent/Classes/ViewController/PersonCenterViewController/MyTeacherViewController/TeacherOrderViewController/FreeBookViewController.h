@@ -8,7 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface FreeBookViewController : UIViewController<UIWebViewDelegate>
+@interface FreeBookViewController : UIViewController<
+                                                    UIWebViewDelegate,
+                                                    MBProgressHUDDelegate>
 {
     UIWebView *webView;
 }

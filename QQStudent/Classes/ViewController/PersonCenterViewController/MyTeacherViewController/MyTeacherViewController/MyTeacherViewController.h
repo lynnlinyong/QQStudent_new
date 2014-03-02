@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface MyTeacherViewController : UITableViewController<
+                                                    MBProgressHUDDelegate,
                                                     UIGestureRecognizerDelegate,
                                                     ServerRequestDelegate,
                                                     MyTeacherCellDelegate,

@@ -25,13 +25,19 @@
     return self;
 }
 
-- (void)viewDidLoad
+- (void) viewDidAppear:(BOOL)animated
 {
-    [super viewDidLoad];
+    [super viewDidAppear:animated];
     
     [self initBackBarItem];
     
     [self initUI];
+
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
 }
 
 - (void)didReceiveMemoryWarning
@@ -39,27 +45,20 @@
     [super didReceiveMemoryWarning];
 }
 
-- (void) viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-}
-
 - (void) viewDidDisappear:(BOOL)animated
-{
-    [timer invalidate];
-    timer = nil;
-    timeLab.text   = @"";
-    waitTimeInvite = 20;
-    
-    CustomNavigationViewController *nav = (CustomNavigationViewController *)[MainViewController getNavigationViewController];
+{   
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     nav.dataSource = nil;
+    
+    timer.delegate = nil;
+    timer = nil;
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
 
 - (void) viewDidUnload
-{    
+{
     [teacherArray removeAllObjects];
     
     self.mapView.delegate = nil;
@@ -69,14 +68,146 @@
 
 - (void) dealloc
 {
-    [timeLab release];
+    [timer      release];
+    [cntLab     release];
+    [borderView release];
+    [infoView   release];
+    
     [teacherArray release];
-    [self.mapView release];
+    [mapView      release];
+    
+    [cntTimeImageView release];
+    [inviteCountLab   release];
     [super dealloc];
 }
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) initBottomBar
+{
+    cnt = 0;
+    inviteCountLab = [[UILabel alloc]init];
+    inviteCountLab.text = @"已邀请 0 人";
+    inviteCountLab.backgroundColor = [UIColor clearColor];
+    inviteCountLab.font = [UIFont systemFontOfSize:18.f];
+    inviteCountLab.textColor = [UIColor whiteColor];
+    inviteCountLab.frame     = CGRectMake(10, 24-10, 120, 20);
+    [showBtn addSubview:inviteCountLab];
+    
+    
+    UIImage *bgImg   = [UIImage imageNamed:@"wp_time_bg"];
+    cntTimeImageView = [[UIImageView alloc]initWithImage:bgImg];
+    cntTimeImageView.frame = CGRectMake(showBtn.frame.size.width-bgImg.size.width/2-10,
+                                        cntTimeImageView.frame.origin.y-bgImg.size.height/2,
+                                        bgImg.size.width, bgImg.size.height);
+    [showBtn addSubview:cntTimeImageView];
+    
+    cntLab = [[UILabel alloc]init];
+    cntLab.text     = [NSString stringWithFormat:@"%d", waitTimeInvite];
+    cntLab.backgroundColor = [UIColor clearColor];
+    cntLab.frame    = CGRectMake(8, 10, 40, 20);
+    cntLab.textColor= [UIColor whiteColor];
+    cntLab.textAlignment = NSTextAlignmentCenter;
+    cntLab.font     = [UIFont systemFontOfSize:15.f];
+    [cntTimeImageView addSubview:cntLab];
+    
+    UILabel *secondLab  = [[UILabel alloc]init];
+    secondLab.textAlignment = NSTextAlignmentCenter;
+    secondLab.text      = @"秒";
+    secondLab.backgroundColor = [UIColor clearColor];
+    secondLab.textColor = [UIColor whiteColor];
+    secondLab.font      = [UIFont systemFontOfSize:15.f];
+    secondLab.frame     = CGRectMake(cntTimeImageView.frame.size.width/2-10, 27, 20, 20);
+    [cntTimeImageView addSubview:secondLab];
+    [secondLab release];
+}
+
+- (void) initInfoPopView
+{
+    infoView = [[LBorderView alloc]initWithFrame:CGRectMake(30, 40,
+                                                              260,
+                                                              80)];
+    infoView.hidden = YES;
+    infoView.borderType   = BorderTypeSolid;
+    infoView.dashPattern  = 8;
+    infoView.spacePattern = 8;
+    infoView.borderWidth  = 1;
+    infoView.cornerRadius = 5;
+    infoView.alpha = 0.7;
+    infoView.borderColor  = [UIColor grayColor];
+    infoView.backgroundColor = [UIColor grayColor];
+    [self.view addSubview:infoView];
+    
+    UIImage *lightImg = [UIImage imageNamed:@"wp_info_light"];
+    UIImageView *lightImgView = [[UIImageView alloc]init];
+    lightImgView.image = lightImg;
+    lightImgView.frame = CGRectMake(15, infoView.frame.size.height/2-lightImg.size.width/2,
+                                    lightImg.size.width, lightImg.size.height);
+    [infoView addSubview:lightImgView];
+    
+    UILabel *infoLab = [[UILabel alloc]init];
+    infoLab.textColor = [UIColor whiteColor];
+    infoLab.text = @"找不到?也许是您的条件不对哦,薪资太低?线路太远?调一下试试!";
+    infoLab.backgroundColor = [UIColor clearColor];
+    infoLab.frame = CGRectMake(15+lightImg.size.width+10,infoView.frame.size.height/2-20,
+                               infoView.frame.size.width-15-lightImg.size.width-10,
+                               40);
+    infoLab.numberOfLines = 0;
+    infoLab.font = [UIFont systemFontOfSize:14.f];
+    infoLab.lineBreakMode = NSLineBreakByWordWrapping;
+    [infoView addSubview:infoLab];
+    [infoLab release];
+}
+
+- (void) initWaitPopView
+{
+    borderView = [[LBorderView alloc]initWithFrame:CGRectMake(30, self.view.frame.size.height/2-100,
+                                                                          260,
+                                                                          200)];
+    borderView.hidden = YES;
+    borderView.borderType   = BorderTypeSolid;
+    borderView.dashPattern  = 8;
+    borderView.spacePattern = 8;
+    borderView.borderWidth  = 1;
+    borderView.cornerRadius = 5;
+    borderView.alpha = 0.7;
+    borderView.borderColor  = [UIColor grayColor];
+    borderView.backgroundColor = [UIColor grayColor];
+    [self.view addSubview:borderView];
+    
+    UIImage *waitImg = [UIImage imageNamed:@"student_waiting"];
+    UIImageView *waitImgView = [[UIImageView alloc]init];
+    waitImgView.image = waitImg;
+    waitImgView.frame = CGRectMake(borderView.frame.size.width/2-waitImg.size.width/4,
+                                   borderView.frame.size.height/2-waitImg.size.height/4,
+                                   waitImg.size.width/2,
+                                   waitImg.size.height/2);
+    [borderView addSubview:waitImgView];
+    [waitImgView release];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text = @"轻轻小贴士";
+    titleLab.textColor = [UIColor whiteColor];
+    titleLab.backgroundColor = [UIColor clearColor];
+    titleLab.frame = CGRectMake(10, 10, borderView.frame.size.width,
+                                20);
+    [borderView addSubview:titleLab];
+    [titleLab release];
+    
+    UILabel *infoLab = [[UILabel alloc]init];
+    infoLab.textColor = [UIColor whiteColor];
+    infoLab.text = @"珍惜每个沟通机会,不要盲目换老师哦,下一个不一定更好!";
+    infoLab.backgroundColor = [UIColor clearColor];
+    infoLab.frame = CGRectMake(10,borderView.frame.size.height-60,
+                               borderView.frame.size.width-20,
+                               40);
+    infoLab.numberOfLines = 0;
+    infoLab.font = [UIFont systemFontOfSize:14.f];
+    infoLab.lineBreakMode = NSLineBreakByWordWrapping;
+    [borderView addSubview:infoLab];
+    [infoLab release];
+}
+
 - (void) initBackBarItem
 {
     CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
@@ -86,63 +217,80 @@
 - (void) initUI
 {
     //显示地图
-    self.mapView=[[MAMapView alloc] initWithFrame:CGRectMake(0, 0, 320, 460)];
+    self.mapView=[[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 460)
+                                                    isBackView:YES]];
     self.mapView.delegate = self;
-    [self.view addSubview:self.mapView];
-    self.mapView.showsUserLocation = YES;
-    [self.view addSubview:self.mapView];
+    [self.view addSubview:mapView];
     
+    //显示目标位置
+    NSDictionary *posDic = [valueDic objectForKey:@"POSDIC"];
+    NSString *latitude   = (NSString *)[posDic objectForKey:@"LATITUDE"];
+    NSString *longtitude = (NSString *)[posDic objectForKey:@"LONGTITUDE"];
+    CLLocationCoordinate2D loc = CLLocationCoordinate2DMake(latitude.floatValue, longtitude.floatValue);
+    
+    distAnn = [[[CustomPointAnnotation alloc] init]autorelease];
+    distAnn.tag = 1000;
+    distAnn.coordinate = loc;
+    [self.mapView addAnnotation:distAnn];
+    [self.mapView setCenterCoordinate:loc];
+    self.mapView.showsUserLocation = NO;
+    
+    UIImage *showImg = [UIImage imageNamed:@"wp_bottom_btn"];
     showBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    showBtn.frame = CGRectMake(60, 375, 200, 40);
-    [showBtn setTitle:@"剩余"
-             forState:UIControlStateNormal];
+    showBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-showImg.size.height,
+                                                 showImg.size.width,
+                                                 showImg.size.height)
+                           isBackView:NO];
+    [showBtn setBackgroundImage:showImg
+                       forState:UIControlStateNormal];
     showBtn.userInteractionEnabled = NO;
     [showBtn addTarget:self
                 action:@selector(doButtonClicked:)
       forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:showBtn];
     
+    [self initBottomBar];
+    [self initWaitPopView];
+    [self initInfoPopView];
+    
+    UIImage *bgImg = [UIImage imageNamed:@"sdp_resend_normal_btn"];
     reBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     reBtn.hidden  = YES;
     reBtn.tag     = 0;
-    [reBtn setImage:[UIImage imageNamed:@"cf_bg1"]
+    [reBtn setImage:bgImg
            forState:UIControlStateNormal];
-    reBtn.frame = CGRectMake(60, 375, 200, 40);
+    [reBtn setImage:[UIImage imageNamed:@"sdp_resend_hlight_btn"]
+           forState:UIControlStateNormal];
+    reBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-bgImg.size.height, bgImg.size.width, bgImg.size.height)
+                         isBackView:NO];
     [reBtn addTarget:self
                 action:@selector(doButtonClicked:)
       forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:reBtn];
     
-    timeLab = [[UILabel alloc]init];
-    timeLab.font  = [UIFont systemFontOfSize:18.f];
-    timeLab.frame = CGRectMake(120, 10, 80, 20);
-    timeLab.textAlignment   = NSTextAlignmentRight;
-    timeLab.backgroundColor = [UIColor clearColor];
-    [showBtn addSubview:timeLab];
-    
     isLast     = NO;
-    curPage    = 0;
+    curPage    = 1;
     timeTicker = 0;
-    waitTimeInvite = 20;//((NSNumber *)[[NSUserDefaults standardUserDefaults] objectForKey:PUSHMAXTIME]).intValue;
     
     teacherArray = [[NSMutableArray alloc]init];
+    if (!tObj)
+    {
+        [self searchNearTeacher];
+    }
+    else
+    {
+        [self sendInviteMsg];
+    }
     
-    //搜索附近老师
-    [self searchNearTeacher];
-    
-    CLog(@"getValuesDic:%@", valueDic);
-    
-    timer      = [NSTimer scheduledTimerWithTimeInterval:1.f
-                                             target:self
-                                           selector:@selector(startTimer:)
-                                           userInfo:nil
-                                            repeats:YES];
-    [timer fire];
+    //如果不是搜索页面,进入则搜索附近老师,并发送订单信息
+    timer = [[ThreadTimer alloc]init];
+    timer.delegate = self;
+    [timer setMinutesNum:20];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(getOrderFromTeacher:)
-                                                 name:@"OrderConfirm"
-                                               object:nil];
+                                         selector:@selector(getOrderFromTeacher:)
+                                             name:@"OrderConfirm"
+                                           object:nil];
 }
 
 - (void) seandInviteOffLineMsg:(NSString *) taPhone
@@ -186,8 +334,10 @@
 
 - (void) sendInviteMsg
 {
+    borderView.hidden = NO;
     if (tObj)
     {
+        cnt++; //邀请人数
         CLog(@"ONLY ONE Teacher");
         if (tObj.isIos && !tObj.isOnline)
         {
@@ -202,12 +352,13 @@
     else if (teacherArray)
     {
         CLog(@"ALL Teacher");
+        cnt += teacherArray.count;
         for (Teacher *obj in teacherArray)
         {
-            CLog(@"The Teahcer is OffLine:%@", tObj.phoneNums);
-            if (tObj.isIos && !tObj.isOnline)
+            CLog(@"The Teahcer is OffLine:%@", obj.phoneNums);
+            if (obj.isIos && !obj.isOnline)
             {
-                [self seandInviteOffLineMsg:tObj.phoneNums];
+                [self seandInviteOffLineMsg:obj.phoneNums];
             }
             else
             {
@@ -217,58 +368,12 @@
     }
     else
         CLog(@"Teacher array is NULL");
-}
-
-- (void) startTimer:(NSTimer *) timer
-{
-    if (waitTimeInvite == 0)
-    {
-        //更新界面...............
-        timeLab.text   = @"0";
-        reBtn.hidden   = NO;
-        showBtn.hidden = YES;
-        
-        UIImage *shareImg  = [UIImage imageNamed:@"sp_share_btn_normal"];
-        UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        shareBtn.tag = 1;
-        [shareBtn setTitle:@"改条件"
-                  forState:UIControlStateNormal];
-        shareBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
-        [shareBtn setBackgroundImage:shareImg
-                            forState:UIControlStateNormal];
-        [shareBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_hlight"]
-                            forState:UIControlStateHighlighted];
-        shareBtn.frame = CGRectMake(0, 0,
-                                    shareImg.size.width,
-                                    shareImg.size.height);
-        [shareBtn addTarget:self
-                     action:@selector(doButtonClicked:)
-           forControlEvents:UIControlEventTouchUpInside];
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:shareBtn];
-        return;
-    }
     
-    timeLab.text = [NSString stringWithFormat:@"%d", waitTimeInvite];
-    waitTimeInvite--;
-    
-    //间隔5秒钟请求新的一页
-    timeTicker++;
-    int pageTime = ((NSNumber *)[[NSUserDefaults standardUserDefaults] objectForKey:PUSHPAGETIME]).intValue;
-    if (timeTicker==pageTime && !isLast)
-    {
-        timeTicker = 0;
-        curPage++;
-        [self searchNearTeacher];
-    }
+    inviteCountLab.text = [NSString stringWithFormat:@"已邀请 %d 人", cnt];
 }
 
 - (void) searchNearTeacher
 {
-    //删除老师
-    [teacherArray removeAllObjects];
-    
-    NSString *log  = [[NSUserDefaults standardUserDefaults] objectForKey:LONGITUDE];
-    NSString *la   = [[NSUserDefaults standardUserDefaults] objectForKey:LATITUDE];
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     if (ssid)
     {
@@ -280,48 +385,26 @@
             salary = [salaryDic objectForKey:@"name"];
         }
         
+        NSDictionary *posDic = [valueDic objectForKey:@"POSDIC"];
+        NSString *latitude   = [posDic objectForKey:@"LATITUDE"];
+        NSString *longtitude = [posDic objectForKey:@"LONGTITUDE"];
+        
         NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"latitude",@"longitude",
                               @"page",@"subjectId",@"selectXBIndex",
                               @"kcbzIndex",@"zoom",@"sessid", nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",la,log,
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",latitude,longtitude,
                               [NSNumber numberWithInt:curPage],[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],
                               salary,[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
-        CLog(@"pDic:%@", pDic);
         NSString *webAddress = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
         NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
+    
         ServerRequest *request = [ServerRequest sharedServerRequest];
         request.delegate = self;
-        NSData *resData  = [request requestSyncWith:kServerPostRequest
-                                             paramDic:pDic
-                                               urlStr:url];
-        if (resData)
-        {
-            NSString *resStr = [[[NSString alloc]initWithData:resData
-                                                     encoding:NSUTF8StringEncoding]autorelease];
-            NSDictionary *resDic  = [resStr JSONValue];
-            NSArray *items = [resDic objectForKey:@"teachers"];
-            if (items.count>0)
-            {
-                CLog(@"Cur Page Teachers:%@", items);
-                for (NSDictionary *item in items)
-                {
-                    //设置老师属性
-                    Teacher *obj = [Teacher setTeacherProperty:[item copy]];
-                    [teacherArray addObject:obj];
-                    
-                    //发送邀请
-                    [self sendInviteMsg];
-                }
-            }
-            else
-            {
-                CLog(@"The Last Page");
-                //已经是最后一页
-                isLast = YES;
-            }
-        }
+        [request requestASyncWith:kServerPostRequest
+                         paramDic:pDic
+                           urlStr:url];
     }
     else
     {
@@ -392,11 +475,13 @@
     if (jsonStr)
     {
         NSData *data = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
-        
-        CLog(@"jsonStr:%@,%@", jsonStr, tId);
         session = [SingleMQTT shareInstance];
         [session.session publishData:data
                              onTopic:tId];
+        
+        //初始化抢单状态
+        [[NSUserDefaults standardUserDefaults] setBool:NO
+                                                forKey:IS_ORDER_CONFIRM];
     }
 }
 
@@ -412,8 +497,6 @@
             //更新界面
             self.navigationItem.rightBarButtonItem = nil;
             
-            waitTimeInvite = 20;
-            [timer fire];
             reBtn.hidden   = YES;
             showBtn.hidden = NO;
             
@@ -437,8 +520,7 @@
     NSString *log   = [[NSUserDefaults standardUserDefaults] objectForKey:@"LONGITUDE"];
     NSString *la    = [[NSUserDefaults standardUserDefaults] objectForKey:@"LATITUDE"];
     
-    Teacher *teacher = [notice.userInfo objectForKey:@"OrderTeacher"];
-    tObj = teacher;
+    tObj = [[notice.userInfo objectForKey:@"OrderTeacher"] copy];
     
     //封装iaddress_data
     NSDictionary *posDic = [valueDic objectForKey:@"POSDIC"];
@@ -474,7 +556,7 @@
     NSNumber *taMount = [NSNumber numberWithInt:salary.intValue*studyTimes];
     
     NSArray *paramsArr = [NSArray arrayWithObjects:@"subjectIndex",@"subjectId",@"subjectText",@"kcbzIndex",@"iaddress_data",@"teacher_phone",@"teacher_deviceId",@"phone",@"pushcc",@"type", @"nickname", @"grade",@"gender",@"subjectId",@"teacherGender",@"tamount",@"yjfdnum",@"sd",@"iaddress",@"longitude",@"latitude",@"otherText",@"audio",@"deviceId", @"keyId", nil];
-    NSArray *valueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Subject"],[Order searchSubjectName:[valueDic objectForKey:@"Subject"]],[salaryDic objectForKey:@"id"],jsonAdd,teacher.phoneNums,teacher.deviceId,student.phoneNumber,@"0",[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, [Student searchGradeName:student.grade], [Student searchGenderID:student.gender],[valueDic objectForKey:@"Subject"],[Student searchGenderID:[valueDic objectForKey:@"Sex"]],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,@"",@"",[SingleMQTT getCurrentDevTopic], [[NSUserDefaults standardUserDefaults] objectForKey:@"TIMESP"], nil];
+    NSArray *valueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Subject"],[Order searchSubjectName:[valueDic objectForKey:@"Subject"]],[salaryDic objectForKey:@"id"],jsonAdd,tObj.phoneNums,tObj.deviceId,student.phoneNumber,@"0",[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, [Student searchGradeName:student.grade], [Student searchGenderID:student.gender],[valueDic objectForKey:@"Subject"],[Student searchGenderID:[valueDic objectForKey:@"Sex"]],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,@"",@"",[SingleMQTT getCurrentDevTopic], [[NSUserDefaults standardUserDefaults] objectForKey:@"TIMESP"], nil];
     NSDictionary *orderDic = [NSDictionary dictionaryWithObjects:valueArr
                                                          forKeys:paramsArr];
     NSString *jsonOrder = [orderDic JSONFragment];
@@ -497,6 +579,66 @@
 - (void) doBackBtnClicked:(id)sender
 {
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void) initTeachersAnnotation
+{
+    for (Teacher *teacherObj in teacherArray)
+    {
+        CustomPointAnnotation *ann = [[[CustomPointAnnotation alloc] init]autorelease];
+        ann.coordinate = CLLocationCoordinate2DMake(teacherObj.latitude.floatValue,
+                                                    teacherObj.longitude.floatValue);
+
+        ann.teacherObj = teacherObj;
+        [self.mapView addAnnotation:ann];
+    }
+}
+
+#pragma mark -
+#pragma mark - ThreadTimer Delegate
+- (void) secondResponse:(ThreadTimer *)tmpTimer
+{
+    if (tmpTimer.second == 0)
+    {
+        reBtn.hidden      = NO;
+        showBtn.hidden    = YES;
+        borderView.hidden = YES;
+        infoView.hidden   = NO;
+        
+        UIImage *shareImg  = [UIImage imageNamed:@"sp_share_btn_normal"];
+        UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        shareBtn.tag = 1;
+        [shareBtn setTitle:@"改条件"
+                  forState:UIControlStateNormal];
+        shareBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
+        [shareBtn setBackgroundImage:shareImg
+                            forState:UIControlStateNormal];
+        [shareBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_hlight"]
+                            forState:UIControlStateHighlighted];
+        shareBtn.frame = CGRectMake(0, 0,
+                                    shareImg.size.width,
+                                    shareImg.size.height);
+        [shareBtn addTarget:self
+                     action:@selector(doButtonClicked:)
+           forControlEvents:UIControlEventTouchUpInside];
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:shareBtn];
+        return;
+    }
+    
+    cntLab.text = [NSString stringWithFormat:@"%d", tmpTimer.second];
+    
+    if (!tObj)
+    {
+        //间隔5秒钟请求新的一页
+        timeTicker++;
+        int pageTime = ((NSNumber *)[[NSUserDefaults standardUserDefaults] objectForKey:PUSHPAGETIME]).intValue;
+        if (timeTicker==pageTime && !isLast)
+        {
+            timeTicker = 0;
+            curPage++;
+            [self searchNearTeacher];
+        }
+    }
 }
 
 #pragma mark -
@@ -537,13 +679,44 @@
 #pragma mark - MAMapViewDelegate
 - (void) mapView:(MAMapView *)mapView didUpdateUserLocation:(MAUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
-    [self.mapView setCenterCoordinate:userLocation.coordinate];
-    self.mapView.showsUserLocation = NO;
+    CLog(@"enter update user location");
 }
 
 - (void) mapView:(MAMapView *)mapView didFailToLocateUserWithError:(NSError *)error
 {
     CLog(@"Locate User Failed");
+}
+
+- (MAAnnotationView*)mapView:(MAMapView *)mapView viewForAnnotation:(id<MAAnnotation>)annotation
+{
+    if ([annotation isKindOfClass:[MAPointAnnotation class]])
+    {
+        static NSString *pointReuseIndetifier = @"pointReuseIndetifier";
+        CustomPointAnnotation *cpAnn = (CustomPointAnnotation *) annotation;
+        if (cpAnn.tag == 1000)
+        {
+            MAAnnotationView *annView = (MAAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
+            if (annView == nil)
+            {
+                annView = [[[MAAnnotationView alloc] initWithAnnotation:annotation
+                                                        reuseIdentifier:pointReuseIndetifier]autorelease];
+            }
+            annView.image = [UIImage imageNamed:@"my_location_icon"];
+            return annView;
+        }
+        else
+        {
+            TTCustomAnnotationView *annView = (TTCustomAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
+            if (annView == nil)
+            {
+                annView = [[TTCustomAnnotationView alloc] initWithAnnotation:annotation
+                                                             reuseIdentifier:pointReuseIndetifier];
+            }
+            return annView;
+        }
+    }
+    
+    return nil;
 }
 
 #pragma mark -
@@ -579,47 +752,88 @@
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
     {
-        [self showAlertWithTitle:@"提示"
-                             tag:0
-                         message:@"订单提交成功"
-                        delegate:self
-               otherButtonTitles:@"确定",nil];
+        NSString *action = [[resDic objectForKey:@"action"] copy];
+        if ([action isEqualToString:@"findNearbyTeacher"])
+        {
+            NSArray *items = [resDic objectForKey:@"teachers"];
+            if (items.count>0)
+            {
+                //删除老师
+                [teacherArray removeAllObjects];
 
-        //发送订单成功信息
-        NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
-        Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
-        NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",@"nickname",@"keyId",@"taPhone", nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_CONFIRM],@"success",student.phoneNumber,
-                                                       student.nickName,[resDic objectForKey:@"orderid"],tObj.phoneNums, nil];
-        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr forKeys:paramsArr];
-        NSString *jsonDic  = [pDic JSONFragment];
-        NSData *data = [jsonDic dataUsingEncoding:NSUTF8StringEncoding];
-        session = [SingleMQTT shareInstance];
-        [session.session publishData:data
-                             onTopic:tObj.deviceId];
-        CLog(@"pDic:%@", jsonDic);
-        
-        
-        //跳转到聊天窗口
-        
-        //封装订单
-        //没有具体区名字
-        NSString *dst = @"";
-        if ([valueDic objectForKey:@"DIST"])
-            dst = [valueDic objectForKey:@"DIST"];
-        NSString *provice = [valueDic objectForKey:@"PROVICE"];
-        NSString *city    = [valueDic objectForKey:@"CITY"];
-        
-        NSDictionary *orderDic    = [NSDictionary dictionaryWithObjectsAndKeys:[resDic objectForKey:@"orderid"],@"oid", [valueDic objectForKey:@"Date"],@"order_addtime",[valueDic objectForKey:@"Pos"],@"order_iaddress",[valueDic objectForKey:@"Time"],@"order_jyfdnum",[valueDic objectForKey:@"Salary"],@"order_kcbz",provice,@"provinceName",city,@"cityName",dst,@"districtName",nil];
+                CLog(@"Cur Page Teachers:%@", items);
+                for (NSDictionary *item in items)
+                {
+                    //设置老师属性
+                    Teacher *obj = [Teacher setTeacherProperty:item];
+                    [teacherArray addObject:obj];
+                }
+                                
+                //显示在地图上
+                [self initTeachersAnnotation];
+                
+                //发送邀请
+                [self sendInviteMsg];
+            }
+            else
+            {
+                CLog(@"The Last Page");
+                //已经是最后一页
+                isLast = YES;
+            }
+        }
+        else
+        {
+            //发送订单成功信息
+            NSString *orderId  = [[resDic objectForKey:@"orderid"] copy];
+            CLog(@"orderId%@,%@", [resDic objectForKey:@"orderid"], orderId);
+            NSData *stuData    = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
+            Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+            NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",@"nickname",@"keyId",@"taPhone", nil];
+            NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_CONFIRM],@"success",student.phoneNumber,
+                                                           student.nickName,orderId,tObj.phoneNums, nil];
+            NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                             forKeys:paramsArr];
+            NSString *jsonDic  = [pDic JSONFragment];
+            NSData *data = [jsonDic dataUsingEncoding:NSUTF8StringEncoding];
+            session = [SingleMQTT shareInstance];
+            [session.session publishData:data
+                                 onTopic:tObj.deviceId];
+            
+            //保存抢单状态
+            [[NSUserDefaults standardUserDefaults] setBool:YES
+                                                    forKey:IS_ORDER_CONFIRM];
+            
+            /**
+             *跳转到聊天窗口
+             */
+            //封装订单
+            //没有具体区名字
+            NSString *dst = @"";
+            if ([valueDic objectForKey:@"DIST"])
+                dst = [valueDic objectForKey:@"DIST"];
+            NSString *provice = [valueDic objectForKey:@"PROVICE"];
+            NSString *city    = [valueDic objectForKey:@"CITY"];
+            
+            NSDictionary *orderDic    = [NSDictionary dictionaryWithObjectsAndKeys:[resDic objectForKey:@"orderid"],@"oid",
+                                                                                     [valueDic objectForKey:@"Date"],@"order_addtime",
+                                                                                     [valueDic objectForKey:@"Pos"],@"order_iaddress",
+                                                                                     [valueDic objectForKey:@"Time"],@"order_jyfdnum",
+                                                                                     [valueDic objectForKey:@"Salary"],@"order_kcbz",
+                                                                                     provice,@"provinceName",
+                                                                                     city,@"cityName",
+                                                                                     dst,@"districtName",nil];
 
-        CLog(@"order information:%@", orderDic);
-        
-        ChatViewController *cVctr = [[ChatViewController alloc]init];
-        cVctr.tObj  = tObj;
-        cVctr.order = [[Order setOrderProperty:orderDic] copy];
-        [self.navigationController pushViewController:cVctr
-                                             animated:YES];
-        [cVctr release];
+            CLog(@"order information:%@", orderDic);
+            
+            ChatViewController *cVctr = [[ChatViewController alloc]init];
+            cVctr.tObj  = tObj;
+            cVctr.order = [Order setOrderProperty:orderDic];
+            cVctr.order.teacher = tObj;
+            [self.navigationController pushViewController:cVctr
+                                                 animated:YES];
+            [cVctr release];
+        }
     }
     else
     {
@@ -631,9 +845,10 @@
                otherButtonTitles:@"确定",nil];
         
         //发送订单成功失败
-        NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
-        Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
-        NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",@"nickname",@"keyId",@"taPhone", nil];
+        NSData *stuData    = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
+        Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",@"nickname",
+                              @"keyId",@"taPhone", nil];
         NSArray *valuesArr = [NSArray arrayWithObjects:@"2",@"failure",student.phoneNumber,
                               student.nickName,[resDic objectForKey:@"orderid"],tObj.phoneNums, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr forKeys:paramsArr];

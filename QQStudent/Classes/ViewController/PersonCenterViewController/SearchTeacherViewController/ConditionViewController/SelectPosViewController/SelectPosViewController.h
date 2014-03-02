@@ -46,8 +46,9 @@
 {
     BottomToolBar          *toolBar;
     NSMutableDictionary    *posDic;
-    CustomPointAnnotation *selAnn;
-    CalloutMapAnnotation *_calloutMapAnnotation;
+    CustomPointAnnotation  *selAnn;
+    CalloutMapAnnotation   *_calloutMapAnnotation;
+    CLLocationCoordinate2D loc;
 }
 @property (nonatomic, retain) MAMapView *mapView;
 @property (strong, nonatomic) HZAreaPickerView *locatePicker;

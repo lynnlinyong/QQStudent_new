@@ -13,6 +13,7 @@
 @end
 
 @implementation SelectSalaryViewController
+@synthesize money;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -62,32 +63,35 @@
 {
     UILabel *infoLab = [[UILabel alloc]init];
     infoLab.font = [UIFont systemFontOfSize:12.f];
-    infoLab.text = @"注意:课酬标准中已包含教师交通费";
+    infoLab.text = @"  注意:课酬标准中已包含教师交通费";
     infoLab.textColor = [UIColor whiteColor];
     infoLab.backgroundColor = [UIColor colorWithHexString:@"#009f66"];
-    infoLab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 20)
+    infoLab.frame = [UIView fitCGRect:CGRectMake(0, 3, 320, 30)
                            isBackView:NO];
     [self.view addSubview:infoLab];
     [infoLab release];
     
-    UIButton *navgBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [navgBtn setTitle:@"师生协商" forState:UIControlStateNormal];
+    UIImage *bgImg    = [UIImage imageNamed:@"talk_money"];
+    UIButton *navgBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [navgBtn setImage:bgImg
+             forState:UIControlStateNormal];
     [navgBtn addTarget:self
                 action:@selector(doNavgBtnClicked:)
       forControlEvents:UIControlEventTouchUpInside];
-    navgBtn.frame = [UIView fitCGRect:CGRectMake(320-105, 5, 100, 20)
+    navgBtn.frame = [UIView fitCGRect:CGRectMake(320-50-10, 8,
+                                                 50, 20)
                            isBackView:NO];
     [self.view addSubview:navgBtn];
     
-    UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"xc_bg.9.png"]];
-    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 20,
+    UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"xc_bg"]];
+    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 30,
                                                 self.view.frame.size.width+4,
                                                 self.view.frame.size.height)
                           isBackView:NO];
     [self.view addSubview:bgView];
 
     scrollView = [[UIScrollView alloc]init];
-    scrollView.frame = [UIView fitCGRect:CGRectMake(0, 25,
+    scrollView.frame = [UIView fitCGRect:CGRectMake(0, 35,
                                   self.view.frame.size.width,
                                   self.view.frame.size.height-20)
                               isBackView:NO];
@@ -100,8 +104,7 @@
     botomLab.text = @"                               更高课酬, 更多品牌认证老师!";
     botomLab.textColor = [UIColor whiteColor];
     botomLab.backgroundColor = [UIColor colorWithHexString:@"#009f66"];
-    botomLab.frame = [UIView fitCGRect:CGRectMake(0, self.view.frame.size.height-20-44-9,
-                                                  320, 20)
+    botomLab.frame = [UIView fitCGRect:CGRectMake(0, self.view.frame.size.height-45-10,                                                  320, 20)
                             isBackView:NO];
     [self.view addSubview:botomLab];
     [botomLab release];
@@ -191,13 +194,27 @@
                                              initWithFrame:CGRectMake(160-offset.intValue, 60+i*yOffset, 100, 20)];
                 sfView.tag = i;
                 sfView.delegate = self;
+                NSString *curMoney =(NSString *)[item objectForKey:@"name"];
                 if (offsetIndex == 2)
-                    [sfView setLeft:NO money:[item objectForKey:@"name"]];
+                {
+                    if ([curMoney isEqualToString:money])
+                        [sfView setIsSelect:YES];
+                    else
+                        [sfView setIsSelect:NO];
+                    [sfView setLeft:NO money:curMoney];
+                }
                 else
                 {
+                    if ([curMoney isEqualToString:money])
+                        [sfView setIsSelect:YES];
+                    else
+                        [sfView setIsSelect:NO];
+                    
                     if (i==0)
-                        [sfView setLeft:YES money:@"师生协商"];
+                        [sfView setLeft:YES
+                                  money:@"师生协商"];
                     [sfView setLeft:YES money:[item objectForKey:@"name"]];
+
                 }
                 [scrollView addSubview:sfView];
             }

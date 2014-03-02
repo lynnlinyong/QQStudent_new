@@ -8,9 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SiteOtherViewController : UIViewController<UIScrollViewDelegate>
+@interface SiteOtherViewController : UIViewController<UIScrollViewDelegate,MBProgressHUDDelegate>
 {
     UIScrollView  *uiSView;
+    MBProgressHUD *HUD;
 }
 
 @property (nonatomic, copy) Site *site;

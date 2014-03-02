@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface UIImage (CircleImage)
-+(UIImage*) circleImage:(UIImage*) image withParam:(CGFloat) inset;
++(UIImage*) circleImage:(UIImage*) image withParam:(CGFloat) inset withColor:(UIColor *) color;
 @end

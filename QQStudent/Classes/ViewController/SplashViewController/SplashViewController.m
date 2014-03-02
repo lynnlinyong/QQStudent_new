@@ -71,7 +71,7 @@
 #elif
     img1.image = [UIImage imageNamed:@"yd2"];
 #endif
-    img1.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 460)
+    img1.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 480)
                         isBackView:YES];
     [uiSView addSubview:img1];
     
@@ -81,7 +81,7 @@
 #elif
     img2.image = [UIImage imageNamed:@"yd3"];
 #endif
-    img2.frame = [UIView fitCGRect:CGRectMake(320, 0, 320, 460)
+    img2.frame = [UIView fitCGRect:CGRectMake(320, 0, 320, 480)
                         isBackView:YES];
     [uiSView addSubview:img2];
     
@@ -91,7 +91,7 @@
 #elif
     img3.image = [UIImage imageNamed:@"yd4"];
 #endif
-    img3.frame = [UIView fitCGRect:CGRectMake(640, 0, 320, 460)
+    img3.frame = [UIView fitCGRect:CGRectMake(640, 0, 320, 480)
                         isBackView:YES];
     [uiSView addSubview:img3];
     
@@ -101,7 +101,7 @@
 #elif
     img4.image = [UIImage imageNamed:@"yd6"];
 #endif
-    img4.frame = [UIView fitCGRect:CGRectMake(960, 0, 320, 460)
+    img4.frame = [UIView fitCGRect:CGRectMake(960, 0, 320, 480)
                         isBackView:YES];
     [uiSView addSubview:img4];
     
@@ -111,7 +111,7 @@
 #elif
     img5.image = [UIImage imageNamed:@"yd5"];
 #endif
-    img5.frame = [UIView fitCGRect:CGRectMake(960, 0, 320, 460)
+    img5.frame = [UIView fitCGRect:CGRectMake(960, 0, 320, 480)
                         isBackView:YES];
     [uiSView addSubview:img5];
     [self.view addSubview:uiSView];
@@ -157,7 +157,7 @@
     if ((page == 3) && (offset > 20))
     {
         MainViewController *mainVctr = [[MainViewController alloc]init];
-        CustomNavigationViewController *nav = [[CustomNavigationViewController alloc]initWithRootViewController:mainVctr];
+        CustomNavigationViewController *nav = [[[CustomNavigationViewController alloc]initWithRootViewController:mainVctr]autorelease];
         AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         app.window.rootViewController = nav;
     }

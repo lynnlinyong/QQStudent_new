@@ -203,7 +203,10 @@
 	self.stringLabel.frame = labelRect;
 	
 	if(string)
-		self.spinnerView.center = CGPointMake(ceil(CGRectGetWidth(self.hudView.bounds)/2)+0.5, 40.5);
+    {
+         self.spinnerView.center = CGPointMake(ceil(CGRectGetWidth(self.hudView.bounds)/2)+0.5, 40.5);
+         self.voiceValuesImgVew.center = CGPointMake(ceil(CGRectGetWidth(self.hudView.bounds)/2)+0.5, 40.5);
+    }
 	else
     {
 //		self.spinnerView.center = CGPointMake(ceil(CGRectGetWidth(self.hudView.bounds)/2)+0.5, ceil(self.hudView.bounds.size.height/2)+0.5);
@@ -537,8 +540,12 @@
 
 - (void) setVoiceLevelNotice:(NSNotification *) notice
 {
+    int maxTime = 60;
+    
+    int time  = ((NSNumber *) [notice.userInfo objectForKey:@"TIME"]).intValue;
     int level = ((NSNumber *) [notice.userInfo objectForKey:@"LEVEL"]).intValue;
-    CLog(@"getNotice:%d", level);
+
+    [self setStatus:[NSString stringWithFormat:@"%d秒",maxTime-time]];
     switch (level)
     {
         case MUTE_LEVEL:

@@ -27,13 +27,18 @@
     [super viewDidAppear:animated];
     
     [MainViewController setNavTitle:@"个人中心"];
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            [self checkSessidIsValid];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+        });
+    });
 }
 
 - (void) viewDidLoad
 {
     [super viewDidLoad];
-    
-    [self checkSessidIsValid];
 }
 
 - (void)didReceiveMemoryWarning
@@ -60,7 +65,7 @@
                                              urlStr:url];
     NSString *resStr = [[[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding]autorelease];
-    NSDictionary *resDic  = [resStr JSONValue];
+    NSDictionary *resDic  = [[resStr JSONValue] retain];
     NSString *eerid = [[resDic objectForKey:@"errorid"] copy];
     if (resDic)
     {
@@ -68,14 +73,14 @@
         {
             //获得最新个人信息
             CLog(@"get New Info:%@", resDic);
-            NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
+            NSDictionary *stuDic = [[resDic objectForKey:@"studentInfo"] retain];
             
             //获得Student
             Student *student    = [[Student alloc]init];
             student.email       = [stuDic objectForKey:@"email"];
             student.gender      = [[stuDic objectForKey:@"gender"] copy];
             student.grade       = [[stuDic objectForKey:@"grade"]  copy];
-            student.icon        = [stuDic objectForKey:@"icon"];
+            student.icon        = [[stuDic objectForKey:@"icon"] copy];
             student.latltude    = [stuDic objectForKey:@"latitude"];
             student.longltude   = [stuDic objectForKey:@"longitude"];
             student.lltime      = [stuDic objectForKey:@"lltime"];
@@ -85,10 +90,11 @@
             student.phoneStars  = [[stuDic objectForKey:@"phone_stars"] copy];
             student.locStars    = [[stuDic objectForKey:@"location_stars"] copy];
             
-            NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
+            NSData *stuData = [[NSKeyedArchiver archivedDataWithRootObject:student] retain];
             [[NSUserDefaults standardUserDefaults] setObject:stuData
                                                       forKey:STUDENT];
             [student release];
+            [stuData release];
         }
         else
         {

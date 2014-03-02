@@ -9,6 +9,12 @@
 #import <UIKit/UIKit.h>
 #import "MQTTSession.h"
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate,WXApiDelegate>
+@interface AppDelegate : UIResponder <
+                                    UIApplicationDelegate,
+                                    WXApiDelegate,
+                                    ServerRequestDelegate>
 @property (strong, nonatomic) UIWindow *window;
+
++ (BOOL) isInView:(NSString *) vctrName;
++(void) dealWithMessage:(NSDictionary *)msgDic isPlayVoice:(BOOL) isPlay;
 @end

@@ -14,7 +14,6 @@
 
 @implementation SearchConditionViewController
 @synthesize tObj;
-//@synthesize teacherArray;
 @synthesize posDic;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -59,7 +58,8 @@
     
     recordAudio.delegate = nil;
     
-//    [teacherArray removeAllObjects];
+    orderTab.delegate = nil;
+    orderTab.dataSource = nil;
     [super viewDidUnload];
 }
 
@@ -69,7 +69,7 @@
     [recordAudio  release];
     [subValLab    release];
     [dateValLab   release];
-//    [teacherArray release];
+    [orderTab release];
     [timeValueLab release];
     [messageField release];
     [sexValLab release];
@@ -83,26 +83,28 @@
     UIImage *titleImg = [UIImage imageNamed:@"sd_title"];
     UIImageView *titleImgView = [[UIImageView alloc]init];
     titleImgView.image = titleImg;
-    titleImgView.frame = [UIView fitCGRect:CGRectMake(20, 15,
+    titleImgView.frame = [UIView fitCGRect:CGRectMake(self.view.frame.size.width/2-titleImg.size.width/2, 10,
                                                       titleImg.size.width, titleImg.size.height)
                                 isBackView:NO];
     [self.view addSubview:titleImgView];
+    [titleImgView release];
     
     orderTab = [[UITableView alloc]init];
     orderTab.delegate = self;
     orderTab.dataSource = self;
     orderTab.scrollEnabled = NO;
-    orderTab.frame = [UIView fitCGRect:CGRectMake(20, titleImg.size.height+10,
+    orderTab.frame = [UIView fitCGRect:CGRectMake(self.view.frame.size.width/2-titleImg.size.width/2, titleImg.size.height+10,
                                                   titleImg.size.width, 340)
                             isBackView:YES];
     orderTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.view addSubview:orderTab];
+
     
     orderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     orderBtn.tag   = 1;
     UIImage *img   = [UIImage imageNamed:@"main_invit_invide_btn"];
     orderBtn.frame = [UIView fitCGRect:CGRectMake(160-img.size.width/2,
-                                                  460-54-img.size.height,
+                                                  480-44-img.size.height,
                                                   img.size.width,
                                                   img.size.height)
                             isBackView:NO];
@@ -154,9 +156,8 @@
     NSArray *paths   = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                            NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSMutableString  *path       = [[NSMutableString alloc]initWithString:documentsDirectory];
+    NSMutableString  *path       = [[[NSMutableString alloc]initWithString:documentsDirectory]autorelease];
     [path appendString:VOICE_NAME];
-    
     return path;
 }
 
@@ -172,10 +173,11 @@
     NSURL *url       = [recordAudio stopRecord];
     CLog(@"URL:%@", url);
     NSData *curAudio = EncodeWAVEToAMR([NSData dataWithContentsOfURL:url],1,16);
-    NSString *path   = [self getRecordURL];
+    NSString *path   = [[self getRecordURL] retain];
     CLog(@"path:%@", path);
     [curAudio writeToFile:path
                atomically:YES];
+    [path release];
 }
 
 -(void)RecordStatus:(int)status
@@ -218,6 +220,9 @@
     {
         case LONG_PRESS_BUTTON_DOWN:      //长按开始
         {
+            //显示动画
+            [SVProgressHUD show];
+            
             [self startRecord];
             break;
         }
@@ -228,6 +233,9 @@
                              message:@"录音时间太短"
                             delegate:self
                    otherButtonTitles:@"确定",nil];
+            //停止动画
+            [SVProgressHUD dismiss];
+            [self stopRecord];
             break;
         }
         case LONG_PRESS_BUTTON_LONG:     //长按太长
@@ -237,11 +245,17 @@
                              message:@"录音时间太长"
                             delegate:self
                    otherButtonTitles:@"确定",nil];
+            //停止动画
+            [SVProgressHUD dismiss];
+            [self stopRecord];
             break;
         }
         case LONG_PRESS_BUTTON_UP:       //长按结束
         {
+            //停止动画
+            [SVProgressHUD dismiss];
             [self stopRecord];
+            
             recordLongPressBtn.hidden = YES;
             recordSuccessBtn.hidden   = NO;
             
@@ -316,6 +330,7 @@
                 NSData *resVal = [request requestSyncWith:kServerPostRequest
                                                  paramDic:pDic
                                                    urlStr:url];
+                assert(resVal);
                 if (resVal)
                 {
                     NSString *resStr = [[[NSString alloc]initWithData:resVal
@@ -348,8 +363,9 @@
                                                       forKey:@"Condition"];
             
             WaitConfirmViewController *wcVctr = [[WaitConfirmViewController alloc]init];
+            if (tObj)
+                wcVctr.tObj     = tObj;
             wcVctr.valueDic     = [valueDic copy];
-            wcVctr.tObj         = tObj;
             [self.navigationController pushViewController:wcVctr
                                                  animated:YES];
             [wcVctr release];
@@ -793,6 +809,7 @@
         case 1:
         {
             SelectSubjectViewController *ssVctr = [[SelectSubjectViewController alloc]init];
+            ssVctr.subName = subValLab.text;
             [self presentPopupViewController:ssVctr
                                animationType:MJPopupViewAnimationFade];
             break;
@@ -800,6 +817,10 @@
         case 2:
         {
             SelectSexViewController *ssVctr = [[SelectSexViewController alloc]init];
+            if (sexValLab.text.length==0)
+                ssVctr.sexName = @"男";
+            else
+                ssVctr.sexName = sexValLab.text;
             [self presentPopupViewController:ssVctr
                                animationType:MJPopupViewAnimationFade];
             break;
@@ -807,6 +828,10 @@
         case 3:
         {
             SelectSalaryViewController *ssVctr = [[SelectSalaryViewController alloc]init];
+            if (salaryValLab.text==0)
+                ssVctr.money = @"180";
+            else
+                ssVctr.money = salaryValLab.text;
             [self.navigationController pushViewController:ssVctr
                                                  animated:YES];
             [ssVctr release];
@@ -815,7 +840,10 @@
         case 4:
         {
             SelectTimesViewController *stVctr = [[SelectTimesViewController alloc]init];
-            stVctr.curValue = timeValueLab.text;
+            if (timeValueLab.text.length == 0)
+                stVctr.curValue = @"100";
+            else
+                stVctr.curValue = timeValueLab.text;
             [self presentPopupViewController:stVctr
                                animationType:MJPopupViewAnimationFade];
             break;

@@ -281,15 +281,24 @@
     
     if (selectArray.count>0)
     {
+        NSDictionary *shareDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"ShareContent"];
+        NSDictionary *contactsDic = [shareDic objectForKey:@"contacts"];
+        NSString *content = @"";
+        if (contactsDic)
+        {
+            if ([contactsDic objectForKey:@"studentapp"])
+                content = [contactsDic objectForKey:@"studentapp"];
+        }
+        
         //调用短信
         if( [MFMessageComposeViewController canSendText] )
         {
             MFMessageComposeViewController * controller = [[MFMessageComposeViewController alloc]init]; //autorelease];
             controller.recipients = phoneArray;
-            controller.body = @"轻轻家教赶快去下载哦!!!www.baidu.com";
+            controller.body = content;
             controller.messageComposeDelegate = self;
             [self presentModalViewController:controller animated:YES];
-            [[[[controller viewControllers] lastObject] navigationItem] setTitle:@"测试短信"];//修改短信界面标题
+//            [[[[controller viewControllers] lastObject] navigationItem] setTitle:@"测试短信"];//修改短信界面标题
         }else
         {
             [self showAlertWithTitle:@"提示"

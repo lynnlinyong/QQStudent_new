@@ -25,6 +25,7 @@
                                 isBackView:NO];
         info1Lab.text = @"给您推荐身边的好地点好环境 好安心 好学习";
         info1Lab.backgroundColor = [UIColor clearColor];
+        info1Lab.textColor     = [UIColor colorWithHexString:@"#00ffff"];
         info1Lab.lineBreakMode = NSLineBreakByWordWrapping;
         info1Lab.numberOfLines = 0;
         [self addSubview:info1Lab];
@@ -33,6 +34,7 @@
         info2Lab.frame = [UIView fitCGRect:CGRectMake(156, 300, 150, 40)
                                 isBackView:NO];
         info2Lab.text = @"输入精确到门牌号哦如:长青路43弄22号";
+        info2Lab.textColor     = [UIColor colorWithHexString:@"#00ffff"];
         info2Lab.backgroundColor = [UIColor clearColor];
         info2Lab.lineBreakMode = NSLineBreakByWordWrapping;
         info2Lab.numberOfLines = 0;
@@ -43,6 +45,14 @@
                                 isBackView:NO];
         imgView1.image = [UIImage imageNamed:@"arrow.png"];
         [self addSubview:imgView1];
+        
+        UIImage *locImg = [UIImage imageNamed:@"location_3"];
+        UIImageView *imageView3 = [[UIImageView alloc]init];
+        imageView3.frame = [UIView fitCGRect:CGRectMake(171, 170, locImg.size.width, locImg.size.height)
+                                isBackView:NO];
+        imageView3.image = locImg;
+        [self addSubview:imageView3];
+        [imageView3 release];
         
         imgView2 = [[UIImageView alloc]init];
         imgView2.frame = [UIView fitCGRect:CGRectMake(113, 350, 60, 60)
@@ -125,9 +135,9 @@
         [okBtn setBackgroundImage:okImg
                          forState:UIControlStateNormal];
         okBtn.frame = [UIView fitCGRect:CGRectMake(320-okImg.size.width-7,
-                                                   7,
+                                                   6,
                                                    okImg.size.width,
-                                                   okImg.size.height+1)
+                                                   okImg.size.height+2)
                              isBackView:NO];
         [okBtn addTarget:self
                   action:@selector(doButtonClicked:)
@@ -243,6 +253,19 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) packagePosDic:(NSString *) provice city:(NSString *)
+city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinate2D) lc
+{
+    [posDic setObject:provice forKey:@"PROVICE"];
+    [posDic setObject:city forKey:@"CITY"];
+    [posDic setObject:dist forKey:@"DIST"];
+    [posDic setObject:address forKey:@"ADDRESS"];
+    [posDic setObject:[NSString stringWithFormat:@"%f", lc.latitude]
+               forKey:@"LATITUDE"];
+    [posDic setObject:[NSString stringWithFormat:@"%f", lc.longitude]
+               forKey:@"LONGTITUDE"];
+}
+
 - (void) initUI
 {
     //显示地图
@@ -252,7 +275,6 @@
                                                                                  480)
                                                            isBackView:YES]];
     self.mapView.delegate   = self;
-    self.mapView.showsScale = NO;
     [self.mapView setZoomLevel:13
                       animated:YES];
     [self.view addSubview:self.mapView];
@@ -280,7 +302,8 @@
     posDic = [[NSMutableDictionary alloc]init];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(selectPosAreaNotice:) name:@"selectPosAreaNotice"
+                                             selector:@selector(selectPosAreaNotice:)
+                                                 name:@"selectPosAreaNotice"
                                                object:nil];
 }
 
@@ -298,6 +321,7 @@
                                            toCoordinateFromView:self.mapView];
         
         CLog(@"经纬度:%lf, %lf", coo.longitude,  coo.latitude);
+        loc = coo;
         
         //逆向地理编码
         [self searchReGeocode:coo];
@@ -356,21 +380,28 @@
 
 - (void) selectPosAreaNotice:(NSNotification *) notice
 {
-    NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [notice.userInfo objectForKey:@"PROVICE"],[notice.userInfo objectForKey:@"CITY"],[notice.userInfo objectForKey:@"DIST"]];
+    NSString *posAddress = [NSString stringWithFormat:@"%@%@%@", [notice.userInfo objectForKey:@"PROVICE"],
+                                                                 [notice.userInfo objectForKey:@"CITY"],
+                                                                 [notice.userInfo objectForKey:@"DIST"]];
     CLog(@"posAddress:%@", posAddress);
-    [self searchGeocode:posAddress];
+    if (posAddress.length>0)
+    {
+        toolBar.posFld.text = posAddress;
+        
+        [self searchGeocode:posAddress];
+    }
 }
 
 #pragma mark -
 #pragma mark - AMapSearchDelegate
-- (void)searchReGeocode:(CLLocationCoordinate2D) loc
+- (void)searchReGeocode:(CLLocationCoordinate2D) tmpLoc
 {
     AMapSearchAPI *search = [[AMapSearchAPI alloc]initWithSearchKey:(NSString *)MAP_API_KEY
                                                             Delegate:self];
     AMapReGeocodeSearchRequest *regeoRequest = [[AMapReGeocodeSearchRequest alloc] init];
     regeoRequest.searchType = AMapSearchType_ReGeocode;
-    regeoRequest.location = [AMapGeoPoint locationWithLatitude:loc.latitude
-                                                     longitude:loc.longitude];
+    regeoRequest.location = [AMapGeoPoint locationWithLatitude:tmpLoc.latitude
+                                                     longitude:tmpLoc.longitude];
     regeoRequest.radius = 10000;
     regeoRequest.requireExtension = YES;
     [search AMapReGoecodeSearch:regeoRequest];
@@ -380,7 +411,8 @@
 {
     AMapSearchAPI *search = [[AMapSearchAPI alloc]initWithSearchKey:(NSString *)MAP_API_KEY
                                                             Delegate:self];
-    AMapGeocodeSearchRequest *geoRequest = [[AMapGeocodeSearchRequest alloc] init]; geoRequest.searchType = AMapSearchType_Geocode;
+    AMapGeocodeSearchRequest *geoRequest = [[AMapGeocodeSearchRequest alloc] init];
+    geoRequest.searchType = AMapSearchType_Geocode;
     geoRequest.address = address;
     [search AMapGeocodeSearch: geoRequest];
 }
@@ -452,19 +484,6 @@
     {
         case 0:     //切换区域
         {
-//            if ([toolBar.posFld isEditable])
-//            {
-//                [toolBar.posFld resignFirstResponder];
-//                [self repickView:self.view];
-//            }
-//            
-//            self.locatePicker = [[[HZAreaPickerView alloc] initWithStyle:HZAreaPickerWithStateAndCityAndDistrict delegate:self] autorelease];
-//            [self.locatePicker addObserver:self
-//                                forKeyPath:@"posY"
-//                                   options:NSKeyValueObservingOptionNew
-//                                   context:nil];
-//            [self.locatePicker showInView:self.view];
-            
             SelectAreaViewController *saVctr = [[SelectAreaViewController alloc]init];
             [self.navigationController pushViewController:saVctr
                                                  animated:YES];
@@ -473,7 +492,6 @@
         }
         case 1:     //确定
         {
-            
             [[NSNotificationCenter defaultCenter] postNotificationName:@"setPosNotice"
                                                                 object:nil
                                                               userInfo:posDic];
@@ -523,10 +541,16 @@
     if (!posName)
         posName = @"";
     
-    [posDic setObject:provice forKey:@"PROVICE"];
-    [posDic setObject:city forKey:@"CITY"];
-    [posDic setObject:dist forKey:@"DIST"];
-    [posDic setObject:posName forKey:@"ADDRESS"];
+//    [posDic setObject:provice forKey:@"PROVICE"];
+//    [posDic setObject:city forKey:@"CITY"];
+//    [posDic setObject:dist forKey:@"DIST"];
+//    [posDic setObject:posName forKey:@"ADDRESS"];
+    
+    [self packagePosDic:provice
+                   city:city
+                   dist:dist
+                address:posName
+                    pos:loc];
     
     toolBar.posFld.text = posName;
     toolBar.posFld.font = [UIFont systemFontOfSize:10.f];
@@ -545,8 +569,8 @@
     AMapGeocode *p = [response.geocodes objectAtIndex:0];
     selAnn.coordinate = CLLocationCoordinate2DMake(p.location.latitude,
                                                    p.location.longitude);
+    loc = selAnn.coordinate;
     [self.mapView setCenterCoordinate:selAnn.coordinate];
-    
     //搜索第三方场地
     [self searchNearOtherPos];
 }
@@ -571,8 +595,9 @@
         [self.mapView addAnnotation:selAnn];
         
         //逆向地理编码获得地址
+        loc = self.mapView.userLocation.coordinate;
         [self searchReGeocode:self.mapView.userLocation.coordinate];
-        
+
         //搜索第三方场地
         [self searchNearOtherPos];
     }
@@ -688,14 +713,20 @@
         
         //显示地址
         toolBar.posFld.text = address;
-        [posDic setObject:provice
-                   forKey:@"PROVICE"];
-        [posDic setObject:city
-                   forKey:@"CITY"];
-        [posDic setObject:dist
-                   forKey:@"DIST"];
-        [posDic setObject:address
-                   forKey:@"ADDRESS"];
+//        [posDic setObject:provice
+//                   forKey:@"PROVICE"];
+//        [posDic setObject:city
+//                   forKey:@"CITY"];
+//        [posDic setObject:dist
+//                   forKey:@"DIST"];
+//        [posDic setObject:address
+//                   forKey:@"ADDRESS"];
+        
+        [self packagePosDic:provice
+                       city:city
+                       dist:dist
+                    address:address
+                        pos:loc];
         
         [self.mapView addAnnotation:_calloutMapAnnotation];
         [self.mapView setCenterCoordinate:view.annotation.coordinate

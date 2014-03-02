@@ -11,5 +11,7 @@
 @interface SetNickNameViewController : UIViewController<UITextFieldDelegate>
 {
     UITextField   *nickNameFld;
+    UIButton *okBtn;
+    float originY;
 }
 @end

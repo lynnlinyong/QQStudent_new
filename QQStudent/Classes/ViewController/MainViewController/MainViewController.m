@@ -49,9 +49,6 @@
     //获取终端设置属性
     [self setTerminalMapProperty];
     
-    //获得Web服务器地址
-    [MainViewController getWebServerAddress];
-    
     //获得帮助电话
     [self getHelpPhone];
 
@@ -77,11 +74,10 @@
 
 - (void) dealloc
 {
-    [appurl release];
     [search release];
     [annArray release];
     [teacherArray release];
-    [self.mapView release];
+    [mapView release];
     [super dealloc];
 }
 
@@ -107,23 +103,16 @@
         updateMeters = ((NSNumber *)[tpDic objectForKey:@"uplocationNumber"]).intValue;
     }
     
-    self.mapView = [[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0,
+    mapView = [[MAMapView alloc] initWithFrame:[UIView fitCGRect:CGRectMake(0, 0,
                                                                                  320, 480)
-                                                           isBackView:YES]];
-    self.mapView.showsScale = NO;
-    self.mapView.delegate   = self;
-    self.mapView.distanceFilter  = updateMeters;//10米位置更新到服务器
-    self.mapView.headingFilter   = 180;
-    if (updateMeters<100)
-        self.mapView.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
-    else if (updateMeters>100 && updateMeters<1000)
-        self.mapView.desiredAccuracy = kCLLocationAccuracyHundredMeters;
-    else if (updateMeters>1000 && updateMeters<3000)
-        self.mapView.desiredAccuracy = kCLLocationAccuracyKilometer;
-    else
-        self.mapView.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
-    [self.mapView setZoomLevel:zooms];
-    self.mapView.showsUserLocation = YES;
+                                                      isBackView:YES]];
+    mapView.showsScale = NO;
+    mapView.delegate   = self;
+    mapView.distanceFilter  = updateMeters;//10米位置更新到服务器
+    mapView.headingFilter   = 180;
+    mapView.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
+    [mapView setZoomLevel:zooms];
+    mapView.showsUserLocation = YES;
     [self.view addSubview:self.mapView];
     
     UIImage *navImg   = [UIImage imageNamed:@"main_nav_normal_btn@2x"];
@@ -141,12 +130,13 @@
       forControlEvents:UIControlEventTouchUpInside];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:navBtn];
     
+    UIImage *image = [UIImage imageNamed:@"main_st_normal_btn"];
     UIButton *searchTeacherBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [searchTeacherBtn setImage:[UIImage imageNamed:@"main_st_normal_btn"]
+    [searchTeacherBtn setImage:image
                       forState:UIControlStateNormal];
     [searchTeacherBtn setImage:[UIImage imageNamed:@"main_st_hlight_btn"]
                       forState:UIControlStateHighlighted];
-    searchTeacherBtn.frame = [UIView fitCGRect:CGRectMake(20, 460-48-44, 280, 44)
+    searchTeacherBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-image.size.height, image.size.width, image.size.height)
                                     isBackView:NO];
     [searchTeacherBtn addTarget:self
                          action:@selector(doSearchBtnClicked:)
@@ -239,7 +229,7 @@
         titleLab.textAlignment = UITextAlignmentCenter;
         titleLab.text = @"轻轻家教";
         [nav.navigationBar addSubview:titleLab];
-        [title release];
+        [titleLab release];
     }
 }
 
@@ -251,44 +241,49 @@
 
 + (void) getWebServerAddress
 {
-    NSArray *paramsArr = [NSArray arrayWithObjects:@"action", nil];
-    NSArray *valuesArr = [NSArray arrayWithObjects:@"lb", nil];
-    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
-                                                     forKeys:paramsArr];
-    
-    ServerRequest *serverReq = [ServerRequest sharedServerRequest];
-    NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
-                                           paramDic:pDic
-                                             urlStr:ServerAddress];
-    if (resVal)
+    NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *pushAdd = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHADDRESS];
+    if (!webAdd||!pushAdd)
     {
-        NSString *resStr = [[[NSString alloc]initWithData:resVal
-                                                 encoding:NSUTF8StringEncoding]autorelease];
-        NSDictionary *resDic  = [resStr JSONValue];
-        CLog(@"resDic:%@", resDic);
-        if (resDic)
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"lb", nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        
+        ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+        NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
+                                               paramDic:pDic
+                                                 urlStr:ServerAddress];
+        if (resVal)
         {
-            NSString *webAddress  = [resDic objectForKey:@"web"];
-            NSString *pushAddress = [MainViewController getPushAddress:[resDic objectForKey:@"push"]];
-            NSString *port = [MainViewController getPort:[resDic objectForKey:@"push"]];
-            NSString *pushMaxTime = [resDic objectForKey:@"pushMaxTime"];
-            NSString *pushPageTime= [resDic objectForKey:@"pushPageTime"];
-            
-            [[NSUserDefaults standardUserDefaults] setObject:webAddress
-                                                      forKey:WEBADDRESS];
-            [[NSUserDefaults standardUserDefaults] setObject:pushAddress
-                                                      forKey:PUSHADDRESS];
-            [[NSUserDefaults standardUserDefaults] setObject:port
-                                                      forKey:PORT];
-            [[NSUserDefaults standardUserDefaults] setObject:pushMaxTime
-                                                      forKey:PUSHMAXTIME];
-            [[NSUserDefaults standardUserDefaults] setObject:pushPageTime
-                                                      forKey:PUSHPAGETIME];
+            NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                     encoding:NSUTF8StringEncoding]autorelease];
+            NSDictionary *resDic  = [resStr JSONValue];
+            CLog(@"resDic:%@", resDic);
+            if (resDic)
+            {
+                NSString *webAddress  = [resDic objectForKey:@"web"];
+                NSString *pushAddress = [MainViewController getPushAddress:[resDic objectForKey:@"push"]];
+                NSString *port = [MainViewController getPort:[resDic objectForKey:@"push"]];
+                NSString *pushMaxTime = [resDic objectForKey:@"pushMaxTime"];
+                NSString *pushPageTime= [resDic objectForKey:@"pushPageTime"];
+                
+                [[NSUserDefaults standardUserDefaults] setObject:webAddress
+                                                          forKey:WEBADDRESS];
+                [[NSUserDefaults standardUserDefaults] setObject:pushAddress
+                                                          forKey:PUSHADDRESS];
+                [[NSUserDefaults standardUserDefaults] setObject:port
+                                                          forKey:PORT];
+                [[NSUserDefaults standardUserDefaults] setObject:pushMaxTime
+                                                          forKey:PUSHMAXTIME];
+                [[NSUserDefaults standardUserDefaults] setObject:pushPageTime
+                                                          forKey:PUSHPAGETIME];
+            }
         }
-    }
-    else
-    {
-        CLog(@"getWebAddress failed!");
+        else
+        {
+            CLog(@"getWebAddress failed!");
+        }
     }
 }
 
@@ -364,7 +359,7 @@
 
 - (void)searchReGeocode:(CLLocationCoordinate2D) loc
 {
-    AMapReGeocodeSearchRequest *regeoRequest = [[AMapReGeocodeSearchRequest alloc] init];
+    AMapReGeocodeSearchRequest *regeoRequest = [[[AMapReGeocodeSearchRequest alloc] init]autorelease];
     regeoRequest.searchType = AMapSearchType_ReGeocode;
     regeoRequest.location = [AMapGeoPoint locationWithLatitude:loc.latitude
                                                      longitude:loc.longitude];
@@ -379,30 +374,35 @@
     NSString *log  = [NSString stringWithFormat:@"%f", loc.longitude];
     NSString *la   = [NSString stringWithFormat:@"%f", loc.latitude];
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
-    if (ssid)
-    {
-        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"latitude",@"longitude",
-                              @"page",@"subjectId",@"selectXBIndex",
-                              @"kcbzIndex",@"zoom",@"sessid", nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",la,log,
-                              @"1",@"0",@"0",
-                              @"0",[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
-        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
-                                                         forKeys:paramsArr];
-        
-        NSString *webAddress = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-        NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
+    if (!ssid)
+        ssid = @"";
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"latitude",@"longitude",
+                          @"page",@"subjectId",@"selectXBIndex",
+                          @"kcbzIndex",@"zoom",@"sessid", nil];
+    NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",la,log,
+                          @"1",@"0",@"0",
+                          @"0",[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                     forKeys:paramsArr];
+    
+    NSString *webAddress = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
         ServerRequest *request = [ServerRequest sharedServerRequest];
         request.delegate = self;
         [request requestASyncWith:kServerPostRequest
                          paramDic:pDic
                            urlStr:url];
-    }
-    else
-    {
-        [self.mapView removeAnnotation:self.mapView.userLocation];
-        [self.mapView removeOverlays:self.mapView.overlays];
-    }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+        });
+        
+    });  
+
+    //删除个人标注
+    [self.mapView removeAnnotation:self.mapView.userLocation];
+    [self.mapView removeOverlays:self.mapView.overlays];
 }
 
 - (void) initMapKey
@@ -414,15 +414,18 @@
 
 - (void) initTeachersAnnotation
 {
-    annArray = [[NSMutableArray alloc]init];
+    NSMutableArray *annArrs = [[NSMutableArray alloc]init];
     for (Teacher *teacherObj in teacherArray)
     {
         CustomPointAnnotation *ann = [[[CustomPointAnnotation alloc] init]autorelease];
         ann.coordinate = CLLocationCoordinate2DMake(teacherObj.latitude.floatValue, teacherObj.longitude.floatValue);
         ann.teacherObj = teacherObj;
-        [annArray addObject:ann];
+        [annArrs addObject:ann];
     }
-    [self.mapView addAnnotations:annArray];
+    [self.mapView addAnnotations:annArrs];
+    
+    [annArrs release];
+    [teacherArray removeAllObjects];
 }
 
 - (BOOL) isLogin
@@ -527,7 +530,6 @@
         PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]
                                               initWithViewControllers:ctrlArr
                                          imageArray:imgArr];
-//        [MainViewController setNavBackButton:pcVctr parentVctr:self];
         [self.navigationController pushViewController:pcVctr
                                              animated:YES];
         [pcVctr release];
@@ -544,8 +546,7 @@
     }
     else
     {
-        SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];
-//        scVctr.teacherArray = teacherArray;
+        SearchConditionViewController *scVctr = [[SearchConditionViewController alloc]init];        
         [self.navigationController pushViewController:scVctr
                                              animated:YES];
         [scVctr release];
@@ -569,7 +570,7 @@
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
-    NSData   *resVal = [request responseData];
+    NSData   *resVal = [[request responseData] retain];
     NSString *resStr = [[NSString alloc]initWithData:resVal
                                              encoding:NSUTF8StringEncoding];
     NSDictionary *resDic   = [resStr JSONValue];
@@ -703,6 +704,7 @@
                                                   forKey:LATITUDE];
 
         CLog(@"New Loc:%@,%@", log, la);
+        
         //更新个人位置服务器
         [self searchReGeocode:userLocation.coordinate];
     
@@ -734,7 +736,14 @@
 }
 
 - (void) mapView:(MAMapView *)mapView regionDidChangeAnimated:(BOOL)animated
-{   
+{
+    CLLocation *newPoint = [[CLLocation alloc]initWithLatitude:self.mapView.centerCoordinate.latitude
+                                                     longitude:self.mapView.centerCoordinate.longitude];
+    
+    double offsetKilometers = [newPoint distanceFromLocation:originPoint];
+    
+    CLog(@"距离:%f", offsetKilometers);
+    
     //获得市、区、街道的缩放级别
     NSDictionary *tpDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
     if (tpDic)
@@ -746,29 +755,26 @@
         float cityFilter  = ((NSNumber *)[tpDic objectForKey:@"mapCityDistance"]).floatValue;
         float distFilter  = ((NSNumber *)[tpDic objectForKey:@"mapDistrictDistance"]).floatValue;
         float streatFilter= ((NSNumber *)[tpDic objectForKey:@"mapStreetDistance"]).floatValue;
-        CLog(@"city:%f dist:%f streat:%f", cityZooms, distZooms, streatZooms);
+        
+        CLog(@"city:%f dist:%f streat:%f cur:%f", cityZooms, distZooms, streatZooms, self.mapView.zoomLevel);
+        CLog(@"city:%f dist:%f streat:%f", cityFilter, distFilter, streatFilter);
         
         //重新设置地图的缩放级别
-        if (self.mapView.zoomLevel<cityZooms)
-            self.mapView.distanceFilter = cityFilter;
-        else if ((self.mapView.zoomLevel>cityZooms)&&(self.mapView.zoomLevel<streatZooms))
-            self.mapView.distanceFilter = distFilter;
-        else
-            self.mapView.distanceFilter = streatFilter;
-        
-        float updateMeters = self.mapView.distanceFilter;
-        if (updateMeters<100)
-            self.mapView.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
-        else if (updateMeters>100 && updateMeters<1000)
-            self.mapView.desiredAccuracy = kCLLocationAccuracyHundredMeters;
-        else if (updateMeters>1000 && updateMeters<3000)
-            self.mapView.desiredAccuracy = kCLLocationAccuracyKilometer;
-        else
-            self.mapView.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
+        if ((self.mapView.zoomLevel>=cityZooms) && (self.mapView.zoomLevel<=distZooms) && cityFilter<offsetKilometers)
+        {
+            [self searchNearTeacher];
+        }
+        else if ((self.mapView.zoomLevel>distZooms)&&(self.mapView.zoomLevel<=streatZooms) && (distFilter<offsetKilometers))
+        {
+            [self searchNearTeacher];
+        }
+        else if ((self.mapView.zoomLevel>streatZooms) && (streatFilter<offsetKilometers))
+        {
+            [self searchNearTeacher];
+        }
     }
-    //搜索附近老师
-    [self searchNearTeacher];
-    
+    originPoint = [[CLLocation alloc]initWithLatitude:self.mapView.centerCoordinate.latitude
+                                            longitude:self.mapView.centerCoordinate.longitude];
     [self.mapView removeAnnotation:self.mapView.userLocation];
     [self.mapView removeOverlays:self.mapView.overlays];
 }
@@ -777,28 +783,27 @@
 {
     if ([annotation isKindOfClass:[MAPointAnnotation class]])
     {
-        static NSString *pointReuseIndetifier = @"pointReuseIndetifier";
+        static NSString *pointReuseIndetifier = @"meView";
         CustomPointAnnotation *cpAnn = (CustomPointAnnotation *) annotation;
-        if (cpAnn.tag == 1000)
+        if (meAnn == cpAnn)
         {
             MAAnnotationView *annView = (MAAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
             if (annView == nil)
             {
-                annView = [[MAAnnotationView alloc] initWithAnnotation:annotation
-                                                       reuseIdentifier:pointReuseIndetifier];
+                annView = [[[MAAnnotationView alloc] initWithAnnotation:annotation
+                                                       reuseIdentifier:pointReuseIndetifier]autorelease];
             }
             annView.image = [UIImage imageNamed:@"my_location_icon"];
             return annView;
         }
         else
         {
+            static NSString *pointReuseIndetifier = @"teacherView";
             TTCustomAnnotationView *annView = (TTCustomAnnotationView *)[self.mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
             if (annView == nil)
             {
                 annView = [[TTCustomAnnotationView alloc] initWithAnnotation:annotation
                                                              reuseIdentifier:pointReuseIndetifier];
-    //            annView.canShowCallout = YES;    //设置气泡可以弹出,默认为NO
-    //            annView.draggable      = YES;    //设置标注可以拖动,默认为NO
             }
             return annView;
         }
@@ -816,10 +821,10 @@
             outAnnView = [[[CallOutAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"calloutview"] autorelease];
             
             Teacher *tObj = [ann.teacherObj copy];
-            TeacherPropertyView *tpView = [[TeacherPropertyView alloc]initWithFrame:CGRectMake(0,
+            TeacherPropertyView *tpView = [[[TeacherPropertyView alloc]initWithFrame:CGRectMake(0,
                                                                                                0,
                                                                                                outAnnView.contentView.frame.size.width,
-                                                                                               outAnnView.contentView.frame.size.height)];
+                                                                                               outAnnView.contentView.frame.size.height)]autorelease];
             tpView.tObj = [tObj copy];
             tpView.delegate = self;
             [outAnnView.contentView addSubview:tpView];

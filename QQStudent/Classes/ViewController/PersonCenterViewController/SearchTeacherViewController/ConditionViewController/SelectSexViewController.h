@@ -18,4 +18,5 @@
 }
 
 @property (nonatomic, assign) BOOL isSetSex;
+@property (nonatomic, retain) NSString *sexName;
 @end

@@ -80,7 +80,7 @@
     UIButton *sendButton = [self sendButton];
     sendButton.enabled = NO;
     sendButton.frame = CGRectMake(self.inputToolBarView.frame.size.width-65.0f,
-                                  8.0f, 59.0f, 26.0f);
+                                  8.0f, 49, 28);  //59.0f, 26.0f);
     [sendButton addTarget:self
                    action:@selector(sendPressed:)
          forControlEvents:UIControlEventTouchUpInside];
@@ -348,7 +348,7 @@
 {
     return [JSBubbleMessageCell neededHeightForText:[self.dataSource textForRowAtIndexPath:indexPath]
                                           timestamp:[self shouldHaveTimestampForRowAtIndexPath:indexPath]
-                                             avatar:[self shouldHaveAvatarForRowAtIndexPath:indexPath]];
+                                             avatar:[self shouldHaveAvatarForRowAtIndexPath:indexPath]]+10;
 }
 
 #pragma mark - Messages view controller
@@ -409,7 +409,7 @@
 - (void)scrollToBottomAnimated:(BOOL)animated
 {
     NSInteger rows = [self.tableView numberOfRowsInSection:0];
-    
+    CLog(@"rows:%d", rows);
     if(rows > 0) {
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:rows - 1 inSection:0]
                               atScrollPosition:UITableViewScrollPositionBottom

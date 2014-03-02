@@ -42,6 +42,7 @@
     if (row == 0)   //代表老师
     {        
         NSDictionary *teacherDic = [teacherOrderDic objectForKey:@"teacher"];
+        
         Teacher *tObj = [Teacher setTeacherProperty:teacherDic];
         tObj.expense  = ((NSNumber *)[teacherDic objectForKey:@"teacher_expense"]).intValue;
         NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
@@ -53,24 +54,40 @@
         tObj.comment  = ((NSNumber *)[teacherDic objectForKey:@"teacher_stars"]).intValue;
         tObj.pf       = [[teacherDic objectForKey:@"teacher_subjectText"] copy];
         
+        CLog(@"gender:%d", tObj.sex);
+        
         //获得最近订单
         NSDictionary *orderDic = [self.ordersArr objectAtIndex:0];
-        Order *order = [Order setOrderProperty:orderDic];
-        MyTeacherCell *cell = [[[MyTeacherCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:idString]autorelease];
-        cell.teacher  = tObj;
-        cell.order    = order;
+        Order *order  = [Order setOrderProperty:orderDic];
+        order.teacher = tObj;
         
+        MyTeacherCell *cell = [[[MyTeacherCell alloc]initWithStyle:UITableViewCellStyleDefault
+                                                   reuseIdentifier:idString]autorelease];
+        cell.order    = order;
+        CLog(@"order>gender%d",order.teacher.sex);
         return cell;
     }
     else            //代表订单
     {
         NSDictionary *orderDic = [self.ordersArr objectAtIndex:row-1];
-        Order *order = [Order setOrderProperty:orderDic];
-        
+        Order *order  = [Order setOrderProperty:orderDic];
+    
+        NSDictionary *teacherDic = [teacherOrderDic objectForKey:@"teacher"];
+        order.teacher = [Teacher setTeacherProperty:teacherDic];
+        order.teacher.expense  = ((NSNumber *)[teacherDic objectForKey:@"teacher_expense"]).intValue;
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        order.teacher.headUrl  = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"teacher_icon"]];
+        order.teacher.idNums   = [[teacherDic objectForKey:@"teacher_idnumber"] copy];
+        order.teacher.info     = [[teacherDic objectForKey:@"teacher_info"] copy];
+        order.teacher.name     = [[teacherDic objectForKey:@"teacher_name"]  copy];
+        order.teacher.phoneNums= [[teacherDic objectForKey:@"teacher_phone"] copy];
+        order.teacher.comment  = ((NSNumber *)[teacherDic objectForKey:@"teacher_stars"]).intValue;
+        order.teacher.pf       = [[teacherDic objectForKey:@"teacher_subjectText"] copy];
+
         TeacherOrderCell *cell = [[[TeacherOrderCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:idString] autorelease];
-        
         cell.delegate = self;
         cell.order    = order;
+
         return cell;
     }
     
@@ -127,7 +144,8 @@
         case 2:      //修改订单
         {
             UpdateOrderViewController *uoVctr = [[UpdateOrderViewController alloc]init];
-            uoVctr.order = [cell.order copy];
+            uoVctr.isEmploy = NO;
+            uoVctr.order    = [cell.order copy];
             [nav pushViewController:uoVctr animated:YES];
             [uoVctr release];
             break;

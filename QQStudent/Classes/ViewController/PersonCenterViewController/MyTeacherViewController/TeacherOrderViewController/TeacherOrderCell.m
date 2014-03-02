@@ -41,9 +41,16 @@
         orderDateLab.backgroundColor = [UIColor clearColor];
         [self addSubview:orderDateLab];
         
+        UIImage *bgImg = [UIImage imageNamed:@"spp_order_status_bg"];
+        UIImageView *bgLabImageView = [[UIImageView alloc]init];
+        bgLabImageView.image = bgImg;
+        bgLabImageView.frame = CGRectMake(230, 35, bgImg.size.width, bgImg.size.height);
+        [self addSubview:bgLabImageView];
+        [bgLabImageView release];
+        
         noConfirmLab = [[UILabel alloc]init];
         noConfirmLab.font  = [UIFont systemFontOfSize:12.f];
-        noConfirmLab.frame = CGRectMake(210, 25, 100, 20);
+        noConfirmLab.frame = CGRectMake(210, 25, bgImg.size.width, bgImg.size.width);
         noConfirmLab.textColor       = [UIColor whiteColor];
         noConfirmLab.backgroundColor = [UIColor clearColor];
         [self addSubview:noConfirmLab];
@@ -52,7 +59,7 @@
         finishLab.textColor       = [UIColor whiteColor];
         finishLab.textAlignment = NSTextAlignmentCenter;
         finishLab.font  = [UIFont systemFontOfSize:12.f];
-        finishLab.frame = CGRectMake(210, 25, 100, 20);
+        finishLab.frame = CGRectMake(230, 25, bgImg.size.width, bgImg.size.height);
         finishLab.backgroundColor = [UIColor clearColor];
         [self addSubview:finishLab];
         
@@ -202,7 +209,7 @@
                                  finishLab.frame.origin.y+offset,
                                  finishLab.frame.size.width,
                                  finishLab.frame.size.height);
-    
+
     commentBtn.frame = CGRectMake(commentBtn.frame.origin.x,
                                   commentBtn.frame.origin.y+offset,
                                   commentBtn.frame.size.width,
@@ -307,6 +314,9 @@
             freeBtn.hidden    = YES;
             commentBtn.hidden = YES;
             updateBtn.hidden  = YES;
+            finishBtn.hidden  = YES;
+            
+            //高度缩小
             break;
         }
         default:

@@ -11,6 +11,7 @@
 
 #import "FMDB.h"
 #import "WXApi.h"
+#import "Order.h"
 #import "WeiboApi.h"
 #import "SinaWeibo.h"
 #import "QCheckBox.h"
@@ -20,9 +21,11 @@
 #import "SingleTCWeibo.h"
 #import "SignalSinaWeibo.h"
 #import "Teacher/Teacher.h"
+#import "NoticePopView.h"
 #import "Student/Student.h"
 #import "UIImage+CircleImage.h"
 #import "LeveyTabBar.h"
+#import "ThreadTimer.h"
 #import "LeveyTabBarController.h"
 #import "EGORefreshTableHeaderView.h"
 #import "CustomNavigationViewController.h"
@@ -36,10 +39,13 @@
 #import <AddressBookUI/AddressBookUI.h>
 
 #pragma mark - Externals Libs Headers
-#import "Order.h"
+
 #import "Site.h"
 #import "CLog.h"
 #import "JSON.h"
+#import "MBProgressHUD.h"
+#import "SignalHUD.h"
+#import "NoticeNumberView.h"
 #import "SVProgressHUD.h"
 #import "SingleMQTT.h"
 #import "ShareData.h"
@@ -84,6 +90,7 @@
 #import "GCRetractableSectionController.h"
 #import "TeacherOrderSectionController.h"
 #import "MyTeacherViewController.h"
+#import "LatlyViewCell.h"
 #import "LatlyViewController.h"
 #import "SearchTeacherViewController.h"
 #import "SearchConditionViewController.h"
@@ -96,7 +103,6 @@
 #import "CompletePersonalInfoViewController.h"
 #import "SetNickNameViewController.h"
 #import "SetGradeViewController.h"
-#import "SetSexViewController.h"
 #import "DownloadInfoViewController.h"
 #import "SelectSubjectViewController.h"
 #import "SelectSexViewController.h"
@@ -123,5 +129,6 @@
 #import "ShareWeixinViewController.h"
 #import "SiteOtherViewController.h"
 #import "SelectAreaViewController.h"
+#import "OrderEditConfirmViewController.h"
 
 #endif

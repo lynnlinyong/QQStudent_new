@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface UpdateOrderViewController : UIViewController<
+                                                    MBProgressHUDDelegate,
                                                     ServerRequestDelegate,
                                                     UITableViewDelegate,
                                                     UITableViewDataSource>
@@ -20,7 +21,10 @@
     UILabel      *posValLab;
     
     UILabel      *totalMoneyLab;
+    
+    MBProgressHUD *HUD; 
 }
 
+@property (nonatomic, assign) BOOL isEmploy;
 @property (nonatomic, copy) Order *order;
 @end

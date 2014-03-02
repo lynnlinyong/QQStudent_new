@@ -46,8 +46,14 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+
 - (void) initUI
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view
+                         withText:@"加载图书中..."
+                         animated:YES];
+    
     NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
     NSString *urlStr = [NSString stringWithFormat:@"%@book/?orderid=%@&sessid=%@", webAdd,orderId,ssid];
@@ -64,12 +70,19 @@
 
 - (void) closeDialog
 {
-    CLog(@"CloseDialog");
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
 }
 
+//显示Dialog,能主动点击
 - (void) Dialog
 {
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view
+                         withText:@"发送抢书…………"
+                         animated:YES];
     
+    //调用getToken & getOrderid
 }
 
 - (void) showAlert
@@ -77,14 +90,17 @@
     
 }
 
-- (NSString *) getToken
+- (void) getToken
 {
     
 }
 
-- (NSString *) getOrderid
+- (void) getOrderid
 {
-    
+    //调用js函数
+    NSString *func = [NSString stringWithFormat:@"%@(\"%@\")", @"getOrderid", orderId];
+    CLog(@"func:%@", func);
+    [webView stringByEvaluatingJavaScriptFromString:@"getOrderid(772)"];
 }
 
 #pragma mark -
@@ -105,11 +121,11 @@
     {
         [self showAlert];
     }
-    else if ([request.mainDocumentURL.relativePath isEqualToString:@"/function/getToken"])
+    else if ([request.mainDocumentURL.relativePath isEqualToString:@"/call/getToken"])
     {
         [self getToken];
     }
-    else if ([request.mainDocumentURL.relativePath isEqualToString:@"/function/getOrderid"])
+    else if ([request.mainDocumentURL.relativePath isEqualToString:@"/call/getOrderid"])
     {
         [self getOrderid];
     }

@@ -13,10 +13,11 @@
                                                         ServerRequestDelegate,
                                                         UITextFieldDelegate,
                                                         UITableViewDelegate,
-                                                        UITableViewDataSource>
+                                                        UITableViewDataSource,
+                                                        MBProgressHUDDelegate>
 {
-    UILabel     *searchLab;
-    UITextField *searchFld;
+    UILabel        *searchLab;
+    UITextField    *searchFld;
     
     UITableView    *searchTab;
     NSMutableArray *searchArray;

@@ -107,6 +107,7 @@ static ServerRequest *sharedServerRequest = nil;
             [request addRequestHeader:@"Content-Type"
                                 value:@"text/xml; charset=utf-8"];
             [request startSynchronous];
+            [request setDelegate:self];
             return [request responseData];
             break;
         }
@@ -154,6 +155,7 @@ static ServerRequest *sharedServerRequest = nil;
                  paramDic:(NSDictionary *) pDic
                    urlStr:(NSString *)     pUrlStr
 {
+    
     NSURL *pUrl = nil;
     assert(pUrlStr);
 
@@ -216,7 +218,6 @@ static ServerRequest *sharedServerRequest = nil;
             NSLog(@"URL=%@", pUrl);
     
             ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:pUrl];
-            [request setDelegate:self];
             [request setDidFinishSelector:@selector(requestAsyncSuccessed:)];
             [request setDidFailSelector:@selector(requestAsyncFailed:)];
             [request startAsynchronous];
@@ -242,7 +243,6 @@ static ServerRequest *sharedServerRequest = nil;
 
 - (void) requestASyncFailed:(ASIHTTPRequest *)request
 {
-    NSLog(@"File:%s Line:%d", __FILE__, __LINE__);
     if (_delegate)
     {
         if ([_delegate respondsToSelector:@selector(requestAsyncFailed:)])

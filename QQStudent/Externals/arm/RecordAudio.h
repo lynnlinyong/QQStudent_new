@@ -32,6 +32,7 @@ typedef enum voiceLevel
 	NSError * error;
     AVAudioPlayer * avPlayer;
     NSTimer  *timer_;
+    float cntTime;
 }
 
 @property (nonatomic,assign)id<RecordAudioDelegate> delegate;
@@ -42,6 +43,6 @@ typedef enum voiceLevel
 -(void) play:(NSData*) data;
 -(void) stopPlay;
 +(NSTimeInterval) getAudioTime:(NSData *) data;
-
-+ (void) playWav:(NSData *)wavData;
+- (void) playMP3:(NSData *) data;
++ (void) playVoice:(NSData *)data;
 @end
