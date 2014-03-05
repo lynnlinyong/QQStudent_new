@@ -106,6 +106,8 @@
     self.textView.scrollsToTop = NO;
     self.textView.userInteractionEnabled = YES;
     self.textView.font = [JSBubbleView font];
+    self.textView.layer.shadowColor = [[UIColor grayColor] CGColor];
+    self.textView.layer.shadowOffset = CGSizeMake(1, 1);
     self.textView.textColor = [UIColor blackColor];
     self.textView.backgroundColor = [UIColor whiteColor];
     self.textView.keyboardAppearance = UIKeyboardAppearanceDefault;
@@ -117,8 +119,10 @@
                                                                                 0.0f,
                                                                                 self.textView.frame.size.width + 2.0f,
                                                                                 self.frame.size.height)];
-//    inputFieldBack.image = [UIImage inputField];
+//  inputFieldBack.image = [UIImage inputField];
     inputFieldBack.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+    inputFieldBack.layer.shadowColor = [[UIColor grayColor] CGColor];
+    inputFieldBack.layer.shadowOffset = CGSizeMake(1, 1);
     inputFieldBack.backgroundColor = [UIColor clearColor];
     [self addSubview:inputFieldBack];
 }

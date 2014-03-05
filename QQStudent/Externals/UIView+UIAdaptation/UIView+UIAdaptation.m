@@ -35,7 +35,7 @@
     else
     {
         CLog(@"It's is iphone5");
-        currentResolution_h += 20;
+        currentResolution_h += 0;
     }
     
     //高度与宽度分辨比例

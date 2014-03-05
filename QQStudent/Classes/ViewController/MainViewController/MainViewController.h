@@ -24,6 +24,8 @@ CustomNavigationDataSource,
     CustomPointAnnotation *meAnn;
     
     CLLocation      *originPoint;
+    
+    BOOL  isLocation;
 }
 
 @property (nonatomic, retain) MAMapView *mapView;

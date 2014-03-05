@@ -51,6 +51,11 @@
 #pragma mark - Custom Action
 - (void) checkSessidIsValid
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"updatelogin",ssid, nil];

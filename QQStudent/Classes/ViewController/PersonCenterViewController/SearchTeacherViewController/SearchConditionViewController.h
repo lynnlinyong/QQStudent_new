@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface SearchConditionViewController : UIViewController<
+                                                        CustomNavigationDataSource,
                                                         CustomButtonViewDelegate,
                                                         ServerRequestDelegate,
                                                         UILongPressButtonDelegate,
@@ -44,6 +45,7 @@
     
     RecordAudio *recordAudio;
     BOOL        isRecord;
+    Order       *curOrder;
 }
 
 @property (nonatomic, retain) Teacher         *tObj;

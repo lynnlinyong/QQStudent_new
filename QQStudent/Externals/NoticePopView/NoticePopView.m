@@ -35,6 +35,7 @@ static NoticePopView *popInstance = nil;
         titleLab = [[UILabel alloc]init];
         titleLab.frame = CGRectMake(0, 10, frame.size.width, 20);
         titleLab.text  = @"";
+        titleLab.textColor = [UIColor whiteColor];
         titleLab.textAlignment   = NSTextAlignmentCenter;
         titleLab.backgroundColor = [UIColor clearColor];
         [bgView addSubview:titleLab];
@@ -42,6 +43,7 @@ static NoticePopView *popInstance = nil;
         contentLab = [[UILabel alloc]init];
         contentLab.frame = CGRectMake(0, 30, frame.size.width, 40);
         contentLab.text  = @"";
+        contentLab.textColor = [UIColor whiteColor];
         contentLab.font  = [UIFont systemFontOfSize:14.f];
         contentLab.textAlignment   = NSTextAlignmentCenter;
         contentLab.backgroundColor = [UIColor clearColor];
@@ -71,7 +73,6 @@ static NoticePopView *popInstance = nil;
 {
     self.hidden = NO;
     CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
-    UIViewController *lastVctr = [nav.viewControllers objectAtIndex:nav.viewControllers.count-1];
     [nav.view addSubview:self];
     
     [UIView animateWithDuration:1 animations:^{
@@ -145,7 +146,11 @@ static NoticePopView *popInstance = nil;
         {
             //跳转网页浏览
             NSString *url = [contentDic objectForKey:@"url"];
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            FreeBookViewController *fbVctr = [[FreeBookViewController alloc]init];
+            fbVctr.adURL = url;
+            [nav pushViewController:fbVctr animated:YES];
+            [fbVctr release];
             break;
         }
         case NOTICE_GG:    //公告

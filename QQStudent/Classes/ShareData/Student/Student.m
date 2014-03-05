@@ -172,7 +172,11 @@
             }
         }
     }
-    
+    else
+    {
+        [Student getGradeList];
+        return [Student searchGradeID:gradeName];
+    }
     return result;
 }
 
@@ -195,7 +199,121 @@
     else
     {
         [Student getGradeList];
-        [Student searchGradeName:gradeID];
+        return [Student searchGradeName:gradeID];
+    }
+    
+    return result;
+}
+
++ (void) getSalarys
+{
+    NSArray *salaryList = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
+    if (!salaryList)
+    {
+        if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+        {
+            return;
+        }
+        
+        NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getkcbzs",ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        NSData   *resVal = [request requestSyncWith:kServerPostRequest
+                                           paramDic:pDic
+                                             urlStr:url];
+        NSString *resStr = [[NSString alloc]initWithData:resVal
+                                                encoding:NSUTF8StringEncoding];
+        NSDictionary *resDic   = [resStr JSONValue];
+        NSArray      *keysArr  = [resDic allKeys];
+        NSArray      *valsArr  = [resDic allValues];
+        CLog(@"***********Result****************");
+        for (int i=0; i<keysArr.count; i++)
+        {
+            CLog(@"sdfsdfsdfsdfsdfs%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+        }
+        CLog(@"***********Result****************");
+        
+        NSNumber *errorid = [resDic objectForKey:@"errorid"];
+        if (errorid.intValue == 0)
+        {
+            NSString *action = [resDic objectForKey:@"action"];
+            if ([action isEqualToString:@"getkcbzs"])
+            {
+                NSArray *potMoney = [[resDic objectForKey:@"kcbzs"] copy];
+                [[NSUserDefaults standardUserDefaults] setObject:potMoney
+                                                          forKey:SALARY_LIST];
+            }
+        }
+        //重复登录
+        else if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
+    }
+}
+
++(NSString *) searchSalaryID:(NSString *) salaryName
+{
+    NSArray *salaryList = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
+    if (salaryList)
+    {
+        for (NSDictionary *item in salaryList)
+        {
+            NSString *tGdName = [item objectForKey:@"name"];
+            if ([salaryName isEqualToString:tGdName])
+            {
+                if ([item objectForKey:@"id"])
+                    return [item objectForKey:@"id"];
+                else
+                    return @"";
+            }
+        }
+    }
+    else
+    {
+        [Student getSalarys];
+        return [Student searchSalaryID:salaryName];
+    }
+    
+    return nil;
+}
+
++(NSString *) searchSalaryName:(NSString *) salaryID
+{
+    NSString *result = nil;
+    NSArray *salaryList = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
+    if (salaryList)
+    {
+        for (NSDictionary *item in salaryList)
+        {
+            NSString *tGdid = [item objectForKey:@"id"];
+            if ([salaryID isEqualToString:tGdid])
+            {
+                NSString *name = [item objectForKey:@"name"];
+                if (name)
+                {
+                    if (name.intValue == 0)
+                        return @"师生协商";
+                    return [[item objectForKey:@"name"] retain];
+                }
+                else
+                    return @"";
+            }
+        }
+    }
+    else
+    {
+        [Student getSalarys];
+        return [Student searchSalaryName:salaryID];
     }
     
     return result;
@@ -203,37 +321,47 @@
 
 + (void) getGradeList
 {
-    NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
-    NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
-    NSArray *valuesArr = [NSArray arrayWithObjects:@"getgrade",ssid, nil];
-    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
-                                                     forKeys:paramsArr];
-    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-    NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
-    ServerRequest *request = [ServerRequest sharedServerRequest];
-    NSData *resVal = [request requestSyncWith:kServerPostRequest
-                                     paramDic:pDic
-                                       urlStr:url];
-    NSString *resStr = [[[NSString alloc]initWithData:resVal
-                                             encoding:NSUTF8StringEncoding]autorelease];
-    NSDictionary *resDic   = [resStr JSONValue];
-    NSArray      *keysArr  = [resDic allKeys];
-    NSArray      *valsArr  = [resDic allValues];
-    CLog(@"***********Result****************");
-    for (int i=0; i<keysArr.count; i++)
+    NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:GRADE_LIST];
+    if (!gradList)
     {
-        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
-    }
-    CLog(@"***********Result****************");
-    
-    NSNumber *errorid = [resDic objectForKey:@"errorid"];
-    if (errorid.intValue == 0)
-    {
-        NSArray *gradList = [[resDic objectForKey:@"grades"] copy];
-        [[NSUserDefaults standardUserDefaults] setObject:gradList
-                                                  forKey:GRADE_LIST];
+        if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+        {
+            return;
+        }
+        
+        NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getgrade",ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        NSData *resVal = [request requestSyncWith:kServerPostRequest
+                                         paramDic:pDic
+                                           urlStr:url];
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic   = [resStr JSONValue];
+        NSArray      *keysArr  = [resDic allKeys];
+        NSArray      *valsArr  = [resDic allValues];
+        CLog(@"***********Result****************");
+        for (int i=0; i<keysArr.count; i++)
+        {
+            CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+        }
+        CLog(@"***********Result****************");
+        
+        NSNumber *errorid = [resDic objectForKey:@"errorid"];
+        if (errorid.intValue == 0)
+        {
+            NSArray *gradList = [[resDic objectForKey:@"grades"] copy];
+            [[NSUserDefaults standardUserDefaults] setObject:gradList
+                                                      forKey:GRADE_LIST];
+        }
     }
 }
+
 
 //根据性别ID,查询性别
 + (NSString *) searchGenderName:(NSString *) genderId
@@ -260,6 +388,119 @@
     else
         result = @"2";
     
+    
+    return result;
+}
+
++ (void) getSubjects
+{
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
+    NSArray *subArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+    if (!subArr)
+    {
+        NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getsubjects",ssid, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
+        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+        ServerRequest *request = [ServerRequest sharedServerRequest];
+        NSData   *resVal = [request requestSyncWith:kServerPostRequest
+                                           paramDic:pDic
+                                             urlStr:url];
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic   = [resStr JSONValue];
+        NSArray      *keysArr  = [resDic allKeys];
+        NSArray      *valsArr  = [resDic allValues];
+        CLog(@"***********Result****************");
+        for (int i=0; i<keysArr.count; i++)
+        {
+            CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+        }
+        CLog(@"***********Result****************");
+        
+        
+        NSNumber *errorid = [resDic objectForKey:@"errorid"];
+        if (errorid.intValue == 0)
+        {
+            subArr = [[resDic objectForKey:@"subjects"] copy];
+            
+            //保存科目列表
+            [[NSUserDefaults standardUserDefaults] setObject:subArr
+                                                      forKey:SUBJECT_LIST];
+        }
+        else
+        {   
+            //重复登录
+            if (errorid.intValue==2)
+            {
+                //清除sessid,清除登录状态,回到地图页
+                [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+                [AppDelegate popToMainViewController];
+            }
+        }
+    }
+}
+
+//根据年级列表,名字查询ID
++(NSString *) searchSubjectID:(NSString *) subjectName
+{
+    NSString *result = nil;
+    NSArray *subList = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+    if (subList)
+    {
+        for (NSDictionary *item in subList)
+        {
+            NSString *tGdName = [item objectForKey:@"name"];
+            if ([subjectName isEqualToString:tGdName])
+            {
+                if ([item objectForKey:@"id"])
+                    return [[item objectForKey:@"id"] retain];
+                else
+                    return @"";
+            }
+        }
+    }
+    else
+    {
+        [Student getSubjects];
+        return [Student searchSubjectID:subjectName];
+    }
+    
+    return result;
+}
+
+//根据年级列表,ID查询名字
++(NSString *) searchSubjectName:(NSString *) subjectId
+{
+    NSString *result  = @"";
+    NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+    if (gradList)
+    {
+        for (NSDictionary *item in gradList)
+        {
+            NSString *tGdID = [item objectForKey:@"id"];
+            if ([subjectId isEqualToString:tGdID])
+            {
+                if ([item objectForKey:@"name"])
+                    return [item objectForKey:@"name"];
+                else
+                    return @"";
+            }
+        }
+    }
+    else
+    {
+        [Student getSubjects];
+        return [Student searchSubjectName:subjectId];
+    }
     
     return result;
 }

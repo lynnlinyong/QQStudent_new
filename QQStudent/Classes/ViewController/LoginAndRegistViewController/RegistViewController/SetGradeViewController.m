@@ -138,6 +138,11 @@
 
 - (void) getGrade
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
     
@@ -294,6 +299,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 @end

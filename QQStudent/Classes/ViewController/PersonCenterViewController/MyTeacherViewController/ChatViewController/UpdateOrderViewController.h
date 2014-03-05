@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface UpdateOrderViewController : UIViewController<
+                                                    CustomNavigationDataSource,
                                                     MBProgressHUDDelegate,
                                                     ServerRequestDelegate,
                                                     UITableViewDelegate,

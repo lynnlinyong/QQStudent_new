@@ -58,7 +58,7 @@ typedef enum {
 //add by lynn
 - (void) setVoiceImage;
 - (void) setTag:(int) tag;
-
+- (void) setIdImageViewHidden:(BOOL) isId;
 - (void)setMessage:(NSString *)msg;
 - (void)setTimestamp:(NSDate *)date;
 - (void) setWebAvatarImage:(NSString *) imagePath;

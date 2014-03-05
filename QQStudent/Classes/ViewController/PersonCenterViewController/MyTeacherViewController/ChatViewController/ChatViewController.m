@@ -39,6 +39,11 @@
     //初始化UI
     [self initUI];
     [self initPullView];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(refreshNewData:)
+                                                 name:@"refreshNewData"
+                                               object:nil];
 }
 
 - (void) viewDidUnload
@@ -55,7 +60,6 @@
     
     [self initBackBarItem];
     
-    
     //获得聊天记录
     [self getChatRecords];
     
@@ -70,8 +74,8 @@
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(refreshNewData:)
-                                                 name:@"refreshNewData"
+                                             selector:@selector(listenChangedNotice:)
+                                                 name:@"listenChanged"
                                                object:nil];
 }
 
@@ -106,7 +110,7 @@
 #pragma mark - Custom Action
 - (void) initInfoPopView
 {
-    infoView = [[LBorderView alloc]initWithFrame:CGRectMake(10, 20,
+    infoView = [[LBorderView alloc]initWithFrame:CGRectMake(10, 8,
                                                             300,
                                                             60)];
     infoView.hidden = NO;
@@ -141,7 +145,7 @@
                                                                          action:@selector(doEmployClicked:)];
     employInfoView = [[UIView alloc]init];
     employInfoView.hidden = YES;
-    employInfoView.frame  = CGRectMake(10, 30, 300, 40);
+    employInfoView.frame  = CGRectMake(10, 0, 300, 40);
     [employInfoView addGestureRecognizer:tap];
     [self.view addSubview:employInfoView];
     [tap release];
@@ -181,6 +185,11 @@
 
 - (void) convertAmrToMp3:(NSString *)audioURL
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArray = [NSArray arrayWithObjects:@"action",@"audio",@"sessid", nil];
     NSArray *valuesArray = [NSArray arrayWithObjects:@"amrToMp3", audioURL, ssid, nil];
@@ -267,6 +276,11 @@
 
 - (void) getRecordPage
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     if (self.messages.count>0)
     {
         NSDictionary *item = [messages objectAtIndex:messages.count-1];
@@ -289,6 +303,11 @@
 
 - (void) isShowListenBtn
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     
     //判断是否显示试听和聘请
@@ -335,6 +354,11 @@
 
 - (void) isShowEmployBtn
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     
     //判断是否显示试听和聘请
@@ -385,11 +409,11 @@
 
 - (void) getChatRecords
 {
-    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD showHUDAddedTo:nav.view
-                         animated:YES];
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
     
-    [self.messages removeAllObjects];
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"messageId",@"phone",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getMessages",@"0",tObj.phoneNums, ssid, nil];
@@ -457,6 +481,11 @@
 
 - (void) sendVoiceFile:(int) voiceTimes
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     //上传语音文件
     NSString *path = [self getRecordURL];
     
@@ -588,6 +617,11 @@
 
 - (void) doButtonClicked:(id)sender
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     UIButton *btn = sender;
     switch (btn.tag)
     {
@@ -641,6 +675,11 @@
 
 - (void) updateMessageZT
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     //获得时间戳
     NSDate *dateNow    = [NSDate date];
     NSString *timeSp   = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
@@ -685,6 +724,11 @@
 
 - (void) uploadMessageToServer:(NSString *) msg
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"message",
                                                    @"phone",@"sessid", nil];
@@ -733,8 +777,6 @@
     tdVctr.tObj = tObj;
     [nav pushViewController:tdVctr
                    animated:YES];
-//    [self.navigationController pushViewController:tdVctr
-//                                         animated:YES];
     [tdVctr release];
 }
 
@@ -745,7 +787,14 @@
 
 - (void) refreshNewData:(NSNotification *) notice
 {
+    CLog(@"refreshNewData");
     [self getChatRecords];
+}
+
+- (void) listenChangedNotice:(NSNotification *) notice
+{
+    //刷新试听接口
+    [self isShowListenBtn];
 }
 
 #pragma mark -
@@ -833,6 +882,11 @@
 
 - (void) checkTeacherPhone
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"teacher_phone",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"callPhone",tObj.phoneNums, ssid, nil];
@@ -1053,6 +1107,11 @@
     return tObj.headUrl;
 }
 
+- (BOOL) isHaveOrg
+{
+    return tObj.isId;
+}
+
 //- (UIImage *)avatarImageForOutgoingMessage
 //{
 //    return [UIImage imageNamed:@"demo-avatar-jobs"];
@@ -1157,11 +1216,17 @@
         else if ([action isEqualToString:@"getMessages"])
         {
             NSArray *array = [resDic objectForKey:@"messages"];
-            for (NSDictionary *item in array)
+            if (array)
             {
-                [self.messages addObject:item];
+                [self.messages removeAllObjects];
+                for (NSDictionary *item in array)
+                {
+                    [self.messages addObject:[item copy]];
+                }
             }
-            [self.tableView reloadData];
+            
+            //刷新界面
+            [self finishSend];
             
             //消息查看更新
             [self updateMessageZT];
@@ -1169,20 +1234,24 @@
     }
     else
     {
-        NSString *errorMsg = [resDic objectForKey:@"message"];
-        [self showAlertWithTitle:@"提示"
-                             tag:0
-                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
-                        delegate:self
-               otherButtonTitles:@"确定",nil];
+//        NSString *errorMsg = [resDic objectForKey:@"message"];
+//        [self showAlertWithTitle:@"提示"
+//                             tag:0
+//                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+//                        delegate:self
+//               otherButtonTitles:@"确定",nil];
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
     
     //聊天记录刷新完成
     [self doneLoadingTableViewData];
-    
-    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD hideHUDForView:nav.view
-                         animated:YES];
 }
 
 @end

@@ -23,6 +23,8 @@
 @synthesize payMoney;
 @synthesize backMoney;
 @synthesize teacher;
+@synthesize addressDataDic;
+@synthesize orderCommentStatus;
 
 - (id) init
 {
@@ -44,7 +46,11 @@
         payMoney  = [[NSString alloc]init];
         backMoney = [[NSString alloc]init];
         
+        addressDataDic = [[NSMutableDictionary alloc]init];
+        
         teacher   = [[Teacher alloc]init];
+        
+        orderCommentStatus = NO_COMMENT;
     }
     
     return self;
@@ -64,6 +70,7 @@
     [everyTimesMoney release];
     [totalMoney      release];
     [comment         release];
+    [addressDataDic release];
     [super dealloc];
 }
 
@@ -87,6 +94,9 @@
         order.payMoney        = [payMoney copy];
         order.backMoney       = [backMoney copy];
         order.teacher         = [teacher copy];
+        
+        order.orderCommentStatus = orderCommentStatus;
+        order.addressDataDic  = [addressDataDic mutableCopy];
     }
     
     return order;
@@ -113,7 +123,11 @@
         order.payMoney     = [payMoney copy];
         order.backMoney    = [backMoney copy];
         
+        order.addressDataDic  = [addressDataDic mutableCopy];
+        
         order.teacher      = [teacher copy];
+        
+        order.orderCommentStatus = orderCommentStatus;
     }
     
     return order;
@@ -122,73 +136,80 @@
 + (Order *) setOrderProperty:(NSDictionary *) dic
 {
     Order *order  = [[Order alloc]init];
-    int oid = ((NSNumber *)[dic objectForKey:@"oid"]).intValue;
-    order.orderId = [NSString stringWithFormat:@"%d", oid];
-    order.orderAddTimes   = [[dic objectForKey:@"order_addtime"]  copy];
-    order.orderStudyPos   = [[dic objectForKey:@"order_iaddress"] copy];
-    int times = ((NSNumber *)[dic objectForKey:@"order_jyfdnum"]).intValue;
-    order.orderStudyTimes = [NSString stringWithFormat:@"%d", times];
-    int money = ((NSNumber *)[dic objectForKey:@"order_kcbz"]).intValue;
-    order.everyTimesMoney = [NSString stringWithFormat:@"%d", money];
-    int status = ((NSNumber *) [dic objectForKey:@"order_stars"]).intValue;
-    order.orderStatus = status;
+    NSString *orderId = [[dic objectForKey:@"oid"] copy];
+    if (!orderId)
+        order.orderId = @"";
+    else
+        order.orderId = orderId;
     
-    NSDictionary *addressDic = [dic objectForKey:@"order_iaddress_data"];
-    if (addressDic)
-    {
-        if ([dic objectForKey:@"provinceName"])
-            order.orderProvice = [dic objectForKey:@"provinceName"];
-        if ([dic objectForKey:@"cityName"])
-            order.orderCity = [dic objectForKey:@"cityName"];
-        if ([dic objectForKey:@"districtName"])
-            order.orderDist = [dic objectForKey:@"districtName"];
-    }
+    NSString *orderAddTimes     = [[dic objectForKey:@"order_addtime"]  copy];
+    if (!orderAddTimes)
+        order.orderAddTimes = @"";
+    else
+        order.orderAddTimes = orderAddTimes;
     
-    order.totalMoney = [[dic objectForKey:@"order_tamount"]  copy];
-    order.backMoney  = [[dic objectForKey:@"order_tfamount"] copy];
-    order.payMoney   = [[dic objectForKey:@"order_xfamount"] copy];
+    NSString *everyTimeSalary = [[dic objectForKey:@"order_ismfjfu"] copy];
+    if (!everyTimeSalary)
+        order.everyTimesMoney = @"0";
+    else
+        order.everyTimesMoney = [NSString stringWithFormat:@"%d",everyTimeSalary.intValue];
+    
+    NSString *orderStudyPos   = [[dic objectForKey:@"order_iaddress"] copy];
+    if (!orderStudyPos)
+        order.orderStudyPos = @"";
+    else
+        order.orderStudyPos = orderStudyPos;
+    
+    NSString *orderStudyTimes = [[dic objectForKey:@"order_jyfdnum"] copy];
+    if (!orderStudyTimes)
+        order.orderStudyTimes = @"";
+    else
+        order.orderStudyTimes = orderStudyTimes;
+
+    NSString *everyTimesMoney = [[dic objectForKey:@"order_kcbz"] copy];
+    if (!everyTimesMoney)
+        order.everyTimesMoney = @"";
+    else
+        order.everyTimesMoney = everyTimesMoney;
+    
+    NSString *status = [[dic objectForKey:@"order_stars"] copy];
+    if (status)
+        order.orderStatus = status.intValue;
+    else
+        order.orderStatus = 0;
+    
+    order.addressDataDic = [[dic objectForKey:@"order_iaddress_data"] copy];
+    
+    NSString *totalMoney = [[dic objectForKey:@"order_tamount"]  copy];
+    if (!totalMoney)
+        order.totalMoney = @"";
+    else
+        order.totalMoney = totalMoney;
+    
+    NSString *backMoney  = [[dic objectForKey:@"order_tfamount"] copy];
+    if (!backMoney)
+        order.backMoney = @"";
+    else
+        order.backMoney = backMoney;
+    
+    NSString *payMoney   = [[dic objectForKey:@"order_xfamount"] copy];
+    if (!payMoney)
+        order.payMoney = @"";
+    else
+        order.payMoney = payMoney;
     
     NSDictionary *teacherDic = [dic objectForKey:@"teacher"];
-    order.teacher = [Teacher setTeacherProperty:teacherDic];
+    if (teacherDic)
+        order.teacher = [Teacher setTeacherProperty:teacherDic];
+    else
+        order.teacher = nil;
+    
+    NSString *commentStatus = [dic objectForKey:@"order_pj_stars"];
+    if (commentStatus)
+        order.orderCommentStatus = commentStatus.intValue;
+    else
+        order.orderCommentStatus = NO_COMMENT;
     
     return order;
-}
-
-//根据科目ID,查询科目名称
-+ (NSString *) searchSubjectName:(NSString *) subjectId
-{
-    NSString *result = @"";
-    
-    NSArray *subList = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
-    if (subList)
-    {
-        for (NSDictionary *item in subList)
-        {
-            NSString *subId = [item objectForKey:@"id"];
-            if ([subId isEqualToString:subjectId])
-                return [[item objectForKey:@"name"] retain];
-        }
-    }
-    
-    return result;
-}
-
-//根据科目名称,查询科目ID
-+ (NSString *) searchSubjectID:(NSString *) subjectName
-{
-    NSString *result = @"";
-    
-    NSArray *subList = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
-    if (subList)
-    {
-        for (NSDictionary *item in subList)
-        {
-            NSString *subName = [item objectForKey:@"name"];
-            if ([subjectName isEqualToString:subName])
-                return [[item objectForKey:@"id"] retain];
-        }
-    }
-    
-    return result;
 }
 @end

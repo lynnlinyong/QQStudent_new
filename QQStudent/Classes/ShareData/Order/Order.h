@@ -17,6 +17,13 @@ typedef enum _tagOrderStatus
     FINISH                  //已结单
 }OrderStatus;
 
+typedef enum _tagOrderCommentStatus
+{
+    NO_COMMENT=0,           //未评
+    GOOD_COMMENT,
+    BAD_COMMET
+}OrderCommentStatus;
+
 @class Teacher;
 @interface Order : NSObject<NSCopying,NSMutableCopying>
 {
@@ -28,6 +35,7 @@ typedef enum _tagOrderStatus
     NSString  *totalMoney;         //总金额
     NSString  *comment;            //评价
     OrderStatus orderStatus;       //订单状态
+    OrderCommentStatus orderCommentStatus;  //订单评论状态
     
     NSString  *orderProvice;       //订单省份
     NSString  *orderCity;          //订单城市
@@ -35,6 +43,8 @@ typedef enum _tagOrderStatus
     
     NSString  *payMoney;           //消费金额
     NSString  *backMoney;          //应退金额
+    
+    NSMutableDictionary *addressDataDic;    //订单详细地址
     
     Teacher   *teacher;            //订单的老师
 }
@@ -49,17 +59,13 @@ typedef enum _tagOrderStatus
 @property (nonatomic, retain) NSString  *totalMoney;
 @property (nonatomic, retain) NSString  *comment;
 @property (nonatomic, assign) OrderStatus orderStatus;
+@property (nonatomic, assign) OrderCommentStatus orderCommentStatus;
 @property (nonatomic, retain) NSString  *orderProvice;
 @property (nonatomic, retain) NSString  *orderCity;
 @property (nonatomic, retain) NSString  *orderDist;
+@property (nonatomic, retain) NSMutableDictionary *addressDataDic;
 
 //封装订单对象
 + (Order *) setOrderProperty:(NSDictionary *) dic;
 
-
-//根据科目ID,查询科目名称
-+ (NSString *) searchSubjectName:(NSString *) subjectId;
-
-//根据科目名称,查询科目ID
-+ (NSString *) searchSubjectID:(NSString *) subjectName;
 @end

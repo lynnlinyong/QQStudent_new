@@ -9,8 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface TeacherOrderSectionController : GCRetractableSectionController<
-                                                                        TeacherOrderCellDelegate,
-                                                                        CommentViewDelegate>
+                                                                        TeacherOrderCellDelegate>
 @property (nonatomic, retain) NSDictionary *teacherOrderDic;
-@property (nonatomic, retain) UIView *parentView;
+@property (nonatomic, retain) NSArray *ordersArr;
 @end

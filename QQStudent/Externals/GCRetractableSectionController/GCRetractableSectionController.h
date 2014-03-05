@@ -33,6 +33,8 @@
 - (UITableViewCell*) titleCell;
 - (UITableViewCell*) contentCellForRow:(NSUInteger) row;
 
+- (float) heightForRow:(NSUInteger) row;
+
 //Respond to cell selection
 - (void) didSelectCellAtRow:(NSUInteger) row;
 - (void) didSelectTitleCell;

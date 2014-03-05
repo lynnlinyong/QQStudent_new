@@ -13,6 +13,7 @@
 @end
 
 @implementation SelectDateViewController
+@synthesize curValue;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -28,6 +29,7 @@
     [super viewDidLoad];
     
     [self initUI];
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -50,7 +52,7 @@
     UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
     self.view.frame = CGRectMake(0, 0,
                                                    titleImg.size.width,
-                                                   210+bottomImg.size.height);
+                                                   190+bottomImg.size.height);
     self.view.backgroundColor = [UIColor whiteColor];
     
     UIImageView *titleImgView = [[UIImageView alloc]init];
@@ -59,6 +61,14 @@
     titleImgView.image = titleImg;
     [self.view addSubview:titleImgView];
     [titleImgView release];
+    
+    UILabel *infoLab = [[UILabel alloc]init];
+    infoLab.text = @"年        月      日      时间";
+    infoLab.textAlignment   = NSTextAlignmentCenter;
+    infoLab.backgroundColor = [UIColor clearColor];
+    infoLab.frame = CGRectMake(0, 0, titleImg.size.width, 20);
+    [self.view addSubview:infoLab];
+    [infoLab release];
     
     UILabel *titleLab = [[UILabel alloc]init];
     titleLab.text  = @"设置开始日期";
@@ -71,14 +81,10 @@
     [self.view addSubview:titleLab];
     [titleLab release];
     
-    datePicker = [[UIDatePicker alloc]init];
-    datePicker.frame = [UIView fitCGRect:CGRectMake(titleImg.size.width/2-120, 20, 240, 80)
-                              isBackView:NO];
-    [datePicker setDatePickerMode:UIDatePickerModeDate];
-    [datePicker addTarget:self
-                   action:@selector(dateChanged:)
-         forControlEvents:UIControlEventValueChanged];
+    datePicker = [[CustomDatePicker alloc]initWithFrame:CGRectMake(titleImg.size.width/2-120, 20, 240, 80)];
+    [datePicker setValueRows:curValue];
     [self.view addSubview:datePicker];
+
     
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
@@ -134,20 +140,10 @@
 -(void) doButtonClicked:(id)sender
 {
     UIButton *button = sender;
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    NSTimeZone *timeZone = [NSTimeZone localTimeZone];
-    [formatter setTimeZone:timeZone];
-    [formatter setDateFormat : @"yyyy/M/d"];
-    
-    NSString *dateString    = [formatter stringFromDate:datePicker.date];
+    NSString *dateString    = [datePicker getCurValueRows];
     NSDictionary *noticeDic = [NSDictionary dictionaryWithObjectsAndKeys:dateString,@"SetDate", [NSNumber numberWithInt:button.tag],@"TAG",nil];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"setDateNotice"
                                                         object:nil
                                                       userInfo:noticeDic];
-}
-
--(void) dateChanged:(id)sender
-{
-    
 }
 @end

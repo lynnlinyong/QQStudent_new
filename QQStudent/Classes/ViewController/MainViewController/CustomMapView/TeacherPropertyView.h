@@ -21,12 +21,27 @@
     UILabel           *tsLab;
     UIStartsImageView *sImgView;
     TTImageView       *headImgView;
+    
+    UIImageView       *goodImgView;
+    UIImageView       *badImgView;
+    UIImageView       *idImageView;
+    UILabel *goodLab;
+    UILabel *badLab;
+    UILabel *orgNameLab;
 }
 
-@property (nonatomic, copy) Teacher *tObj;
+@property (nonatomic, copy)   Teacher *tObj;
 @property (nonatomic, retain) UILabel *introLab;
 @property (nonatomic, retain) UILabel *tsLab;
 @property (nonatomic, retain) UIStartsImageView *sImgView;
 @property (nonatomic, retain) TTImageView *headImgView;
 @property (nonatomic, assign) id<TeacherPropertyViewDelegate> delegate;
+
+@property (nonatomic, retain) UIImageView *goodImgView;
+@property (nonatomic, retain) UIImageView *badImgView;
+@property (nonatomic, retain) UIImageView *idImageView;
+@property (nonatomic, retain) UILabel     *goodLab;
+@property (nonatomic, retain) UILabel     *badLab;
+@property (nonatomic, retain) UILabel     *orgNameLab;
+
 @end

@@ -292,10 +292,7 @@
     BOOL hasAvatar = [self shouldHaveAvatarForRowAtIndexPath:indexPath];
     
     NSString *CellID = [NSString stringWithFormat:@"MessageCell_%d_%d_%d_%d", type, bubbleStyle, hasTimestamp, hasAvatar];
-    JSBubbleMessageCell *cell = (JSBubbleMessageCell *)[tableView dequeueReusableCellWithIdentifier:CellID];
-    
-//    if(!cell)
-        cell = [[JSBubbleMessageCell alloc] initWithBubbleType:type
+    JSBubbleMessageCell *cell =  [[JSBubbleMessageCell alloc] initWithBubbleType:type
                                                    bubbleStyle:bubbleStyle
                                                    avatarStyle:(hasAvatar) ? avatarStyle : JSAvatarStyleNone
                                                   hasTimestamp:hasTimestamp
@@ -319,6 +316,7 @@
                 if ([cell getAvatarStyle] == JSAvatarTxtIncomingImgOutgoing)
                 {
                     [cell setWebAvatarImage:[self.dataSource avatarImagePathForOutgoingMessage]];
+                    [cell setIdImageViewHidden:[self.dataSource isHaveOrg]];
                 }
                 break;
             }
@@ -394,7 +392,9 @@
 - (void)finishSend
 {
     [self.inputToolBarView.textView setText:nil];
-    [self textViewDidChange:self.inputToolBarView.textView];
+//    [self textViewDidChange:self.inputToolBarView.textView];
+    [self.inputToolBarView.textView resignFirstResponder];
+    
     [self.tableView reloadData];
     [self scrollToBottomAnimated:YES];
 }

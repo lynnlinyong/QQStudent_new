@@ -38,6 +38,8 @@
 {
     [super viewDidLoad];
     
+    isLocation   = NO;
+    
     teacherArray = [[NSMutableArray alloc]init];
     
     //初始化地图API
@@ -85,8 +87,56 @@
 #pragma mark - Custom Action
 - (void) initBackBarItem
 {
-    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
-    nav.dataSource = nil;
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    nav.dataSource = self;
+}
+
+- (void) doBackBtnClicked:(id)sender
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    NSArray *ctrsArr = nav.viewControllers;
+    for (UIViewController *ctr in ctrsArr)
+    {
+        if ([ctr isKindOfClass:[MainViewController class]])
+        {
+            [nav popToViewController:ctr animated:YES];
+            break;
+        }
+    }
+}
+
+#pragma mark -
+#pragma mark - CustomNavigationDataSource
+- (UIBarButtonItem *)backBarButtomItem
+{
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0, 0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    
+    return [[UIBarButtonItem alloc]
+            initWithCustomView:backBtn];
 }
 
 - (void) initUI
@@ -136,7 +186,8 @@
                       forState:UIControlStateNormal];
     [searchTeacherBtn setImage:[UIImage imageNamed:@"main_st_hlight_btn"]
                       forState:UIControlStateHighlighted];
-    searchTeacherBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-image.size.height, image.size.width, image.size.height)
+    searchTeacherBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-image.size.height,
+                                                          image.size.width, image.size.height)
                                     isBackView:NO];
     [searchTeacherBtn addTarget:self
                          action:@selector(doSearchBtnClicked:)
@@ -157,6 +208,11 @@
 
 - (void) setTerminalMapProperty
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSDictionary *tpDic= [[NSUserDefaults standardUserDefaults] objectForKey:@"TERMINAL_PROPERTY"];
     if (!tpDic)
     {
@@ -241,6 +297,11 @@
 
 + (void) getWebServerAddress
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *webAdd  = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
     NSString *pushAdd = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHADDRESS];
     if (!webAdd||!pushAdd)
@@ -313,6 +374,11 @@
 
 - (void) getHelpPhone
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *helpPhone = [[NSUserDefaults standardUserDefaults] objectForKey:HELP_PHONE];
     if (!helpPhone)
     {
@@ -333,6 +399,11 @@
 
 - (void) uploadPosToServer:(NSString *) posName
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     CLLocationCoordinate2D  loc = self.mapView.userLocation.coordinate;
     NSString *log = [NSString stringWithFormat:@"%f", loc.longitude];
     NSString *la  = [NSString stringWithFormat:@"%f", loc.latitude];
@@ -370,6 +441,11 @@
 
 - (void) searchNearTeacher
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     CLLocationCoordinate2D  loc = self.mapView.centerCoordinate;
     NSString *log  = [NSString stringWithFormat:@"%f", loc.longitude];
     NSString *la   = [NSString stringWithFormat:@"%f", loc.latitude];
@@ -441,6 +517,11 @@
 
 - (void) checkNewVersion
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
     NSString *url  = [NSString stringWithFormat:@"%@/%@", webAdd,STUDENT];
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
@@ -652,6 +733,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 
@@ -686,13 +776,19 @@
     if (!meAnn)
     {
         meAnn = [[[CustomPointAnnotation alloc] init]autorelease];
+        meAnn.coordinate = userLocation.coordinate;
         meAnn.tag = 1000;
         [self.mapView addAnnotation:meAnn];
     }
     
     if (updatingLocation)
     {
-        [self.mapView setCenterCoordinate:userLocation.coordinate];
+        if (!isLocation)
+        {
+            isLocation = YES;
+            [self.mapView setCenterCoordinate:userLocation.coordinate];
+        }
+        
         meAnn.coordinate = userLocation.location.coordinate;
         
         //保存个人位置
@@ -805,6 +901,8 @@
                 annView = [[TTCustomAnnotationView alloc] initWithAnnotation:annotation
                                                              reuseIdentifier:pointReuseIndetifier];
             }
+            if (cpAnn.teacherObj.isId)
+                annView.image = [UIImage imageNamed:@"mp_location_v"];
             return annView;
         }
     }
@@ -818,11 +916,12 @@
         
         //否则创建新的calloutView
         if (!outAnnView) {
-            outAnnView = [[[CallOutAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"calloutview"] autorelease];
+            outAnnView = [[[CallOutAnnotationView alloc] initWithAnnotation:annotation
+                                                            reuseIdentifier:@"calloutview"] autorelease];
             
             Teacher *tObj = [ann.teacherObj copy];
             TeacherPropertyView *tpView = [[[TeacherPropertyView alloc]initWithFrame:CGRectMake(0,
-                                                                                               0,
+                                                                                                0,
                                                                                                outAnnView.contentView.frame.size.width,
                                                                                                outAnnView.contentView.frame.size.height)]autorelease];
             tpView.tObj = [tObj copy];

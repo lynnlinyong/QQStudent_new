@@ -59,13 +59,13 @@
     titleLab.text     = @"手机号码修改提醒";
     titleLab.textColor= [UIColor whiteColor];
     titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame= [UIView fitCGRect:CGRectMake(0, -titleImg.size.height+3,
-                                                 self.view.frame.size.width+5, titleImg.size.height)
-                           isBackView:NO];
+    titleLab.frame= CGRectMake(0, -titleImg.size.height+1,
+                                                 self.view.frame.size.width+5, titleImg.size.height);
     titleLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:titleLab];
     [titleLab release];
     
+    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
     UILabel *infoLab = [[UILabel alloc]init];
     infoLab.text     = @"修改手机号码后需要重新登录并验证,您确定要修改吗?";
     infoLab.font     = [UIFont systemFontOfSize:13.f];
@@ -73,15 +73,13 @@
     infoLab.textAlignment = NSTextAlignmentCenter;
     infoLab.numberOfLines = 0;
     infoLab.lineBreakMode = NSLineBreakByWordWrapping;
-    infoLab.frame = [UIView fitCGRect:CGRectMake(0,
-                                                 self.view.frame.size.height/2-20,
-                                                 self.view.frame.size.width, 30)
-                           isBackView:NO];
+    infoLab.frame = CGRectMake(0,
+                                                 (self.view.frame.size.height-bottomImg.size.height)/2-15,
+                                                 self.view.frame.size.width, 30);
     infoLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:infoLab];
     [infoLab release];
     
-    UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = CGRectMake(-2,

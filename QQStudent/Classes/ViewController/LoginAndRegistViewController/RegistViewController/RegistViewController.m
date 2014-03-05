@@ -188,6 +188,11 @@
         return;
     }
     
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
     
@@ -248,27 +253,6 @@
 }
 
 #pragma mark -
-#pragma mark - UIAlertViewDelegate
-- (void) alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    int tag = alertView.tag;
-    switch (tag)
-    {
-        case 0:     //正确Alert提示
-        {
-            //注册完成,跳转完成个人信息
-            CompletePersonalInfoViewController *cpVctr = [[CompletePersonalInfoViewController alloc]init];
-            [self.navigationController pushViewController:cpVctr
-                                                 animated:YES];
-            [cpVctr release];
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-#pragma mark -
 #pragma mark ServerRequest Delegate
 - (void) requestAsyncFailed:(ASIHTTPRequest *)request
 {
@@ -307,11 +291,11 @@
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
     {
-        [self showAlertWithTitle:@"提示"
-                             tag:0
-                         message:@"注册成功"
-                        delegate:self
-               otherButtonTitles:@"确定", nil];
+//        [self showAlertWithTitle:@"提示"
+//                             tag:0
+//                         message:@"注册成功"
+//                        delegate:self
+//               otherButtonTitles:@"确定", nil];
         
         NSString *ssid = [resDic objectForKey:@"sessid"];
         [[NSUserDefaults standardUserDefaults] setObject:ssid
@@ -337,6 +321,12 @@
         [[NSUserDefaults standardUserDefaults] setObject:stuData
                                                   forKey:STUDENT];
         [student release];
+        
+        //注册完成,跳转完成个人信息
+        CompletePersonalInfoViewController *cpVctr = [[CompletePersonalInfoViewController alloc]init];
+        [self.navigationController pushViewController:cpVctr
+                                             animated:YES];
+        [cpVctr release];
     }
     else
     {
@@ -346,6 +336,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 @end

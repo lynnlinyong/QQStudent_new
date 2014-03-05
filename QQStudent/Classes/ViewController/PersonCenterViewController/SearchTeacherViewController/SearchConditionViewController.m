@@ -31,6 +31,13 @@
     [MainViewController setNavTitle:@"轻轻家教"];
 }
 
+- (void)viewDidDisappear:(BOOL)animated
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+    [super viewDidDisappear:animated];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -38,6 +45,10 @@
     //初始化录音
     recordAudio = [[RecordAudio alloc]init];
     recordAudio.delegate = self;
+    
+    [self initBackBarItem];
+    
+//    [Student getSubjects];
     
     //初始化UI
     [self initUI];
@@ -65,7 +76,8 @@
 
 - (void) dealloc
 {
-    [posDic release];
+    [posDic       release];
+    [salaryDic    release];
     [recordAudio  release];
     [subValLab    release];
     [dateValLab   release];
@@ -78,12 +90,23 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) initBackBarItem
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    nav.dataSource = self;
+}
+
+- (void) doBackBtnClicked:(id)sender
+{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
 - (void) initUI
 {
     UIImage *titleImg = [UIImage imageNamed:@"sd_title"];
     UIImageView *titleImgView = [[UIImageView alloc]init];
     titleImgView.image = titleImg;
-    titleImgView.frame = [UIView fitCGRect:CGRectMake(self.view.frame.size.width/2-titleImg.size.width/2, 10,
+    titleImgView.frame = [UIView fitCGRect:CGRectMake(self.view.frame.size.width/2-titleImg.size.width/2, 13,
                                                       titleImg.size.width, titleImg.size.height)
                                 isBackView:NO];
     [self.view addSubview:titleImgView];
@@ -99,7 +122,6 @@
     orderTab.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.view addSubview:orderTab];
 
-    
     orderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     orderBtn.tag   = 1;
     UIImage *img   = [UIImage imageNamed:@"main_invit_invide_btn"];
@@ -119,8 +141,9 @@
     [self.view addSubview:orderBtn];
     
     NSDictionary *userDic = [[NSUserDefaults standardUserDefaults] objectForKey:@"Condition"];
+    CLog(@"sdfjsidjfUserDic:%@", userDic);
     posDic = [[userDic objectForKey:@"POSDIC"] copy];
-    
+    CLog(@"sdfsdfsjijiji:%@", posDic);
     //注册设置性别消息
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(setSexFromNotice:)
@@ -143,7 +166,8 @@
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setSubjectFromNotice:) name:@"setSubjectNotice"
+                                             selector:@selector(setSubjectFromNotice:)
+                                                 name:@"setSubjectNotice"
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -269,6 +293,40 @@
 }
 
 #pragma mark -
+#pragma mark - CustomNavigationDataSource
+- (UIBarButtonItem *)backBarButtomItem
+{
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0, 0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    
+    return [[UIBarButtonItem alloc]
+            initWithCustomView:backBtn];
+}
+
+#pragma mark -
 #pragma mark - Control Event
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
 {
@@ -354,7 +412,10 @@
             }
 
             //封装所选条件
-            NSDictionary *valueDic = [NSDictionary dictionaryWithObjectsAndKeys:dateValLab.text,@"Date",[Order searchSubjectID:subValLab.text],@"Subject",salaryDic,@"SalaryDic",[Student searchGenderID:sexValLab.text],@"Sex",timeValueLab.text,@"Time",posValLab.text,@"Pos",posDic,@"POSDIC",path,@"AudioPath",messageField.text,@"Message",nil];
+            NSString *sub = [Student searchSubjectID:subValLab.text];
+            CLog(@"salaryDic:%@", salaryDic);
+            NSDictionary *valueDic = [NSDictionary dictionaryWithObjectsAndKeys:dateValLab.text,@"Date",sub,
+                                      @"Subject",salaryDic,@"SalaryDic",[Student searchGenderID:sexValLab.text],@"Sex",timeValueLab.text,@"Time",posValLab.text,@"Pos",posDic,@"POSDIC",path,@"AudioPath",messageField.text,@"Message",nil];
             
             CLog(@"codition:%@", valueDic);
             
@@ -362,13 +423,24 @@
             [[NSUserDefaults standardUserDefaults] setObject:valueDic
                                                       forKey:@"Condition"];
             
-            WaitConfirmViewController *wcVctr = [[WaitConfirmViewController alloc]init];
+            
+            //如果是搜索老师直接发送订单信息
             if (tObj)
-                wcVctr.tObj     = tObj;
-            wcVctr.valueDic     = [valueDic copy];
-            [self.navigationController pushViewController:wcVctr
-                                                 animated:YES];
-            [wcVctr release];
+            {
+                CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+                [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+                [self uploadOrderToServer:valueDic];
+            }
+            else
+            {            
+                WaitConfirmViewController *wcVctr = [[WaitConfirmViewController alloc]init];
+                if (tObj)
+                    wcVctr.tObj     = tObj;
+                wcVctr.valueDic     = [valueDic copy];
+                [self.navigationController pushViewController:wcVctr
+                                                     animated:YES];
+                [wcVctr release];
+            }
             break;
         }
         case 2:     //录音
@@ -399,6 +471,72 @@
         default:
             break;
     }
+}
+
+- (void) uploadOrderToServer:(NSDictionary *) valueDic
+{
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
+    //个人位置
+    NSString *log   = [[NSUserDefaults standardUserDefaults] objectForKey:@"LONGITUDE"];
+    NSString *la    = [[NSUserDefaults standardUserDefaults] objectForKey:@"LATITUDE"];
+    
+    //封装iaddress_data
+    NSArray *addParamArr = [NSArray arrayWithObjects:@"name",@"type",@"latitude",
+                            @"longitude", @"provinceName",@"cityName",
+                            @"districtName",@"cityCode", nil];
+    //没有具体区名字
+    NSString *dst = @"";
+    if ([valueDic objectForKey:@"DIST"])
+        dst = [valueDic objectForKey:@"DIST"];
+    
+    NSArray *addValueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Pos"], @"InputAddress", la, log,
+                            [posDic objectForKey:@"PROVICE"],
+                            [posDic objectForKey:@"CITY"],
+                            dst,@"0755", nil];
+    CLog(@"addValueArr:%@", addValueArr);
+    NSDictionary *addressDic = [NSDictionary dictionaryWithObjects:addValueArr
+                                                           forKeys:addParamArr];
+    
+    NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
+    Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+    
+    NSDate *dateNow  = [NSDate date];
+    NSString *timeSp = [NSString stringWithFormat:@"%ld", (long)[dateNow timeIntervalSince1970]];
+    
+    //获得salary
+    NSString *salary   = [salaryDic objectForKey:@"name"];
+    
+    //总金额
+    int studyTimes     = ((NSString *)[valueDic objectForKey:@"Time"]).intValue;
+    NSNumber *taMount  = [NSNumber numberWithInt:(salary.intValue*studyTimes)];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"subjectIndex",@"subjectId",@"subjectText",@"kcbzIndex",
+                                                  @"iaddress_data",@"teacher_phone",@"teacher_deviceId",
+                                                  @"phone",@"pushcc",@"type", @"nickname",
+                                                  @"grade",@"gender",@"subjectId",@"teacherGender",
+                                                  @"tamount",@"yjfdnum",@"sd",@"iaddress",
+                                                  @"longitude",@"latitude",@"otherText",
+                                                  @"audio",@"deviceId", @"keyId", nil];
+    NSArray *valueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Subject"],[Student searchSubjectName:[valueDic objectForKey:@"Subject"]],salary,addressDic,tObj.phoneNums,tObj.deviceId,student.phoneNumber,@"0",[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, [Student searchGradeName:student.grade], [Student searchGenderID:student.gender],[valueDic objectForKey:@"Subject"],[Student searchGenderID:[valueDic objectForKey:@"Sex"]],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,@"",@"",[SingleMQTT getCurrentDevTopic], timeSp, nil];
+    CLog(@"valueArr:%@", valueArr);
+    NSDictionary *orderDic  = [NSDictionary dictionaryWithObjects:valueArr
+                                                          forKeys:paramsArr];
+    NSString *jsonOrder = [orderDic JSONFragment];
+    NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+    NSArray *pArr = [NSArray arrayWithObjects:@"action",@"orderInfo",@"sessid", nil];
+    NSArray *vArr = [NSArray arrayWithObjects:@"submitOrder",jsonOrder,ssid, nil];
+    NSDictionary *pDic = [NSDictionary dictionaryWithObjects:vArr
+                                                     forKeys:pArr];
+    ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+    serverReq.delegate = self;
+    NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    [serverReq requestASyncWith:kServerPostRequest
+                       paramDic:pDic
+                         urlStr:url];
 }
 
 #pragma mark -
@@ -491,10 +629,16 @@
 
 - (void) setSubjectFromNotice:(NSNotification *)notice
 {
-    subValLab.text = [notice.userInfo objectForKey:@"name"];
-    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+    NSNumber *tag  = (NSNumber *)[notice.userInfo objectForKey:@"TAG"];
+    CLog(@"tag:%d", tag.intValue);
+    if (tag.intValue==0)
+    {
+        NSDictionary *subDic = [notice.userInfo objectForKey:@"subDic"];
+        subValLab.text = [subDic objectForKey:@"name"];
+        [self checkConditionIsFinish];
+    }
     
-    [self checkConditionIsFinish];
+    [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
 }
 
 #pragma mark -
@@ -563,7 +707,10 @@
                 [startDate release];
                 
                 dateValLab = [[UILabel alloc]init];
-                dateValLab.text = [userDic objectForKey:@"Date"];
+                if ([userDic objectForKey:@"Date"])
+                    dateValLab.text = [userDic objectForKey:@"Date"];
+                else
+                    dateValLab.text = @"";
                 dateValLab.textAlignment   = NSTextAlignmentCenter;
                 dateValLab.backgroundColor = [UIColor clearColor];
                 dateValLab.frame = CGRectMake(80, 4.5, 170, 35);
@@ -583,8 +730,18 @@
                 [subLab release];
                 
                 subValLab  = [[UILabel alloc]init];
-                subValLab.text  = [Order searchSubjectName:[userDic objectForKey:@"Subject"]];
                 subValLab.frame = CGRectMake(140, 4.5, 120, 35);
+                if (tObj)
+                {
+                    subValLab.text = tObj.pf;
+                }
+                else
+                {
+                    if ([userDic objectForKey:@"Subject"])
+                        subValLab.text = [Student searchSubjectName:[userDic objectForKey:@"Subject"]];
+                    else
+                        subValLab.text = @"";
+                }
                 [cell addSubview:subValLab];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
@@ -601,15 +758,36 @@
                 [sexLab release];
                 
                 sexValLab = [[UILabel alloc]init];
-                if (((NSNumber *)[userDic objectForKey:@"Sex"]).intValue == 1)
+                sexValLab.frame = CGRectMake(140, 4.5, 120, 35);
+                
+                if (tObj)
                 {
-                    sexValLab.text = @"男";
+                    if (tObj.sex == 1)
+                    {
+                        sexValLab.text = @"男";
+                    }
+                    else
+                    {
+                        sexValLab.text = @"女";
+                    }
                 }
                 else
                 {
-                    sexValLab.text = @"女";
+                    if ([userDic objectForKey:@"Sex"])
+                    {
+                        NSString *sex = [[userDic objectForKey:@"Sex"] copy];
+                        if (sex.intValue == 1)
+                        {
+                            sexValLab.text = @"男";
+                        }
+                        else
+                        {
+                            sexValLab.text = @"女";
+                        }
+                    }
+                    else
+                        sexValLab.text = @"";
                 }
-                sexValLab.frame = CGRectMake(140, 4.5, 120, 35);
                 [cell addSubview:sexValLab];
                 
                 cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"sd_cell_normal_bg"]
@@ -618,8 +796,6 @@
             }
             case 3:
             {
-                salaryDic = [[userDic objectForKey:@"SalaryDic"] copy];
-                
                 UILabel *salaryLab = [[UILabel alloc]init];
                 salaryLab.text = @"每小时课酬标准";
                 salaryLab.backgroundColor = [UIColor clearColor];
@@ -628,13 +804,32 @@
                 [cell addSubview:salaryLab];
                 [salaryLab release];
                 
-                NSString *salary  = @"";
-                
-                if ([[salaryDic objectForKey:@"name"] isEqualToString:@"0"])
-                    salary = @"师生协商";
+                salaryDic = [[userDic objectForKey:@"SalaryDic"] copy];
+                NSString *salary = @"";
+                if (tObj)
+                {
+                    //封装SalaryDic
+                    NSString *expense = [NSString stringWithFormat:@"%d",tObj.expense];
+                    salaryDic = [[NSDictionary dictionaryWithObjectsAndKeys:expense,@"id",
+                                 [Student searchSalaryName:expense],@"name", nil] copy];
+                    CLog(@"salaryDic:%@", salaryDic);
+                    salary = [Student searchSalaryName:[NSString stringWithFormat:@"%d",tObj.expense]];
+                }
                 else
+                {
                     salary = [salaryDic objectForKey:@"name"];
-                
+                    if (salary)
+                    {
+                        if ([salary isEqualToString:@"0"])
+                            salary = @"师生协商";
+                        else
+                            salary = [salaryDic objectForKey:@"name"];
+                    }
+                    else
+                    {
+                        salary = @"";
+                    }
+                }
                 salaryValLab  = [[UILabel alloc]init];
                 salaryValLab.text = salary;
                 salaryValLab.backgroundColor = [UIColor clearColor];
@@ -655,8 +850,14 @@
                 [cell addSubview:timesLab];
                 [timesLab release];
                 
+                NSString *times = [[userDic objectForKey:@"Time"] copy];
+                if (times)
+                    timeValueLab.text = times;
+                else
+                    timeValueLab.text = @"";
+                
                 timeValueLab = [[UILabel alloc]init];
-                timeValueLab.text = [userDic objectForKey:@"Time"];
+                timeValueLab.text = times;
                 timeValueLab.backgroundColor = [UIColor clearColor];
                 timeValueLab.frame = CGRectMake(140, 4.5, 140, 35);
                 [cell addSubview:timeValueLab];
@@ -676,7 +877,12 @@
                 [posLab release];
                 
                 posValLab = [[UILabel alloc]init];
-                posValLab.text  = [userDic objectForKey:@"Pos"];
+                NSString *pos = [[userDic objectForKey:@"Pos"] copy];
+                if (pos) {
+                    posValLab.text = pos;
+                }
+                else
+                    posValLab.text = @"";
                 posValLab.backgroundColor = [UIColor clearColor];
                 posValLab.frame = CGRectMake(140, 4.5, 130, 35);
                 posValLab.font  = [UIFont systemFontOfSize:12.f];
@@ -802,33 +1008,48 @@
         case 0:         //选择时间
         {
             SelectDateViewController *sdVctr = [[SelectDateViewController alloc]init];
+            sdVctr.curValue = dateValLab.text;
             [self presentPopupViewController:sdVctr
                                animationType:MJPopupViewAnimationFade];
             break;
         }
         case 1:
         {
-            SelectSubjectViewController *ssVctr = [[SelectSubjectViewController alloc]init];
-            ssVctr.subName = subValLab.text;
-            [self presentPopupViewController:ssVctr
-                               animationType:MJPopupViewAnimationFade];
+            if (tObj)
+            {
+                //不可修改
+            }
+            else
+            {
+                SelectSubjectViewController *ssVctr = [[SelectSubjectViewController alloc]init];
+                ssVctr.subName = subValLab.text;
+                [self presentPopupViewController:ssVctr
+                                   animationType:MJPopupViewAnimationFade];
+            }
             break;
         }
         case 2:
         {
-            SelectSexViewController *ssVctr = [[SelectSexViewController alloc]init];
-            if (sexValLab.text.length==0)
-                ssVctr.sexName = @"男";
+            if (tObj)
+            {
+                //不可修改
+            }
             else
-                ssVctr.sexName = sexValLab.text;
-            [self presentPopupViewController:ssVctr
-                               animationType:MJPopupViewAnimationFade];
+            {
+                SelectSexViewController *ssVctr = [[SelectSexViewController alloc]init];
+                if (sexValLab.text.length==0)
+                    ssVctr.sexName = @"男";
+                else
+                    ssVctr.sexName = sexValLab.text;
+                [self presentPopupViewController:ssVctr
+                                   animationType:MJPopupViewAnimationFade];
+            }
             break;
         }
         case 3:
         {
             SelectSalaryViewController *ssVctr = [[SelectSalaryViewController alloc]init];
-            if (salaryValLab.text==0)
+            if (salaryValLab.text.length==0)
                 ssVctr.money = @"180";
             else
                 ssVctr.money = salaryValLab.text;
@@ -841,7 +1062,7 @@
         {
             SelectTimesViewController *stVctr = [[SelectTimesViewController alloc]init];
             if (timeValueLab.text.length == 0)
-                stVctr.curValue = @"100";
+                stVctr.curValue = @"200";
             else
                 stVctr.curValue = timeValueLab.text;
             [self presentPopupViewController:stVctr
@@ -861,6 +1082,137 @@
         }
         default:
             break;
+    }
+}
+
+
+#pragma mark -
+#pragma mark ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
+{
+    [self showAlertWithTitle:@"提示"
+                         tag:1
+                     message:@"网络繁忙"
+                    delegate:self
+           otherButtonTitles:@"确定",nil];
+    
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
+    
+    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    if (errorid.intValue == 0)
+    {
+        NSString *action = [resDic objectForKey:@"action"];
+        if ([action isEqualToString:@"submitOrder"])
+        {
+            if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+            {
+                return;
+            }
+            
+            //获取订单
+            curOrder = [Order setOrderProperty:[resDic objectForKey:@"order"]];
+            curOrder.teacher = tObj;
+            
+            //封装订单信息
+            NSArray *paramsArr = [NSArray arrayWithObjects:@"order_sd",@"order_kcbz",@"order_jyfdnum",
+                                  @"order_iaddress",@"order_iaddress_data", nil];
+            NSArray *valueArr  = [NSArray arrayWithObjects:curOrder.orderAddTimes,curOrder.everyTimesMoney,
+                                 curOrder.orderStudyTimes,curOrder.orderStudyPos,curOrder.addressDataDic, nil];
+            NSDictionary *orderDic = [NSDictionary dictionaryWithObjects:valueArr
+                                                                 forKeys:paramsArr];
+            NSString *jsonOrder = [orderDic JSONFragment];
+            CLog(@"jsonOrder:%@", jsonOrder);
+            
+            //封装修改订单提交字段
+            NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+            NSArray *pArr  = [NSArray arrayWithObjects:@"action",@"orderInfo",@"oid",@"sessid", nil];
+            NSArray *vArr  = [NSArray arrayWithObjects:@"editOrder",jsonOrder,curOrder.orderId,ssid, nil];
+            NSDictionary *pDic = [NSDictionary dictionaryWithObjects:vArr
+                                                             forKeys:pArr];
+            CLog(@"pDic:%@", pDic);
+            ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+            serverReq.delegate = self;
+            NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
+            NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+            [serverReq requestASyncWith:kServerPostRequest
+                               paramDic:pDic
+                                 urlStr:url];
+        }
+        else if ([action isEqualToString:@"editOrder"])//修改订单
+        {
+            NSData *stuData    = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
+            Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
+            
+            //发送聘请消息
+            NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"phone",@"nickname",@"orderid",@"taPhone",@"deviceId", nil];
+            NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_ORDER_EDIT],student.phoneNumber,
+                                  curOrder.teacher.name,curOrder.orderId,curOrder.teacher.phoneNums,
+                                  [SingleMQTT getCurrentDevTopic], nil];
+            CLog(@"valArr:%@", valuesArr);
+            NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                             forKeys:paramsArr];
+            //发送消息
+            NSString *json = [pDic JSONFragment];
+            CLog(@"update Order Msg:%@,%@", json, curOrder.teacher.deviceId);
+            NSData *data   = [json dataUsingEncoding:NSUTF8StringEncoding];
+            SingleMQTT *session = [SingleMQTT shareInstance];
+            
+            [session.session publishData:data
+                                 onTopic:curOrder.teacher.deviceId];
+            
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            [MBProgressHUD hideHUDForView:nav.view animated:YES];
+            
+            //跳转到沟通页
+            ChatViewController *cVctr = [[ChatViewController alloc]init];
+            cVctr.tObj  = tObj;
+            cVctr.order = curOrder;
+            cVctr.order.teacher = tObj;
+            [nav pushViewController:cVctr animated:YES];
+            [cVctr release];
+        }
+    }
+    else
+    {
+        NSString *errorMsg = [resDic objectForKey:@"message"];
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
+        
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        [MBProgressHUD hideHUDForView:nav.view animated:YES];
     }
 }
 

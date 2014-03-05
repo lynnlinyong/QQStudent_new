@@ -22,6 +22,8 @@
     UILabel *msgLab;
     UILabel *infoLab;
     UILabel *nameLab;
+    
+    UIImageView *idImageView;
 }
 
 @property (nonatomic, assign) id<LatlyViewCellDelegate> delegate;

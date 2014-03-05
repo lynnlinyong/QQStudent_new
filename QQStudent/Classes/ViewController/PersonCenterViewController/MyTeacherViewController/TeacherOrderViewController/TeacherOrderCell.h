@@ -26,10 +26,14 @@
     UIButton *finishBtn;
     UIButton *updateBtn;
     
-    NSArray  *buttonArray;
+    NSMutableArray  *buttonArray;
+    UIView *parentView;
+    UIImageView *bgLabImageView;
 }
 @property (nonatomic, retain) CommentView *commView;
 @property (nonatomic, copy)   Order *order;
 @property (nonatomic, retain) UIButton *commentBtn;
 @property (nonatomic, assign) id<TeacherOrderCellDelegate> delegate;
+
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier withParent:(UIView *) pView;
 @end

@@ -83,6 +83,15 @@
 
 - (void) initUI
 {
+    latlyTab = [[UITableView alloc]init];
+    latlyTab.delegate   = self;
+    latlyTab.dataSource = self;
+    latlyTab.separatorStyle = UITableViewCellSeparatorStyleNone;
+    latlyTab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 480)
+                            isBackView:YES];
+    [self.view addSubview:latlyTab];
+    
+    
     UIImage *bgImg = [UIImage imageNamed:@"pp_nodata_bg"];
     bgImgView      = [[UIImageView alloc]initWithImage:bgImg];
     bgImgView.frame= [UIView fitCGRect:CGRectMake(160-50,
@@ -91,15 +100,6 @@
                                                   80)
                             isBackView:NO];
     [self.view addSubview:bgImgView];
-
-    
-    latlyTab = [[UITableView alloc]init];
-    latlyTab.delegate   = self;
-    latlyTab.dataSource = self;
-    latlyTab.separatorStyle = UITableViewCellSeparatorStyleNone;
-    latlyTab.frame = [UIView fitCGRect:CGRectMake(0, 5, 320, 376)
-                            isBackView:NO];
-    [self.view addSubview:latlyTab];
     
     //初始化上拉刷新
     [self initPullView];
@@ -131,11 +131,18 @@
 
 - (void) getMessageNewNumber
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     if ([AppDelegate isInView:@"LatlyViewController"])
     {
         CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
         [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
     }
+    
+    [self.msgArray removeAllObjects];
     
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action", @"sessid", nil];
@@ -153,6 +160,11 @@
 
 - (void) deleteTeacherFormChat:(NSString *) teacherId
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"teacherId",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"deleteNewMember",teacherId,ssid, nil];
@@ -441,7 +453,11 @@
             sysDic   = [[resDic objectForKey:@"sys_message"] copy];
             
             //添加老师沟通消息
-            msgArray = [[resDic objectForKey:@"teachers"] copy];
+            NSArray *msgs = [[resDic objectForKey:@"teachers"] copy];
+            for (id item in msgs)
+            {
+                [msgArray addObject:item];
+            }
             
             [headArray removeAllObjects];
             headArray = nil;
@@ -462,6 +478,14 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
     
     [latlyTab reloadData];

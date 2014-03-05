@@ -9,13 +9,13 @@
 #import <UIKit/UIKit.h>
 
 @class CommentView;
-@protocol CommentViewDelegate <NSObject>
-- (void) commentView:(CommentView *)commentView ClickedIndex:(int) index;
-@end
 
 @interface CommentView : UIView
-@property (nonatomic, retain) NSString *orderId;
+@property (nonatomic, retain) UIView      *parentView;
+@property (nonatomic, retain) NSString    *orderId;
 @property (nonatomic, retain) UIImageView *contentView;
-@property (nonatomic, assign) id<CommentViewDelegate> delegate;
+@property (nonatomic, retain) NSString    *idStr;
+
 - (void) showView:(CGRect) rect;
+- (void) setMeHidden:(BOOL)h;
 @end

@@ -15,4 +15,5 @@
     UIWebView *webView;
 }
 @property (nonatomic, retain) NSString *orderId;
+@property (nonatomic, retain) NSString *adURL;
 @end

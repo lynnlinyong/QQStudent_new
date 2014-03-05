@@ -34,6 +34,9 @@
     int        badCount;    //差评
     
     NSArray    *certArray;  //证书
+    
+    BOOL       isId;        //是否认证
+    NSString   *idOrgName;  //认证机构
 }
 
 @property (nonatomic, retain) NSString     *name;
@@ -57,6 +60,8 @@
 @property (nonatomic, assign) int          goodCount;
 @property (nonatomic, assign) int          badCount;
 @property (nonatomic, retain) NSArray      *certArray;  //证书
+@property (nonatomic, assign) BOOL         isId;
+@property (nonatomic, retain) NSString     *idOrgName;
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic;
 @end

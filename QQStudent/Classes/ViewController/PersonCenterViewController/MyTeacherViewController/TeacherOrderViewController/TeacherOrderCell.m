@@ -14,10 +14,26 @@
 @synthesize commentBtn;
 @synthesize commView;
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
+- (void) dealloc
+{
+    [commView       release];
+    [studyPosLab    release];
+    [orderInfoLab   release];
+    [orderDateLab   release];
+    [bgLabImageView release];
+    [noConfirmLab   release];
+    [finishLab      release];
+    [buttonArray    removeAllObjects];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
+}
+
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier withParent:(UIView *) pView
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
-    if (self) {
+    if (self)
+    {    
+        parentView = pView;
         studyPosLab = [[UILabel alloc]init];
         studyPosLab.textColor       = [UIColor whiteColor];
         studyPosLab.font  = [UIFont systemFontOfSize:12.f];
@@ -41,13 +57,8 @@
         orderDateLab.backgroundColor = [UIColor clearColor];
         [self addSubview:orderDateLab];
         
-        UIImage *bgImg = [UIImage imageNamed:@"spp_order_status_bg"];
-        UIImageView *bgLabImageView = [[UIImageView alloc]init];
-        bgLabImageView.image = bgImg;
-        bgLabImageView.frame = CGRectMake(230, 35, bgImg.size.width, bgImg.size.height);
-        [self addSubview:bgLabImageView];
-        [bgLabImageView release];
         
+        UIImage *bgImg = [UIImage imageNamed:@"spp_order_status_bg"];
         noConfirmLab = [[UILabel alloc]init];
         noConfirmLab.font  = [UIFont systemFontOfSize:12.f];
         noConfirmLab.frame = CGRectMake(210, 25, bgImg.size.width, bgImg.size.width);
@@ -59,9 +70,14 @@
         finishLab.textColor       = [UIColor whiteColor];
         finishLab.textAlignment = NSTextAlignmentCenter;
         finishLab.font  = [UIFont systemFontOfSize:12.f];
-        finishLab.frame = CGRectMake(230, 25, bgImg.size.width, bgImg.size.height);
+        finishLab.frame = CGRectMake(0, 0, bgImg.size.width, bgImg.size.height);
         finishLab.backgroundColor = [UIColor clearColor];
-        [self addSubview:finishLab];
+        
+        bgLabImageView = [[UIImageView alloc]init];
+        bgLabImageView.image = bgImg;
+        bgLabImageView.frame = CGRectMake(230, 35, bgImg.size.width, bgImg.size.height);
+        [bgLabImageView addSubview:finishLab];
+        [self addSubview:bgLabImageView];
         
         UIImage *freeImg = [UIImage imageNamed:@"mt_fbook_normal_btn"];
         UILabel *freeLab = [[UILabel alloc]init];
@@ -107,6 +123,11 @@
              forControlEvents:UIControlEventTouchUpInside];
         [commentBtn addSubview:cmmLab];
         [self addSubview:commentBtn];
+        
+        commView = [[CommentView alloc]initWithFrame:CGRectMake(0, 0, 170, 70)];
+        commView.hidden   = YES;
+        commView.orderId  = order.orderId;
+        [pView addSubview:commView];
         
         UIImage *updateImg = [UIImage imageNamed:@"mt_update_normal_btn"];
         UILabel *updateLab = [[UILabel alloc]init];
@@ -157,12 +178,15 @@
         UIView *bgView = [[UIView alloc]init];
         bgView.backgroundColor = [UIColor colorWithHexString:@"#686868"];
         self.backgroundView  = bgView;
+        
+        
         [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(getTouchEvent:)
-                                                     name:@"TouchEvent"
+                                                 selector:@selector(doGetCommentNotice:)
+                                                     name:@"commentOrderNotice"
                                                    object:nil];
         
-        buttonArray = [NSArray arrayWithObjects:freeBtn,commentBtn,updateBtn,finishBtn, nil];
+        buttonArray = [[NSMutableArray alloc] initWithObjects:freeBtn,commentBtn,
+                                                              updateBtn,finishBtn, nil];
     }
     return self;
 }
@@ -171,18 +195,6 @@
 {
     [super setSelected:selected animated:animated];
     // Configure the view for the selected state
-}
-
-- (void) dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [studyPosLab release];
-    [super dealloc];
-}
-
-- (void) getTouchEvent:(NSNotification *) notice
-{
-    commView.hidden = YES;
 }
 
 - (void) setStudyPos:(NSString *) pos
@@ -205,10 +217,10 @@
                                     orderInfoLab.frame.size.width,
                                     orderInfoLab.frame.size.height);
     
-    finishLab.frame = CGRectMake(finishLab.frame.origin.x,
-                                 finishLab.frame.origin.y+offset,
-                                 finishLab.frame.size.width,
-                                 finishLab.frame.size.height);
+//    bgLabImageView.frame = CGRectMake(bgLabImageView.frame.origin.x,
+//                                 bgLabImageView.frame.origin.y+offset,
+//                                 bgLabImageView.frame.size.width,
+//                                 bgLabImageView.frame.size.height);
 
     commentBtn.frame = CGRectMake(commentBtn.frame.origin.x,
                                   commentBtn.frame.origin.y+offset,
@@ -229,12 +241,13 @@
                                  finishBtn.frame.origin.y+offset,
                                  finishBtn.frame.size.width,
                                  finishBtn.frame.size.height);
+    
+    //cell高度调整
 }
 
-- (void) setAutoPosForButton
+- (void) setAutoPosForButton:(BOOL) isAuto
 {
     //自动缩进按钮
-    UIImage *btnImg = [UIImage imageNamed:@"mt_finish_nomal_btn"];
     if (buttonArray)
     {
         for (int i=0; i<buttonArray.count; i++)
@@ -242,15 +255,15 @@
             UIButton *btn = [buttonArray objectAtIndex:i];
             if (btn.hidden)
             {
-                CLog(@"btn:%d", i);
+                CGRect preRect = btn.frame;
+                CGRect curRect;
                 for (int j=i+1; j<buttonArray.count; j++)
                 {
                     UIButton *nextBtn = [buttonArray objectAtIndex:j];
-                    if (!nextBtn.hidden)
-                    {
-                        //移动
-                        nextBtn.frame = CGRectMake(nextBtn.frame.origin.x-btnImg.size.width, nextBtn.frame.origin.y, nextBtn.frame.size.width, nextBtn.frame.size.height);
-                    }
+                    curRect = nextBtn.frame;
+                    nextBtn.frame = CGRectMake(preRect.origin.x,
+                                               nextBtn.frame.origin.y, nextBtn.frame.size.width, nextBtn.frame.size.height);
+                    preRect = curRect;
                 }
             }
         }
@@ -280,7 +293,6 @@
             finishLab.text = @"未确认";
             
             freeBtn.hidden    = YES;
-            commentBtn.hidden = NO;
             updateBtn.hidden  = NO;
             finishBtn.hidden  = YES;
             
@@ -291,7 +303,6 @@
             finishLab.text = @"已确认";
             
             freeBtn.hidden    = NO;
-            commentBtn.hidden = NO;
             updateBtn.hidden  = NO;
             finishBtn.hidden  = YES;
             break;
@@ -302,7 +313,6 @@
             
             //显示评价老师,结单审批按钮
             freeBtn.hidden    = YES;
-            commentBtn.hidden = NO;
             updateBtn.hidden  = YES;
             finishBtn.hidden  = NO;
             break;
@@ -323,12 +333,26 @@
             break;
     }
     
+    if (order.orderCommentStatus != NO_COMMENT)
+        commentBtn.hidden = YES;
+    
     //自动缩进按钮
-    [self setAutoPosForButton];
+    [self setAutoPosForButton:YES];
 }
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) doGetCommentNotice:(NSNotification *) notice
+{
+    NSString *orderId = [notice.userInfo objectForKey:@"OrderID"];
+    if ([orderId isEqualToString:order.orderId])
+    {
+        commView.hidden   = YES;
+        commentBtn.hidden = YES;
+        [self setAutoPosForButton:NO];   //手动评价后缩进
+    }
+}
+
 - (void) doButtonClicked:(id)sender
 {
     UIButton *btn = sender;
@@ -339,5 +363,15 @@
             [delegate cell:self buttonTag:btn.tag];
         }
     }
+}
+
+#pragma mark -
+#pragma mark - Touch Event
+- (void) tapGesture:(UIGestureRecognizer *) gesture
+{
+    NSDictionary *tagDic = [NSDictionary dictionaryWithObjectsAndKeys:@"", @"TAG", nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CommentViewNoticeDismiss"
+                                                        object:self
+                                                      userInfo:tagDic];
 }
 @end

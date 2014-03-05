@@ -85,6 +85,7 @@ typedef enum {
 - (NSString *)avatarNameForIncomingMessage;
 - (NSString *)avatarNameForOutgoingMessage;
 - (NSString *)avatarImagePathForOutgoingMessage;
+- (BOOL) isHaveOrg;
 @end
 
 

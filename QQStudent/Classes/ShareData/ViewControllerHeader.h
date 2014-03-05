@@ -12,6 +12,8 @@
 #import "FMDB.h"
 #import "WXApi.h"
 #import "Order.h"
+#import "CommentView.h"
+#import "Reachability.h"
 #import "WeiboApi.h"
 #import "SinaWeibo.h"
 #import "QCheckBox.h"
@@ -23,6 +25,7 @@
 #import "Teacher/Teacher.h"
 #import "NoticePopView.h"
 #import "Student/Student.h"
+#import "CustomDatePicker.h"
 #import "UIImage+CircleImage.h"
 #import "LeveyTabBar.h"
 #import "ThreadTimer.h"
@@ -58,7 +61,6 @@
 #import "SalaryAndFlagView.h"
 #import "UIColor+CustomColor.h"
 #import "TTImageView.h"
-#import "CommentView.h"
 #import "QRadioButton.h"
 #import "RegexKitLite.h"
 #import "ServerRequest.h"
@@ -130,5 +132,7 @@
 #import "SiteOtherViewController.h"
 #import "SelectAreaViewController.h"
 #import "OrderEditConfirmViewController.h"
+#import "NoticeWallViewController.h"
+
 
 #endif

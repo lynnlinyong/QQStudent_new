@@ -46,10 +46,10 @@
 
 - (void)handleWithTotalSeconds
 {
-    self.hour   = _totalSeconds/3600;
-    self.minute = _totalSeconds%3600/60;
-    self.second = _totalSeconds%3600%60;
-    
+//    self.hour   = _totalSeconds/3600;
+//    self.minute = _totalSeconds%3600/60;
+//    self.second = _totalSeconds%3600%60;
+//    self.second = 
     if (_delegate)
     {
         if ([_delegate respondsToSelector:@selector(secondResponse:)])

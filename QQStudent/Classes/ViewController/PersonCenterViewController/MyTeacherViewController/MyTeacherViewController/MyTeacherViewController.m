@@ -97,6 +97,11 @@
 
 - (void) doCommentOrderNotice:(NSNotification *) notice
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSNumber *index    = [notice.userInfo objectForKey:@"Index"];
     NSString *orderId  = [notice.userInfo objectForKey:@"OrderID"];
     NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
@@ -138,8 +143,8 @@
     for (NSDictionary *item in teacherArray)
     {
         TeacherOrderSectionController *sVctr = [[TeacherOrderSectionController alloc] initWithViewController:self];
-        sVctr.parentView = self.view;
         sVctr.teacherOrderDic = [item copy];
+        sVctr.ordersArr       = [item objectForKey:@"orders"];
         [self.retractableControllers addObject:sVctr];
         [sVctr release];
     }
@@ -153,6 +158,11 @@
 
 - (void) getOrderTeachers
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     if ([AppDelegate isInView:@"MyTeacherViewController"])
     {
         CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
@@ -183,10 +193,26 @@
 
 - (float) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row==0)
-        return 80;
+    if (!iPhone5)
+    {
+        self.tableView.frame = CGRectMake(0, 0, 320, 368);
+    }
+    else
+    {
+        self.tableView.frame = CGRectMake(0, 0, 320, 456);
+    }
     
-    return 120;
+    if (indexPath.row == 0) //老师Cell
+    {
+        return 80;
+    }
+    else                    //订单Cell
+    {
+        GCRetractableSectionController* sectionController = [self.retractableControllers objectAtIndex:indexPath.section];
+        return [sectionController heightForRow:indexPath.row];
+    }
+
+    return 105;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -209,6 +235,7 @@
         cell.delegate = self;
         cell.backgroundView = [[UIImageView alloc]initWithImage:[UIImage
                                                                  imageNamed:@"mtp_tcell_bg"]];
+        
         return cell;
     }
 
@@ -217,6 +244,11 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    //发送隐藏消息
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CommentViewNoticeDismiss"
+                                                        object:nil
+                                                      userInfo:nil];
+    
     GCRetractableSectionController* sectionController = [self.retractableControllers objectAtIndex:indexPath.section];
     return [sectionController didSelectCellAtRow:indexPath.row];
 }
@@ -346,8 +378,8 @@
             NSString *content = @"";
             if (contactsDic)
             {
-                if ([contactsDic objectForKey:@"studentapp"])
-                    content = [contactsDic objectForKey:@"studentapp"];
+                if ([contactsDic objectForKey:@"teacher"])
+                    content = [contactsDic objectForKey:@"teacher"];
             }
 
             
@@ -440,6 +472,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
     
     [self doneLoadingTableViewData];

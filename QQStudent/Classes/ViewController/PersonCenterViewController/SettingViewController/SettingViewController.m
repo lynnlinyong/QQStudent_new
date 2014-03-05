@@ -111,6 +111,11 @@
 
 - (void) updateStudentInfo
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     //更新本地个人信息
     NSData *stuData = [NSKeyedArchiver archivedDataWithRootObject:student];
     [[NSUserDefaults standardUserDefaults] setObject:stuData
@@ -135,6 +140,11 @@
 
 - (void) uploadSuggest:(NSString *) content
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"text",@"sessid",nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"submitProposal",content,ssid, nil];
@@ -295,15 +305,8 @@
                                             forKey:LOGINE_SUCCESS];
     
     //显示登录页面
-    MainViewController *mVc     = [[MainViewController alloc]init];
-    CustomNavigationViewController *nav = [[CustomNavigationViewController alloc]initWithRootViewController:mVc];
-    AppDelegate *app = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    app.window.rootViewController = nav;
-    
-    LoginViewController *lVctr  = [[LoginViewController alloc]init];
-    [nav pushViewController:lVctr
-                   animated:YES];
-    [mVc release];
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [nav popToRootViewControllerAnimated:YES];
 }
 
 #pragma mark -
@@ -799,6 +802,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 @end

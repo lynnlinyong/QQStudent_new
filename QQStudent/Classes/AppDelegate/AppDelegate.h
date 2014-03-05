@@ -16,5 +16,7 @@
 @property (strong, nonatomic) UIWindow *window;
 
 + (BOOL) isInView:(NSString *) vctrName;
-+(void) dealWithMessage:(NSDictionary *)msgDic isPlayVoice:(BOOL) isPlay;
++ (BOOL) isConnectionAvailable:(BOOL) animated withGesture:(BOOL) isCan;
++ (void) popToMainViewController;
++ (void) dealWithMessage:(NSDictionary *)msgDic isPlayVoice:(BOOL) isPlay;
 @end

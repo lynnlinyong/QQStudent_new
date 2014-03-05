@@ -64,8 +64,8 @@
     self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
     
     self.webView = [[UIWebView alloc]init];
-    self.webView.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 416)
-                                isBackView:NO];
+    self.webView.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 480)
+                                isBackView:YES];
     [self.view addSubview:self.webView];
     
     NSString *filePath   = [[NSBundle mainBundle]pathForResource:@"about"

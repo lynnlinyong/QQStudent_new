@@ -61,6 +61,7 @@
 
     //离线更新
     [self updateLoginStatus:0];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
@@ -81,8 +82,6 @@
     //初始化MQTT Server
     [self initMQTTServer];
     
-//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-    
     //获得Web服务器地址
     [MainViewController getWebServerAddress];
     
@@ -92,14 +91,13 @@
     //上线更新
     [self updateLoginStatus:1];
     
-        
-//        dispatch_async(dispatch_get_main_queue(), ^{
-    
-//        });
-//    });
-    
     //向微信注册
     [WXApi registerApp:WeiXinAppID withDescription:@"QQ_Student_IOS v1.0"];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(closeNoticeWall:)
+                                                 name:@"closeNoticeWall"
+                                               object:nil];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -121,9 +119,19 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) closeNoticeWall:(NSNotification *) notice
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [nav dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+}
 
 - (void) getPushMessage
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
     if (!webAdd)
     {
@@ -149,6 +157,11 @@
 
 - (void) updateLoginStatus:(int) isBackgroud
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     //判断是否显示试听和聘请
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     if (ssid)
@@ -187,10 +200,53 @@
 {
     //连接MQTT服务器
     SingleMQTT *session = [SingleMQTT shareInstance];
-    [session.session setDelegate:self];
-    [session.session subscribeTopic:[SingleMQTT getCurrentDevTopic]];
-    CLog(@"Topic:%@", [SingleMQTT getCurrentDevTopic]);
     [SingleMQTT connectServer];
+    [session.session setDelegate:self];
+}
+
+- (void) tapGestureResponse:(UIGestureRecognizer *)reg
+{
+    MBProgressHUD *hud = (MBProgressHUD *)reg.view;
+    [hud removeFromSuperview];
+    [hud release];
+    hud = nil;
+}
+
++ (BOOL) isConnectionAvailable:(BOOL) animated withGesture:(BOOL) isCan
+{
+    
+    BOOL isExistenceNetwork = YES;
+    Reachability *reach = [Reachability reachabilityWithHostName:@"www.baidu.com"];
+    switch ([reach currentReachabilityStatus]) {
+        case NotReachable:
+            isExistenceNetwork = NO;
+            //NSLog(@"notReachable");
+            break;
+        case ReachableViaWiFi:
+            isExistenceNetwork = YES;
+            //NSLog(@"WIFI");
+            break;
+        case ReachableViaWWAN:
+            isExistenceNetwork = YES;
+            //NSLog(@"3G");
+            break;
+    }
+    
+    if (!isExistenceNetwork && animated)
+    {
+        if (!isCan)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"当前网络不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+        }
+        return NO;
+    }
+    
+    return isExistenceNetwork;
 }
 
 - (BOOL) isFirstLauncher
@@ -215,6 +271,19 @@
     [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"nav_top_bg@2x"]
                                        forBarMetrics:UIBarMetricsDefault];
 #endif
+}
+
++ (void) popToMainViewController
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    for (UIViewController *ctr in nav.viewControllers)
+    {
+        if ([ctr isKindOfClass:[MainViewController class]])
+        {
+            [nav popToViewController:ctr animated:YES];
+            break;
+        }
+    }
 }
 
 + (BOOL) isInView:(NSString *) vctrName
@@ -382,9 +451,9 @@
             CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
             [nav showAlertWithTitle:@"恭喜您"
                                 tag:0
-                            message:@"老师已经确认了您的聘请修改!"
+                            message:@"老师已经接受了您的聘请!"
                            delegate:self
-                  otherButtonTitles:@"确定",nil];
+                  otherButtonTitles:@"知道了",nil];
             break;
         }
         case PUSH_TYPE_ORDER_CONFIRM_SUCCESS:  //订单修改确认
@@ -394,11 +463,50 @@
                                 tag:0
                             message:@"老师已经确认了您的订单修改!"
                            delegate:self
-                  otherButtonTitles:@"确定",nil];
+                  otherButtonTitles:@"知道了",nil];
             break;
         }
-        case PUSH_TYPE_LISTENING_CHANG:
+        case PUSH_TYPE_SYSTEM_MSG:
         {
+            break;
+        }
+        case PUSH_TYPE_LISTENING_CHANG:       //试听改变
+        {
+            //判断当前是否在聊天窗口
+            if ([AppDelegate isInView:@"ChatViewController"])
+            {
+                //发送教师端试听改变Notice
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"listenChanged"
+                                                                    object:nil
+                                                                  userInfo:msgDic];
+            }
+            break;
+        }
+        case PUSH_TYPE_OFFLINE_MSG:           //异地登录,消息下线
+        {
+            //清除登录标识
+            [[NSUserDefaults standardUserDefaults] setBool:NO
+                                                    forKey:LOGINE_SUCCESS];
+            
+            //弹回主界面
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            for (UIViewController *ctr in nav.viewControllers)
+            {
+                if ([ctr isKindOfClass:[MainViewController class]])
+                {
+                    [nav popToViewController:ctr animated:YES];
+                    break;
+                }
+            }
+            
+            //提示用户
+            UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"提示"
+                                                               message:@"您已经在另一台设备上登录!"
+                                                              delegate:self
+                                                     cancelButtonTitle:nil
+                                                     otherButtonTitles:@"确定", nil];
+            [alertView show];
+            [alertView release];
             break;
         }
         default:
@@ -447,6 +555,14 @@
         }
         [action release];
     }
+    //重复登录
+    else if (errorid.intValue==2)
+    {
+        //清除sessid,清除登录状态,回到地图页
+        [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+        [AppDelegate popToMainViewController];
+    }
     [errorid release];
 }
 
@@ -464,23 +580,23 @@
         CLog(@"DIC:%@", pDic);
     }
     
-    if ([topic isEqualToString:@"adtopic"])  //广告消息
+    if ([topic isEqualToString:@"adtopic"])         //广告消息
     {
         NoticePopView *popView = [NoticePopView shareInstance];
         popView.noticeType = NOTICE_AD;
         popView.contentDic = pDic;
-        popView.titleLab   = [pDic objectForKey:@"title"];
-        popView.contentLab = [pDic objectForKey:@"content"];
+        popView.titleLab.text   = [pDic objectForKey:@"title"];
+        popView.contentLab.text = [pDic objectForKey:@"message"];
         [popView popView];
     }
     else if ([topic isEqualToString:@"ggtopic"])    //公告消息
     {
-        NoticePopView *popView = [NoticePopView shareInstance];
-        popView.noticeType = NOTICE_GG;
-        popView.contentDic = pDic;
-        popView.titleLab   = [pDic objectForKey:@"title"];
-        popView.contentLab = [pDic objectForKey:@"content"];
-        [popView popView];
+        NoticeWallViewController *noticeWall = [[NoticeWallViewController alloc]init];
+        noticeWall.title   = [pDic objectForKey:@"title"];
+        noticeWall.content = [pDic objectForKey:@"message"];
+        CustomNavigationViewController *nav  = [MainViewController getNavigationViewController];
+        [nav presentPopupViewController:noticeWall
+                          animationType:MJPopupViewAnimationFade];
     }
     else //交互消息  1.沟通消息(文本,语音) 2.修改订单确认 3.聘请修改 4.订单确认 5.抢单)
     {
@@ -504,7 +620,8 @@
             NSLog(@"connection error");
             NSLog(@"reconnecting...");
             // Forcing reconnection
-            [SingleMQTT connectServer];
+            if ([AppDelegate isConnectionAvailable:YES withGesture:NO])
+                [SingleMQTT connectServer];
             break;
         case MQTTSessionEventProtocolError:
             NSLog(@"protocol error");

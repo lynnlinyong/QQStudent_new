@@ -26,5 +26,7 @@
     UILabel        *bgInfoLab;
     
     UIButton       *headBtn;
+    
+    int offset;
 }
 @end

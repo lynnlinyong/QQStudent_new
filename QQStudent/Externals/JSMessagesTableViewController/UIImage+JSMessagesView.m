@@ -113,7 +113,7 @@
 
 + (UIImage *)inputField
 {
-    return [[UIImage imageNamed:@"input-field"] resizableImageWithCapInsets:UIEdgeInsetsMake(20.0f, 12.0f, 18.0f, 18.0f)];
+    return [[UIImage imageNamed:@"cp_input_bg"] resizableImageWithCapInsets:UIEdgeInsetsMake(20.0f, 12.0f, 18.0f, 18.0f)];
 }
 
 #pragma mark - Bubble cap insets

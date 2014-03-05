@@ -118,6 +118,9 @@
 
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    if (isSelect)
+        return;
+    
     if (delegate)
     {
         if ([delegate respondsToSelector:@selector(salaryView:tag:)])
@@ -126,7 +129,8 @@
             
             if (self.isLeft)
             {
-                leftImgView.frame = CGRectMake(leftImgView.frame.origin.x-50, -20, leftImgView.frame.size.width+50, leftImgView.frame.size.height+30);
+                leftImgView.frame = CGRectMake(leftImgView.frame.origin.x-50, -20,
+                                               leftImgView.frame.size.width+50, leftImgView.frame.size.height+30);
                 
                 infoLeftLab = [[UILabel alloc]init];
                 infoLeftLab.text = @"当前默认课酬";
@@ -144,7 +148,8 @@
             }
             else
             {
-                rightImgView.frame = CGRectMake(rightImgView.frame.origin.x, -20, rightImgView.frame.size.width+50, rightImgView.frame.size.height+30);
+                rightImgView.frame = CGRectMake(rightImgView.frame.origin.x, -20,
+                                                rightImgView.frame.size.width+50, rightImgView.frame.size.height+30);
                 
                 infoRightLab = [[UILabel alloc]init];
                 infoRightLab.text = @"当前默认课酬";

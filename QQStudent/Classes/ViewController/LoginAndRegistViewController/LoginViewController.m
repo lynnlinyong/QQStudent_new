@@ -263,6 +263,11 @@
 
 - (void) doLoginBtnClicked:(id)sender
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     if (![self checkInfo])
     {
         [self showAlertWithTitle:@"提示"
@@ -299,7 +304,7 @@
 
 - (void) doHpBtnClicked:(id)sender
 {
-    NSString *helpPhone = [[NSUserDefaults standardUserDefaults] objectForKey:@""];
+    NSString *helpPhone = [[NSUserDefaults standardUserDefaults] objectForKey:HELP_PHONE];
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", helpPhone]]];
 }
 
@@ -330,7 +335,8 @@
         emailImgView.image    = [UIImage imageNamed:@"normal_fld"];
     }
     
-    [self moveViewWhenViewHidden:loginBtn parent:self.view];
+    [self moveViewWhenViewHidden:loginBtn
+                          parent:self.view];
 }
 
 #pragma mark -
@@ -373,54 +379,69 @@
     if (errorid.intValue == 0)
     {        
         NSString *ssid = [[resDic objectForKey:@"sessid"] retain];
-        [[NSUserDefaults standardUserDefaults] setObject:ssid
-                                                  forKey:SSID];
-        CLog(@"ssid:%@", ssid);
-        
-        NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
-        
-        //获得Student
-        Student *student    = [[Student alloc]init];
-        student.email       = [stuDic objectForKey:@"email"];
-        student.gender      = [[stuDic objectForKey:@"gender"] copy];
-        student.grade       = [[stuDic objectForKey:@"grade"]  copy];
-        student.icon        = [[stuDic objectForKey:@"icon"] copy];
-        student.latltude    = [stuDic objectForKey:@"latitude"];
-        student.longltude   = [stuDic objectForKey:@"longitude"];
-        student.lltime      = [stuDic objectForKey:@"lltime"];
-        student.nickName    = [stuDic objectForKey:@"nickname"];
-        student.phoneNumber = [stuDic objectForKey:@"phone"];
-        student.status      = [[stuDic objectForKey:@"status"] copy];
-        student.phoneStars  = [[stuDic objectForKey:@"phone_stars"] copy];
-        student.locStars    = [[stuDic objectForKey:@"location_stars"] copy];
-        
-        NSData *stuData = [[NSKeyedArchiver archivedDataWithRootObject:student] retain];
-        [[NSUserDefaults standardUserDefaults] setObject:stuData
-                                                  forKey:STUDENT];
-        [stuData release];
-        //判断用户是否完善个人资料
-        if (student.status.intValue == 0)
+        if (ssid)
         {
-            //跳转到完善个人资料页
-            CompletePersonalInfoViewController *cpVctr = [[[CompletePersonalInfoViewController alloc]init]autorelease];
-            [self.navigationController pushViewController:cpVctr
-                                                 animated:YES];
-            [student release];
-        }
-        else
-        {
-            //写入登录成功标识
-            [[NSUserDefaults standardUserDefaults] setBool:YES
-                                                    forKey:LOGINE_SUCCESS];
+            [[NSUserDefaults standardUserDefaults] setObject:ssid
+                                                      forKey:SSID];
+            CLog(@"ssid:%@", ssid);
             
-            //跳转个人中心
-            [self.navigationController popToRootViewControllerAnimated:NO];
+            NSString *preCurDeviceId = [resDic objectForKey:@"fDeviceId"];
+            NSString *curDeviceId = [SingleMQTT getCurrentDevTopic];
+            if (![preCurDeviceId isEqualToString:curDeviceId])
+            {
+                //本次登录和上次登录手机不同,通知上次手机下线
+                NSDictionary *offlineDic = [NSDictionary dictionaryWithObjectsAndKeys:@"9999",@"type", nil];
+                NSString *jsonStr   = [offlineDic JSONFragment];
+                NSData *data        = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
+                SingleMQTT *session = [SingleMQTT shareInstance];
+                [session.session publishData:data
+                                     onTopic:preCurDeviceId];
+            }
             
-            PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
-            [self.navigationController pushViewController:pcVctr
-                                                 animated:YES];
-            [pcVctr release];
-            [student release];
+            //获得Student
+            NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
+            Student *student    = [[Student alloc]init];
+            student.email       = [stuDic objectForKey:@"email"];
+            student.gender      = [[stuDic objectForKey:@"gender"] copy];
+            student.grade       = [[stuDic objectForKey:@"grade"]  copy];
+            student.icon        = [[stuDic objectForKey:@"icon"] copy];
+            student.latltude    = [stuDic objectForKey:@"latitude"];
+            student.longltude   = [stuDic objectForKey:@"longitude"];
+            student.lltime      = [stuDic objectForKey:@"lltime"];
+            student.nickName    = [stuDic objectForKey:@"nickname"];
+            student.phoneNumber = [stuDic objectForKey:@"phone"];
+            student.status      = [[stuDic objectForKey:@"status"] copy];
+            student.phoneStars  = [[stuDic objectForKey:@"phone_stars"] copy];
+            student.locStars    = [[stuDic objectForKey:@"location_stars"] copy];
+            
+            NSData *stuData = [[NSKeyedArchiver archivedDataWithRootObject:student] retain];
+            [[NSUserDefaults standardUserDefaults] setObject:stuData
+                                                      forKey:STUDENT];
+            [stuData release];
+            //判断用户是否完善个人资料
+            if (student.status.intValue == 0)
+            {
+                //跳转到完善个人资料页
+                CompletePersonalInfoViewController *cpVctr = [[[CompletePersonalInfoViewController alloc]init]autorelease];
+                [self.navigationController pushViewController:cpVctr
+                                                     animated:YES];
+                [student release];
+            }
+            else
+            {
+                //写入登录成功标识
+                [[NSUserDefaults standardUserDefaults] setBool:YES
+                                                        forKey:LOGINE_SUCCESS];
+                
+                //跳转个人中心
+                [self.navigationController popToRootViewControllerAnimated:NO];
+                
+                PersonCenterViewController *pcVctr = [[PersonCenterViewController alloc]init];
+                [self.navigationController pushViewController:pcVctr
+                                                     animated:YES];
+                [pcVctr release];
+                [student release];
+            }
         }
     }
     else
@@ -431,6 +452,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 @end

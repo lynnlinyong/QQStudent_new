@@ -44,6 +44,7 @@
 @property (strong, nonatomic) JSBubbleView *bubbleView;
 @property (strong, nonatomic) UILabel      *timestampLabel;
 @property (strong, nonatomic) TTImageView  *avatarImageView;
+@property (nonatomic, strong) UIImageView  *idImageView;
 @property (assign, nonatomic) JSAvatarStyle avatarImageStyle;
 
 //add by lynn
@@ -151,6 +152,15 @@
                                                                                      self.contentView.frame.size.height - kJSAvatarSize,
                                                                                      kJSAvatarSize,
                                                                                      kJSAvatarSize)];
+                UIImage *idImg = [UIImage imageNamed:@"mp_rz"];
+                self.idImageView = [[UIImageView alloc]init];
+                self.idImageView.hidden = YES;
+                self.idImageView.image  = idImg;
+                self.idImageView.frame  = CGRectMake(self.avatarImageView.frame.size.width-idImg.size.width-5,
+                                                self.avatarImageView.frame.size.height/2-5,
+                                                idImg.size.width+10, idImg.size.height+10);
+                [self.avatarImageView addSubview:self.idImageView];
+                
                 [self.avatarImageView addGestureRecognizer:tapReg];
                 [tapReg release];
                 
@@ -205,7 +215,10 @@
     self.bubbleView = nil;
     self.timestampLabel = nil;
     self.avatarImageView = nil;
+    self.idImageView = nil;
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     [super dealloc];
 }
 
@@ -252,6 +265,11 @@
 - (void) setWebAvatarImage:(NSString *) imagePath
 {
     self.avatarImageView.URL = imagePath;
+}
+
+- (void) setIdImageViewHidden:(BOOL) isId
+{
+    self.idImageView.hidden = !isId;
 }
 
 - (void)setAvatarImage:(UIImage *)image

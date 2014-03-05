@@ -138,7 +138,7 @@
     cmpTab.delegate = self;
     cmpTab.dataSource = self;
     cmpTab.scrollEnabled = NO;
-    cmpTab.frame = CGRectMake(0, 20, 240, 300);
+    cmpTab.frame = CGRectMake(0, 0, 240, 300);
     [self.view addSubview:cmpTab];
 }
 
@@ -159,17 +159,18 @@
     switch (indexPath.row)
     {
         case 0:
+        {
+            return 40;
+        }
         case 1:
         case 2:
         case 3:
         {
             return 50;
-            break;
         }
         case 4:
         {
             return 100;
-            break;
         }
         default:
             break;
@@ -195,9 +196,11 @@
         {
             UILabel *titleLab = [[UILabel alloc]init];
             titleLab.text = @"选择投诉理由,我们将为您处理:";
+            titleLab.font = [UIFont systemFontOfSize:16.f];
+            titleLab.textColor = [UIColor grayColor];
             titleLab.backgroundColor = [UIColor clearColor];
-            titleLab.frame = CGRectMake(0, 0, cell.frame.size.width,
-                                        cell.frame.size.height);
+            titleLab.frame = CGRectMake(10, 0, cell.frame.size.width,
+                                        cell.frame.size.height-10);
             [cell addSubview:titleLab];
             [titleLab release];
             break;
@@ -210,7 +213,7 @@
                    forState:UIControlStateNormal];
             [qrBtn setTitleColor:[UIColor grayColor]
                         forState:UIControlStateNormal];
-            qrBtn.frame = CGRectMake(0, 0, cell.frame.size.width, 30);
+            qrBtn.frame = CGRectMake(10, 0, cell.frame.size.width, 30);
             [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
             [qrBtn setChecked:NO];
             [cell addSubview:qrBtn];
@@ -227,7 +230,7 @@
                    forState:UIControlStateNormal];
             [qrBtn setTitleColor:[UIColor grayColor]
                         forState:UIControlStateNormal];
-            qrBtn.frame = CGRectMake(0, 0, cell.frame.size.width, 30);
+            qrBtn.frame = CGRectMake(10, 0, cell.frame.size.width, 30);
             [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
             [qrBtn setChecked:YES];
             [cell addSubview:qrBtn];
@@ -244,7 +247,7 @@
                    forState:UIControlStateNormal];
             [qrBtn setTitleColor:[UIColor grayColor]
                         forState:UIControlStateNormal];
-            qrBtn.frame = CGRectMake(0, 0, cell.frame.size.width, 30);
+            qrBtn.frame = CGRectMake(10, 0, cell.frame.size.width, 30);
             [qrBtn.titleLabel setFont:[UIFont systemFontOfSize:13]];
             [qrBtn setChecked:NO];
             [cell addSubview:qrBtn];
@@ -256,9 +259,9 @@
         case 4:
         {
             UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"spg_input_bg"]];
-            bgView.frame = CGRectMake(0,
-                                      0,
-                                      242, 92);
+            bgView.frame = CGRectMake(10,
+                                      3,
+                                      225, 92);
             [cell addSubview:bgView];
             
             contentView = [[UITextField alloc] init];
@@ -266,7 +269,7 @@
             contentView.delegate     = self;
             contentView.font = [UIFont systemFontOfSize:14.f];
             contentView.placeholder  = @"其他理由(140字以内)";
-            contentView.frame = CGRectMake(5, 5, 230, 90);
+            contentView.frame = CGRectMake(15, 5, 220, 90);
             [cell addSubview:contentView];
             break;
         }
@@ -308,6 +311,11 @@
     {
         case 0:     //确定
         {
+            if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+            {
+                return;
+            }
+            
             NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
             
             NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"teacher_phone",@"tsType",@"tsText",@"sessid", nil];
@@ -417,6 +425,14 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 

@@ -9,7 +9,6 @@
 #import "MyTeacherCell.h"
 #import "TTImageView.h"
 @implementation MyTeacherCell
-//@synthesize teacher;
 @synthesize delegate;
 @synthesize order;
 
@@ -23,6 +22,15 @@
         [headBtn addTarget:self
                     action:@selector(tapGestureRecongnizerResponse:)
           forControlEvents:UIControlEventTouchUpInside];
+        
+        UIImage *idImg = [UIImage imageNamed:@"mp_rz"];
+        idImageView = [[UIImageView alloc]init];
+        idImageView.hidden = YES;
+        idImageView.image  = idImg;
+        idImageView.frame  = CGRectMake(headBtn.frame.size.width-idImg.size.width-5,
+                                        headBtn.frame.size.height/2-5,
+                                        idImg.size.width+10, idImg.size.height+10);
+        [headBtn addSubview:idImageView];
         
         introduceLab  = [[UILabel alloc]init];
         introduceLab.font = [UIFont systemFontOfSize:14.f];
@@ -80,6 +88,7 @@
 
 - (void) dealloc
 {
+    [idImageView release];
     [starImageView release];
     [introduceLab  release];
     [super dealloc];
@@ -92,24 +101,28 @@
     Teacher *tObj = tOrder.teacher;
     if (tObj.sex == 1)
     {
-        [headBtn setImage:[UIImage imageNamed:@"s_boy"]
+        [headBtn setImage:[UIImage circleImage:[UIImage imageNamed:@"s_boy"]
+                                     withParam:0 withColor:[UIColor whiteColor]]
                  forState:UIControlStateNormal];
         introduceLab.text = [NSString stringWithFormat:@"%@ 男 %@", tObj.name,tObj.pf];
     }
     else
     {
-        [headBtn setImage:[UIImage imageNamed:@"s_girl"]
+        [headBtn setImage:[UIImage circleImage:[UIImage imageNamed:@"s_girl"]
+                                     withParam:0 withColor:[UIColor whiteColor]]
                  forState:UIControlStateNormal];
         introduceLab.text = [NSString stringWithFormat:@"%@ 女 %@", tObj.name,tObj.pf];
     }
     TTImageView *hImgView = [[TTImageView alloc]init];
     hImgView.delegate = self;
     hImgView.URL = tObj.headUrl;
-    CLog(@"URL:%@", tObj.headUrl);
+    
+    if (tObj.isId)
+        idImageView.hidden = NO;
     
     [starImageView setHlightStar:tObj.comment];
     
-//    order = nil;
+    order = nil;
     order = [tOrder copy];
 }
 
@@ -117,7 +130,6 @@
 #pragma mark - TTImageViewDelegate
 - (void)imageView:(TTImageView*)imageView didLoadImage:(UIImage*)image
 {
-    CLog(@"sdhjfishfishdfuishdfiu:%d", order.teacher.sex);
     if (order.teacher.sex == 1)
     {
         [headBtn setImage:[UIImage circleImage:image

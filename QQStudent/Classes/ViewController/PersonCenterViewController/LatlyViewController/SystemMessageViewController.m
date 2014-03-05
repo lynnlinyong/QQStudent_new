@@ -80,6 +80,11 @@
 
 - (void) getSystemMessage
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action", @"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getSystemMessage", ssid, nil];
@@ -96,6 +101,11 @@
 
 - (void) deleteSystemMessage:(NSString *) msgId
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"messageId",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"deleteSystemMessage",msgId,ssid, nil];
@@ -130,13 +140,9 @@
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *idString = @"idString";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:idString];
-    if (!cell)
-    {
-        cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
-                                     reuseIdentifier:idString];
-    }
     
+    UITableViewCell *cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
+                                     reuseIdentifier:idString]autorelease];
     NSDictionary *msgDic = [systemMsgArray objectAtIndex:indexPath.row];
     
     UIImageView *imgView = [[UIImageView alloc]init];
@@ -258,6 +264,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 @end

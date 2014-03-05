@@ -183,6 +183,11 @@
 
 - (void) doButtonClicked:(id)sender
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] dataForKey:STUDENT];
     Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
     NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
@@ -449,14 +454,12 @@
     NSNumber *errorid = [resDic objectForKey:@"errorid"];
     if (errorid.intValue == 0)
     {
-        [self showAlertWithTitle:@"提示"
-                             tag:0
-                         message:@"更新成功"
-                        delegate:self
-               otherButtonTitles:@"确定", nil];
-        
+//        [self showAlertWithTitle:@"提示"
+//                             tag:0
+//                         message:@"更新成功"
+//                        delegate:self
+//               otherButtonTitles:@"确定", nil];
         NSDictionary *stuDic = [resDic objectForKey:@"studentInfo"];
-        CLog(@"Dictionary:%@", stuDic);
         
         //获得Student
         Student *student    = [[Student alloc]init];
@@ -489,6 +492,14 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 

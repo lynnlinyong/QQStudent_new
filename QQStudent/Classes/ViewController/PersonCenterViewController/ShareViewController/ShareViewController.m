@@ -89,6 +89,11 @@
 
 - (void) getShareContentFromServer
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"getShareSet",ssid, nil];
@@ -170,7 +175,7 @@
     {
         CLog(@"NO Installed");
         [self showAlertWithTitle:@"提示"
-                             tag:0
+                             tag:11
                          message:@"您尚未安装微信,马上去安装它!"
                         delegate:self
                otherButtonTitles:@"马上去",@"取消",nil];
@@ -464,24 +469,27 @@
 #pragma mark - UIAlertViewDelegate
 - (void) alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    switch (buttonIndex)
+    if (alertView.tag == 11)
     {
-        case 0:    //马上去
+        switch (buttonIndex)
         {
-            NSString *url = [WXApi getWXAppInstallUrl];
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
-            break;
+            case 0:    //马上去
+            {
+                NSString *url = [WXApi getWXAppInstallUrl];
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+                break;
+            }
+            case 1:    //取消
+            {
+                break;
+            }
+            default:
+                break;
         }
-        case 1:    //取消
-        {
-            break;
-        }
-        default:
-            break;
     }
 }
 
-#pragma mark - 
+#pragma mark -
 #pragma mark - Notice
 - (void) getDismissView:(NSNotification *) notice
 {

@@ -72,9 +72,8 @@
     titleLab.text     = @"昵称";
     titleLab.textColor= [UIColor whiteColor];
     titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame= [UIView fitCGRect:CGRectMake(0, -titleImg.size.height+3,
-                                                 self.view.frame.size.width+5, titleImg.size.height)
-                           isBackView:NO];
+    titleLab.frame= CGRectMake(0, -titleImg.size.height+1,
+                                                 self.view.frame.size.width+5, titleImg.size.height);
     titleLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:titleLab];
     [titleLab release];
@@ -84,10 +83,9 @@
     infoLab.font     = [UIFont systemFontOfSize:15.f];
     infoLab.textColor= [UIColor colorWithHexString:@"#ff6600"];
     infoLab.textAlignment = NSTextAlignmentLeft;
-    infoLab.frame = [UIView fitCGRect:CGRectMake(10,
+    infoLab.frame = CGRectMake(10,
                                                  30,
-                                                 self.view.frame.size.width+5, 20)
-                           isBackView:NO];
+                                                 self.view.frame.size.width+5, 20);
     infoLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:infoLab];
     [infoLab release];
@@ -99,16 +97,14 @@
     nickNameFld.text     = @"";
     nickNameFld.borderStyle = UITextBorderStyleNone;
     nickNameFld.placeholder = @"输入昵称";
-    nickNameFld.frame = [UIView fitCGRect:CGRectMake(10+5,
+    nickNameFld.frame =CGRectMake(10+5,
                                                 50+10,
                                                 normalImg.size.width-5,
-                                                normalImg.size.height)
-                          isBackView:NO];
-    phoneImgView.frame = [UIView fitCGRect:CGRectMake(10,
+                                                normalImg.size.height);
+    phoneImgView.frame = CGRectMake(10,
                                                       50+5,
                                                       normalImg.size.width,
-                                                      normalImg.size.height+10)
-                                isBackView:NO];
+                                                      normalImg.size.height+10);
     [self.view addSubview:phoneImgView];
     [self.view addSubview:nickNameFld];
     [phoneImgView release];

@@ -49,4 +49,20 @@
 
 //根据年级列表,年级ID查询名字
 + (NSString *) searchGradeName:(NSString *) gradeID;
+
+//根据专业列表,名字查询ID
++(NSString *) searchSubjectID:(NSString *) subjectName;
+
+//根据专业列表,ID查询名字
++(NSString *) searchSubjectName:(NSString *) subjectId;
+
++ (void) getSubjects;
+
++ (void) getGradeList;
+
++ (void) getSalarys;
+
++(NSString *) searchSalaryName:(NSString *) salaryID;
+
++(NSString *) searchSalaryID:(NSString *) salaryName;
 @end

@@ -77,7 +77,7 @@
     {
         if ([delegate respondsToSelector:@selector(longPressButton:status:)])
         {
-            if (endRecordTime<2.f)
+            if (endRecordTime<1.f)
             {
                 [delegate longPressButton:self
                                    status:LONG_PRESS_BUTTON_SHORT];

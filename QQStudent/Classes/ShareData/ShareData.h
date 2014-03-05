@@ -56,6 +56,8 @@
 //科目列表
 #define SUBJECT_LIST    @"SUBJECT_LIST"
 
+#define SALARY_LIST     @"SALARY_LIST"
+
 //数据库名
 #define DATABASE        @"provinces.db"
 
@@ -64,6 +66,9 @@
 
 //上传文件标识
 #define UPLOAD_FILE     @"UPLOAD_FILE"
+
+//手机串号ID
+#define UUID            @"UUID"
 
 //是否已经抢单
 #define IS_ORDER_CONFIRM  @"IS_ORDER_CONFIRM"
@@ -87,14 +92,16 @@ typedef enum _tagMsgType
     PUSH_TYPE_ORDER_CONFIRM,
     PUSH_TYPE_ORDER_EDIT_SUCCESS,
     PUSH_TYPE_ORDER_CONFIRM_SUCCESS,
-    PUSH_TYPE_LISTENING_CHANG
+    PUSH_TYPE_SYSTEM_MSG,             //系统消息
+    PUSH_TYPE_LISTENING_CHANG,
+    PUSH_TYPE_OFFLINE_MSG=9999,       //异地登录
 }MsgType;
 
 typedef enum _noticeType
 {
-    NOTICE_AD=0,  //广告
-    NOTICE_GG,  //公告
-    NOTICE_MSG  //交互消息
+    NOTICE_AD=0,    //广告
+    NOTICE_GG,      //公告
+    NOTICE_MSG      //交互消息
 }NoticeType;
 
 //腾讯微博

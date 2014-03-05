@@ -10,6 +10,9 @@
 
 @interface SelectDateViewController : UIViewController
 {
-    UIDatePicker *datePicker;
+//    UIDatePicker *datePicker;
+    CustomDatePicker *datePicker;
 }
+
+@property (nonatomic, retain) NSString *curValue;
 @end

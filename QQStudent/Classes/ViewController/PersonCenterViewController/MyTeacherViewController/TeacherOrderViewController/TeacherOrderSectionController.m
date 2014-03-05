@@ -9,31 +9,113 @@
 #import "TeacherOrderSectionController.h"
 
 @interface TeacherOrderSectionController ()
-@property (nonatomic, retain) NSArray *ordersArr;
 @end
 
 @implementation TeacherOrderSectionController
 @synthesize ordersArr;
 @synthesize teacherOrderDic;
-@synthesize parentView;
 
-//- (NSString *)title {
-//    return NSLocalizedString(@"Simple exemple",);
-//}
-//
-//- (NSString *)titleContentForRow:(NSUInteger)row {
-//    return [self.colors objectAtIndex:row];
-//}
+- (Teacher *) packageTeacher:(NSDictionary *) dic
+{
+    Teacher *tObj = [Teacher setTeacherProperty:dic];
+    
+    NSString *expense = [[dic objectForKey:@"teacher_expense"] copy];
+    if (expense)
+        tObj.expense  = expense.integerValue;
+    else
+        tObj.expense  = 0;
+    
+    NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    NSString *url = [dic objectForKey:@"teacher_icon"];
+    if (url)
+        tObj.headUrl  = [NSString stringWithFormat:@"%@%@",webAdd,url];
+    else
+        tObj.headUrl  = @"";
+    
+    NSString *idNums  = [[dic objectForKey:@"teacher_idnumber"] copy];
+    if (idNums)
+        tObj.idNums   = idNums;
+    else
+        tObj.idNums   = @"";
+    
+    NSString *info = [[dic objectForKey:@"teacher_info"] copy];
+    if (info)
+        tObj.info  = info;
+    else
+        tObj.info  = @"";
+    
+    NSString *name = [[dic objectForKey:@"teacher_name"]  copy];
+    if (name)
+        tObj.name = name;
+    else
+        tObj.name = @"";
+    
+    NSString *phone = [[dic objectForKey:@"teacher_phone"] copy];
+    if (phone)
+        tObj.phoneNums = phone;
+    else
+        tObj.phoneNums = @"";
+    
+    NSString *comment = [dic objectForKey:@"teacher_stars"];
+    if (comment)
+        tObj.comment  = comment.integerValue;
+    else
+        tObj.comment  = 0;
+
+    NSString *pf  = [[dic objectForKey:@"teacher_subjectText"] copy];
+    if (pf)
+        tObj.pf = pf;
+    else
+        tObj.pf = @"";
+    
+    NSString *isId= [[dic objectForKey:@"type_stars"] copy];
+    if (isId)
+    {
+        if (isId.integerValue==1)
+            tObj.isId = YES;
+        else
+            tObj.isId = NO;
+    }
+    
+    NSString *orgName = [[dic objectForKey:@"teacher_type_text"] copy];
+    if (orgName)
+        tObj.idOrgName = orgName;
+    else
+        tObj.idOrgName = @"";
+    
+    return tObj;
+}
 
 - (NSUInteger)contentNumberOfRow
 {
-    self.ordersArr = [[teacherOrderDic objectForKey:@"orders"] copy];
     return [self.ordersArr count];
 }
 
 - (void)didSelectContentCellAtRow:(NSUInteger)row
 {
     [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
+}
+
+- (float)heightForRow:(NSUInteger)row
+{
+    if (row != 0)   //代表订单Cell
+    {
+        NSDictionary *orderDic = [self.ordersArr objectAtIndex:row-1];
+        Order *order  = [Order setOrderProperty:orderDic];
+        
+        NSDictionary *teacherDic = [teacherOrderDic objectForKey:@"teacher"];
+        order.teacher = [self packageTeacher:teacherDic];
+    
+        if (order.orderStatus==FINISH)
+        {
+            return 65;
+        }
+    }
+    
+    if (!iPhone5)
+        return 115;
+    else
+        return 125;
 }
 
 - (UITableViewCell *) cellForRow:(NSUInteger)row
@@ -43,28 +125,23 @@
     {        
         NSDictionary *teacherDic = [teacherOrderDic objectForKey:@"teacher"];
         
-        Teacher *tObj = [Teacher setTeacherProperty:teacherDic];
-        tObj.expense  = ((NSNumber *)[teacherDic objectForKey:@"teacher_expense"]).intValue;
-        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-        tObj.headUrl  = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"teacher_icon"]];
-        tObj.idNums   = [(NSString *)[teacherDic objectForKey:@"teacher_idnumber"] copy];
-        tObj.info     = [(NSString *)[teacherDic objectForKey:@"teacher_info"] copy];
-        tObj.name     = [[teacherDic objectForKey:@"teacher_name"]  copy];
-        tObj.phoneNums= [[teacherDic objectForKey:@"teacher_phone"] copy];
-        tObj.comment  = ((NSNumber *)[teacherDic objectForKey:@"teacher_stars"]).intValue;
-        tObj.pf       = [[teacherDic objectForKey:@"teacher_subjectText"] copy];
-        
-        CLog(@"gender:%d", tObj.sex);
-        
         //获得最近订单
-        NSDictionary *orderDic = [self.ordersArr objectAtIndex:0];
-        Order *order  = [Order setOrderProperty:orderDic];
-        order.teacher = tObj;
+        Order *order   = nil;
+        Teacher *tObj  = [self packageTeacher:teacherDic];
+        if (ordersArr.count>0)
+        {
+            order  = [Order setOrderProperty:teacherOrderDic];
+            order.teacher = [tObj copy];
+        }
+        else
+        {
+            order = [[Order alloc]init];
+            order.teacher = tObj;
+        }
         
         MyTeacherCell *cell = [[[MyTeacherCell alloc]initWithStyle:UITableViewCellStyleDefault
                                                    reuseIdentifier:idString]autorelease];
         cell.order    = order;
-        CLog(@"order>gender%d",order.teacher.sex);
         return cell;
     }
     else            //代表订单
@@ -73,21 +150,15 @@
         Order *order  = [Order setOrderProperty:orderDic];
     
         NSDictionary *teacherDic = [teacherOrderDic objectForKey:@"teacher"];
-        order.teacher = [Teacher setTeacherProperty:teacherDic];
-        order.teacher.expense  = ((NSNumber *)[teacherDic objectForKey:@"teacher_expense"]).intValue;
-        NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
-        order.teacher.headUrl  = [NSString stringWithFormat:@"%@%@",webAdd,[teacherDic objectForKey:@"teacher_icon"]];
-        order.teacher.idNums   = [[teacherDic objectForKey:@"teacher_idnumber"] copy];
-        order.teacher.info     = [[teacherDic objectForKey:@"teacher_info"] copy];
-        order.teacher.name     = [[teacherDic objectForKey:@"teacher_name"]  copy];
-        order.teacher.phoneNums= [[teacherDic objectForKey:@"teacher_phone"] copy];
-        order.teacher.comment  = ((NSNumber *)[teacherDic objectForKey:@"teacher_stars"]).intValue;
-        order.teacher.pf       = [[teacherDic objectForKey:@"teacher_subjectText"] copy];
+        order.teacher = [self packageTeacher:teacherDic];
 
-        TeacherOrderCell *cell = [[[TeacherOrderCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:idString] autorelease];
-        cell.delegate = self;
-        cell.order    = order;
-
+        TeacherOrderCell *cell = [[[TeacherOrderCell alloc]initWithStyle:UITableViewCellStyleDefault
+                                                         reuseIdentifier:idString
+                                                              withParent:self.tableView]autorelease];
+        cell.delegate       = self;
+        cell.order          = order;
+        cell.commView.idStr = [order.orderId retain];
+        
         return cell;
     }
     
@@ -100,16 +171,6 @@
 {
     [self.ordersArr release];
     [super dealloc];
-}
-
-#pragma mark -
-#pragma mark - CommentViewDelegate
-- (void) commentView:(CommentView *)commentView ClickedIndex:(int) index
-{
-    NSDictionary *noticeDic = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:index],@"Index",commentView.orderId,@"OrderID",nil];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"commentOrderNotice"
-                                                        object:nil
-                                                      userInfo:noticeDic];
 }
 
 #pragma mark -
@@ -129,16 +190,13 @@
         }
         case 1:      //评价
         {
-            CommentView *cmmView = [[CommentView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 320, 480) isBackView:NO]];
-            cmmView.delegate = self;
-            cmmView.orderId  = cell.order.orderId;
-            
-            CGRect rect = [cell convertRect:cell.commentBtn.frame toView:parentView];
-            [cmmView showView:[UIView fitCGRect:CGRectMake(rect.origin.x-20,
-                                                           rect.origin.y-80, 220, 100) isBackView:NO]];
-            [parentView addSubview:cmmView];
-            [cmmView release];
-            
+            CLog(@"x,%f,y,%f", cell.frame.origin.x,cell.frame.origin.y);
+            float offsetX = 0;
+            if (cell.order.orderStatus != NO_CONFIRM)
+                offsetX = 20;
+            cell.commView.frame  = CGRectMake(offsetX, cell.frame.origin.y-22, 170, 70);
+            [cell.commView setMeHidden:NO];
+            [self.tableView bringSubviewToFront:cell.commView];
             break;
         }
         case 2:      //修改订单

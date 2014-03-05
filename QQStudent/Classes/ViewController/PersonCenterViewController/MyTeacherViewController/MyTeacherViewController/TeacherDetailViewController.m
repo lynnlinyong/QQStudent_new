@@ -145,9 +145,35 @@
     [bgScroll addSubview:badLab];
     [badLab release];
     
+    int offset = 0;
+    if (tObj.isId)
+    {
+        offset = 30;
+        
+        UILabel *orgLab = [[UILabel alloc]init];
+        orgLab.backgroundColor = [UIColor clearColor];
+        orgLab.frame = CGRectMake(35, 290, bgImg.size.width-20, 20);
+        orgLab.text  = [NSString stringWithFormat:@"机构:%@", tObj.idOrgName];
+        [bgScroll addSubview:orgLab];
+        [orgLab release];
+        
+        UIImage *idImg = [UIImage imageNamed:@"mp_rz"];
+        UIImageView *idImageView = [[UIImageView alloc]init];
+        idImageView.image  = idImg;
+        idImageView.frame  = CGRectMake(bgImgView.frame.size.width-idImg.size.width-50,
+                                        260,
+                                        idImg.size.width+10, idImg.size.height+10);
+        [bgScroll addSubview:idImageView];
+        [idImageView release];
+        
+        bgImgView.frame = CGRectMake(bgImgView.frame.origin.x, bgImgView.frame.origin.y,
+                                     bgImgView.frame.size.width,
+                                     bgImgView.frame.size.height+offset);
+    }
+    
     UIImage *lineImg = [UIImage imageNamed:@"tdp_splite_line"];
     UIImageView *lineImgView = [[UIImageView alloc]initWithImage:lineImg];
-    lineImgView.frame = CGRectMake(0, 290,
+    lineImgView.frame = CGRectMake(0, 290+offset,
                                    lineImg.size.width,
                                    lineImg.size.height);
     [bgScroll addSubview:lineImgView];
@@ -155,27 +181,28 @@
 
     UILabel *sayLab = [[UILabel alloc]init];
     sayLab.text = @"TA这样说";
-    sayLab.frame=CGRectMake(35, 310, 100, 20);
+    sayLab.frame=CGRectMake(35, 310+offset, 100, 20);
     sayLab.backgroundColor = [UIColor clearColor];
     [bgScroll addSubview:sayLab];
     [sayLab release];
     
     UIImageView *topImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"tdp_content_top"]];
-    topImgView.frame = CGRectMake(0, 330, topImgView.frame.size.width,
+    topImgView.frame = CGRectMake(0, 330+offset, topImgView.frame.size.width,
                                   topImgView.frame.size.height);
     [bgScroll addSubview:topImgView];
     [topImgView release];
     
     UIImageView *bmImgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"tdp_content_bottom"]];
-    bmImgView.frame = CGRectMake(0, 330+topImgView.frame.size.height-4,
+    bmImgView.frame = CGRectMake(0, 330+offset+topImgView.frame.size.height-4,
                                                     bmImgView.frame.size.width,
                                                     bmImgView.frame.size.height+15);
     [bgScroll addSubview:bmImgView];
     [bmImgView release];
     
-    if (tObj.info)
+    CGSize size = CGSizeMake(topImgView.frame.size.width-10, 20);
+    if (tObj.info.length>0)
     {
-        CGSize size = [tObj.info sizeWithFont:[UIFont systemFontOfSize:14.f]
+        size = [tObj.info sizeWithFont:[UIFont systemFontOfSize:14.f]
                             constrainedToSize:CGSizeMake(bmImgView.frame.size.width, MAXFLOAT)];
         bmImgView.frame = CGRectMake(bmImgView.frame.origin.x,
                                      bmImgView.frame.origin.y,
@@ -185,7 +212,7 @@
     UILabel *sayValueLab = [[UILabel alloc]init];
     sayValueLab.text = tObj.info;
     sayValueLab.font = [UIFont systemFontOfSize:14.f];
-    sayValueLab.frame= CGRectMake(45, topImgView.frame.origin.y+8, 240, 20);
+    sayValueLab.frame= CGRectMake(45, topImgView.frame.origin.y+8, 235, size.height);
     sayValueLab.backgroundColor = [UIColor clearColor];
     sayValueLab.lineBreakMode   = NSLineBreakByWordWrapping;
     sayValueLab.numberOfLines   = 0;
@@ -202,7 +229,7 @@
     [qfLab release];
     
     //判断是否有资历照片,设置Scroll高度
-    if (tObj.certArray)
+    if (tObj.certArray.count>0)
     {
         for(int i=0; i<tObj.certArray.count; i++)
         {
@@ -243,6 +270,11 @@
 
 - (void) getTeacherDetail
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
     
@@ -352,6 +384,15 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
 

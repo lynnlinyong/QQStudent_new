@@ -43,7 +43,7 @@
     UIImage *bottomImg= [UIImage imageNamed:@"dialog_bottom"];
     UIImage *titleImg         = [UIImage imageNamed:@"dialog_title"];
     self.view.frame = CGRectMake(0, 0,
-                                 titleImg.size.width,150+bottomImg.size.height);
+                                 titleImg.size.width,80+bottomImg.size.height);
     self.view.backgroundColor = [UIColor whiteColor];
     
     
@@ -59,9 +59,8 @@
     titleLab.text     = @"邮箱修改提醒";
     titleLab.textColor= [UIColor whiteColor];
     titleLab.textAlignment = NSTextAlignmentCenter;
-    titleLab.frame= [UIView fitCGRect:CGRectMake(0, -titleImg.size.height+3,
-                                                 self.view.frame.size.width+5, titleImg.size.height)
-                           isBackView:NO];
+    titleLab.frame= CGRectMake(0, -titleImg.size.height+1,
+                                                 self.view.frame.size.width+5, titleImg.size.height);
     titleLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:titleLab];
     [titleLab release];
@@ -73,10 +72,9 @@
     infoLab.textAlignment = NSTextAlignmentCenter;
     infoLab.numberOfLines = 0;
     infoLab.lineBreakMode = NSLineBreakByWordWrapping;
-    infoLab.frame = [UIView fitCGRect:CGRectMake(0,
-                                                 self.view.frame.size.height/2-20,
-                                                 self.view.frame.size.width, 30)
-                           isBackView:NO];
+    infoLab.frame = CGRectMake(0,
+                                                 (self.view.frame.size.height-bottomImg.size.height)/2-15,
+                                                 self.view.frame.size.width, 30);
     infoLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:infoLab];
     [infoLab release];

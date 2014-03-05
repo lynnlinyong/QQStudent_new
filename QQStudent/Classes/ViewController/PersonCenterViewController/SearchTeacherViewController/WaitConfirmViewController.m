@@ -91,7 +91,7 @@
     inviteCountLab.backgroundColor = [UIColor clearColor];
     inviteCountLab.font = [UIFont systemFontOfSize:18.f];
     inviteCountLab.textColor = [UIColor whiteColor];
-    inviteCountLab.frame     = CGRectMake(10, 24-10, 120, 20);
+    inviteCountLab.frame     = CGRectMake(10, showBtn.frame.size.height/2-10, 120, 20);
     [showBtn addSubview:inviteCountLab];
     
     
@@ -102,13 +102,26 @@
                                         bgImg.size.width, bgImg.size.height);
     [showBtn addSubview:cntTimeImageView];
     
+    
+    UILabel *syLab = [[UILabel alloc]init];
+    syLab.text = @"剩余";
+    syLab.textAlignment = NSTextAlignmentRight;
+    syLab.textColor = [UIColor whiteColor];
+    syLab.font = [UIFont systemFontOfSize:18.f];
+    syLab.backgroundColor = [UIColor clearColor];
+    syLab.frame = CGRectMake(showBtn.frame.size.width/2-20,
+                             showBtn.frame.size.height/2-10, 40, 20);
+    [showBtn addSubview:syLab];
+    [syLab release];
+    
     cntLab = [[UILabel alloc]init];
-    cntLab.text     = [NSString stringWithFormat:@"%d", waitTimeInvite];
+    NSNumber *maxTime = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHMAXTIME];
+    cntLab.text       = [NSString stringWithFormat:@"%d",maxTime.integerValue];
     cntLab.backgroundColor = [UIColor clearColor];
-    cntLab.frame    = CGRectMake(8, 10, 40, 20);
-    cntLab.textColor= [UIColor whiteColor];
+    cntLab.frame      = CGRectMake(8, 10, 40, 20);
+    cntLab.textColor  = [UIColor whiteColor];
     cntLab.textAlignment = NSTextAlignmentCenter;
-    cntLab.font     = [UIFont systemFontOfSize:15.f];
+    cntLab.font       = [UIFont systemFontOfSize:15.f];
     [cntTimeImageView addSubview:cntLab];
     
     UILabel *secondLab  = [[UILabel alloc]init];
@@ -210,7 +223,7 @@
 
 - (void) initBackBarItem
 {
-    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     nav.dataSource = self;
 }
 
@@ -261,7 +274,8 @@
            forState:UIControlStateNormal];
     [reBtn setImage:[UIImage imageNamed:@"sdp_resend_hlight_btn"]
            forState:UIControlStateNormal];
-    reBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-bgImg.size.height, bgImg.size.width, bgImg.size.height)
+    reBtn.frame = [UIView fitCGRect:CGRectMake(20, 480-44-bgImg.size.height,
+                                               bgImg.size.width, bgImg.size.height)
                          isBackView:NO];
     [reBtn addTarget:self
                 action:@selector(doButtonClicked:)
@@ -283,9 +297,10 @@
     }
     
     //如果不是搜索页面,进入则搜索附近老师,并发送订单信息
+    NSNumber *maxWaitTime = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHMAXTIME];
     timer = [[ThreadTimer alloc]init];
     timer.delegate = self;
-    [timer setMinutesNum:20];
+    [timer setMinutesNum:maxWaitTime.integerValue];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                          selector:@selector(getOrderFromTeacher:)
@@ -295,6 +310,11 @@
 
 - (void) seandInviteOffLineMsg:(NSString *) taPhone
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *jsonStr  = [self packageJsonStr];
     if (jsonStr)
     {
@@ -374,6 +394,11 @@
 
 - (void) searchNearTeacher
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     if (ssid)
     {
@@ -391,12 +416,13 @@
         
         NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"latitude",@"longitude",
                               @"page",@"subjectId",@"selectXBIndex",
-                              @"kcbzIndex",@"zoom",@"sessid", nil];
+                              @"kcbzIndex",@"zoom",@"sd",@"sessid", nil];
         NSArray *valuesArr = [NSArray arrayWithObjects:@"findNearbyTeacher",latitude,longtitude,
                               [NSNumber numberWithInt:curPage],[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],
-                              salary,[NSNumber numberWithFloat:self.mapView.zoomLevel],ssid, nil];
+                              salary,[NSNumber numberWithFloat:self.mapView.zoomLevel],[valueDic objectForKey:@"Date"],ssid, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
+        CLog(@"upload params:%@", pDic);
         NSString *webAddress = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
         NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
     
@@ -436,6 +462,7 @@
         //获得salary
         NSString *salary = @"";
         NSDictionary *salaryDic = [valueDic objectForKey:@"SalaryDic"];
+        CLog(@"salaryDic:%@", salaryDic);
         if (salaryDic)
         {
             if ([[salaryDic objectForKey:@"name"] isEqualToString:@"师生协商"])
@@ -460,7 +487,7 @@
         if (!audioPath)
             audioPath = @"";
         
-        NSArray *valArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, student.grade, student.gender,[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,msg,audioPath,[SingleMQTT getCurrentDevTopic],timeSp, nil];
+        NSArray *valArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, [Student searchGradeName:student.grade], student.gender, [valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Sex"],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,msg,audioPath,[SingleMQTT getCurrentDevTopic],timeSp, nil];
         
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valArr
                                                          forKeys:keyArr];
@@ -496,12 +523,18 @@
         {
             //更新界面
             self.navigationItem.rightBarButtonItem = nil;
+            reBtn.hidden    = YES;
+            infoView.hidden = YES;
+            showBtn.hidden  = NO;
+            borderView.hidden = NO;
             
-            reBtn.hidden   = YES;
-            showBtn.hidden = NO;
+            //重新计数
+            NSNumber *maxWaitTime = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHMAXTIME];
+            cntLab.text = [NSString stringWithFormat:@"%d", maxWaitTime.intValue];
+            [timer setMinutesNum:maxWaitTime.integerValue];
             
             //重发邀请
-            [self sendInviteMsg];
+            [self searchNearTeacher];
             break;
         }
         case 1:         //改条件
@@ -516,6 +549,11 @@
 
 - (void) getOrderFromTeacher:(NSNotification *) notice
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     //个人位置
     NSString *log   = [[NSUserDefaults standardUserDefaults] objectForKey:@"LONGITUDE"];
     NSString *la    = [[NSUserDefaults standardUserDefaults] objectForKey:@"LATITUDE"];
@@ -524,18 +562,22 @@
     
     //封装iaddress_data
     NSDictionary *posDic = [valueDic objectForKey:@"POSDIC"];
-    NSArray *addParamArr = [NSArray arrayWithObjects:@"name",@"type",@"latitude",@"longitude",@"provinceName",@"cityName",@"districtName",@"cityCode", nil];
-    CLog(@"valueDic:%@", valueDic);
+    NSArray *addParamArr = [NSArray arrayWithObjects:@"name",@"type",@"latitude",
+                            @"longitude", @"provinceName",@"cityName",
+                            @"districtName",@"cityCode", nil];
     //没有具体区名字
     NSString *dst = @"";
     if ([valueDic objectForKey:@"DIST"])
         dst = [valueDic objectForKey:@"DIST"];
     
-    NSArray *addValueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Pos"], @"InputAddress", la, log, [posDic objectForKey:@"PROVICE"],[posDic objectForKey:@"CITY"],dst,@"0755", nil];
-    NSDictionary *dic = [NSDictionary dictionaryWithObjects:addValueArr
-                                                    forKeys:addParamArr];
-    NSString *jsonAdd = [dic JSONFragment];
-    CLog(@"jsonAdd:%@", jsonAdd);
+    NSArray *addValueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Pos"], @"InputAddress", la, log,
+                            [posDic objectForKey:@"PROVICE"],
+                            [posDic objectForKey:@"CITY"],
+                            dst,@"0755", nil];
+    NSDictionary *addressDic = [NSDictionary dictionaryWithObjects:addValueArr
+                                                           forKeys:addParamArr];
+    
+    
     
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
     Student *student = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
@@ -548,15 +590,14 @@
         if ([[salaryDic objectForKey:@"Salary"] isEqualToString:@"师生协商"])
             salary = @"0";
         else
-            salary = [salaryDic objectForKey:@"Salary"];
+            salary = [[salaryDic objectForKey:@"name"] copy];
     }
     
     //总金额
     int studyTimes = ((NSString *)[valueDic objectForKey:@"Time"]).intValue;
-    NSNumber *taMount = [NSNumber numberWithInt:salary.intValue*studyTimes];
-    
+    NSNumber *taMount = [NSNumber numberWithInt:(salary.intValue*studyTimes)];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"subjectIndex",@"subjectId",@"subjectText",@"kcbzIndex",@"iaddress_data",@"teacher_phone",@"teacher_deviceId",@"phone",@"pushcc",@"type", @"nickname", @"grade",@"gender",@"subjectId",@"teacherGender",@"tamount",@"yjfdnum",@"sd",@"iaddress",@"longitude",@"latitude",@"otherText",@"audio",@"deviceId", @"keyId", nil];
-    NSArray *valueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Subject"],[Order searchSubjectName:[valueDic objectForKey:@"Subject"]],[salaryDic objectForKey:@"id"],jsonAdd,tObj.phoneNums,tObj.deviceId,student.phoneNumber,@"0",[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, [Student searchGradeName:student.grade], [Student searchGenderID:student.gender],[valueDic objectForKey:@"Subject"],[Student searchGenderID:[valueDic objectForKey:@"Sex"]],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,@"",@"",[SingleMQTT getCurrentDevTopic], [[NSUserDefaults standardUserDefaults] objectForKey:@"TIMESP"], nil];
+    NSArray *valueArr = [NSArray arrayWithObjects:[valueDic objectForKey:@"Subject"],[valueDic objectForKey:@"Subject"],[Student searchSubjectName:[valueDic objectForKey:@"Subject"]],salary,addressDic,tObj.phoneNums,tObj.deviceId,student.phoneNumber,@"0",[NSNumber numberWithInt:PUSH_TYPE_PUSH], student.nickName, [Student searchGradeName:student.grade], [Student searchGenderID:student.gender],[valueDic objectForKey:@"Subject"],[Student searchGenderID:[valueDic objectForKey:@"Sex"]],taMount,[valueDic objectForKey:@"Time"],[valueDic objectForKey:@"Date"],[valueDic objectForKey:@"Pos"],log,la,@"",@"",[SingleMQTT getCurrentDevTopic], [[NSUserDefaults standardUserDefaults] objectForKey:@"TIMESP"], nil];
     NSDictionary *orderDic = [NSDictionary dictionaryWithObjects:valueArr
                                                          forKeys:paramsArr];
     NSString *jsonOrder = [orderDic JSONFragment];
@@ -578,7 +619,17 @@
 
 - (void) doBackBtnClicked:(id)sender
 {
-    [self.navigationController popViewControllerAnimated:YES];
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    NSArray *ctrsArr = nav.viewControllers;
+    for (UIViewController *ctr in ctrsArr)
+    {
+        if ([ctr isKindOfClass:[MainViewController class]])
+        {
+            [nav popToViewController:ctr animated:YES];
+            break;
+        }
+        
+    }
 }
 
 - (void) initTeachersAnnotation
@@ -598,7 +649,7 @@
 #pragma mark - ThreadTimer Delegate
 - (void) secondResponse:(ThreadTimer *)tmpTimer
 {
-    if (tmpTimer.second == 0)
+    if (tmpTimer.totalSeconds == 0)
     {
         reBtn.hidden      = NO;
         showBtn.hidden    = YES;
@@ -625,7 +676,7 @@
         return;
     }
     
-    cntLab.text = [NSString stringWithFormat:@"%d", tmpTimer.second];
+    cntLab.text = [NSString stringWithFormat:@"%d", tmpTimer.totalSeconds];
     
     if (!tObj)
     {
@@ -660,7 +711,7 @@
       forControlEvents:UIControlEventTouchUpInside];
     
     UILabel *titleLab = [[UILabel alloc]init];
-    titleLab.text     = @"放弃";
+    titleLab.text     = @"返回";
     titleLab.textColor= [UIColor whiteColor];
     titleLab.font     = [UIFont systemFontOfSize:12.f];
     titleLab.textAlignment = NSTextAlignmentCenter;
@@ -786,7 +837,6 @@
         {
             //发送订单成功信息
             NSString *orderId  = [[resDic objectForKey:@"orderid"] copy];
-            CLog(@"orderId%@,%@", [resDic objectForKey:@"orderid"], orderId);
             NSData *stuData    = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
             Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
             NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",@"nickname",@"keyId",@"taPhone", nil];
@@ -808,27 +858,9 @@
              *跳转到聊天窗口
              */
             //封装订单
-            //没有具体区名字
-            NSString *dst = @"";
-            if ([valueDic objectForKey:@"DIST"])
-                dst = [valueDic objectForKey:@"DIST"];
-            NSString *provice = [valueDic objectForKey:@"PROVICE"];
-            NSString *city    = [valueDic objectForKey:@"CITY"];
-            
-            NSDictionary *orderDic    = [NSDictionary dictionaryWithObjectsAndKeys:[resDic objectForKey:@"orderid"],@"oid",
-                                                                                     [valueDic objectForKey:@"Date"],@"order_addtime",
-                                                                                     [valueDic objectForKey:@"Pos"],@"order_iaddress",
-                                                                                     [valueDic objectForKey:@"Time"],@"order_jyfdnum",
-                                                                                     [valueDic objectForKey:@"Salary"],@"order_kcbz",
-                                                                                     provice,@"provinceName",
-                                                                                     city,@"cityName",
-                                                                                     dst,@"districtName",nil];
-
-            CLog(@"order information:%@", orderDic);
-            
             ChatViewController *cVctr = [[ChatViewController alloc]init];
             cVctr.tObj  = tObj;
-            cVctr.order = [Order setOrderProperty:orderDic];
+            cVctr.order = [Order setOrderProperty:[resDic objectForKey:@"order"]];
             cVctr.order.teacher = tObj;
             [self.navigationController pushViewController:cVctr
                                                  animated:YES];
@@ -844,14 +876,29 @@
                         delegate:self
                otherButtonTitles:@"确定",nil];
         
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
+        
         //发送订单成功失败
         NSData *stuData    = [[NSUserDefaults standardUserDefaults] objectForKey:STUDENT];
         Student *student   = [NSKeyedUnarchiver unarchiveObjectWithData:stuData];
         NSArray *paramsArr = [NSArray arrayWithObjects:@"type",@"status",@"phone",@"nickname",
                               @"keyId",@"taPhone", nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:@"2",@"failure",student.phoneNumber,
-                              student.nickName,[resDic objectForKey:@"orderid"],tObj.phoneNums, nil];
-        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr forKeys:paramsArr];
+       
+        NSString *oid = @"";
+        if ([resDic objectForKey:@"orderid"])
+            oid = [resDic objectForKey:@"orderid"];
+        
+        NSArray *valuesArr = [NSArray arrayWithObjects:[NSNumber numberWithInt:PUSH_TYPE_CONFIRM],@"failure",student.phoneNumber,
+                              student.nickName,oid,tObj.phoneNums, nil];
+        NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                         forKeys:paramsArr];
         NSString *jsonDic  = [pDic JSONFragment];
         NSData *data = [jsonDic dataUsingEncoding:NSUTF8StringEncoding];
         session = [SingleMQTT shareInstance];

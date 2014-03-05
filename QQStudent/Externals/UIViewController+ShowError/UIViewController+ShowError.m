@@ -34,7 +34,6 @@
         }
     }  
     [alertView setCancelButtonIndex:0];
-    
     [alertView show];
     [alertView release];
 }

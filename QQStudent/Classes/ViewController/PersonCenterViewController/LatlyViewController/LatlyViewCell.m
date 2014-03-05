@@ -23,6 +23,15 @@
           forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:headBtn];
         
+        UIImage *idImg = [UIImage imageNamed:@"mp_rz"];
+        idImageView = [[UIImageView alloc]init];
+        idImageView.hidden = YES;
+        idImageView.image  = idImg;
+        idImageView.frame  = CGRectMake(headBtn.frame.size.width-idImg.size.width-5,
+                                        headBtn.frame.size.height/2-5,
+                                        idImg.size.width+10, idImg.size.height+10);
+        [headBtn addSubview:idImageView];
+        
         nameLab = [[UILabel alloc]init];
         nameLab.font  = [UIFont systemFontOfSize:12.f];
         nameLab.backgroundColor = [UIColor clearColor];
@@ -57,6 +66,7 @@
     [infoLab release];
     [msgLab release];
     [timeLab release];
+    [idImageView release];
     [super dealloc];
 }
 
@@ -81,18 +91,29 @@
     int sex = ((NSNumber *)[dic objectForKey:@"gender"]).intValue;
     if (sex == 1)
     {
-        [headBtn setImage:[UIImage imageNamed:@"s_boy"]
+        [headBtn setImage:[UIImage circleImage:[UIImage imageNamed:@"s_boy"]
+                                     withParam:0 withColor:[UIColor whiteColor]]
                  forState:UIControlStateNormal];
         infoLab.text  = [NSString stringWithFormat:@"男   %@",[dic objectForKey:@"subjectText"]];
     }
     else
     {
-        [headBtn setImage:[UIImage imageNamed:@"s_girl"]
+        [headBtn setImage:[UIImage circleImage:[UIImage imageNamed:@"s_girl"]
+                                     withParam:0 withColor:[UIColor whiteColor]]
                  forState:UIControlStateNormal];
         infoLab.text  = [NSString stringWithFormat:@"女   %@",[dic objectForKey:@"subjectText"]];
     }
     msgLab.text   = [dic objectForKey:@"message"];
     timeLab.text  = [dic objectForKey:@"time"];
+    
+    NSString *isId= [[dic objectForKey:@"type_stars"] copy];
+    if (isId)
+    {
+        if (isId.intValue == 1)
+            idImageView.hidden = NO;
+        else
+            idImageView.hidden = YES;
+    }
     
     TTImageView *headImgView = [[[TTImageView alloc]init]autorelease];
     headImgView.delegate = self;

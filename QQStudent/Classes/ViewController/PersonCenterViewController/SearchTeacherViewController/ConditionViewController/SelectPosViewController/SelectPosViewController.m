@@ -111,17 +111,17 @@
         [self addSubview:areaBtn];
         
         UIImage *okImg     = [UIImage imageNamed:@"sp_search_btn_normal"];
-        UIImage *normalImg = [UIImage imageNamed:@"normal_fld"];
+        UIImage *normalImg = [UIImage imageNamed:@"cp_input_bg"];
         UIImageView *emailImgView = [[UIImageView alloc]initWithImage:normalImg];
         posFld  = [[UITextView alloc]init];
         posFld.delegate    = self;
         posFld.backgroundColor = [UIColor clearColor];
-        posFld.frame = CGRectMake(320-okImg.size.width-5-normalImg.size.width+42,7,
-                                  normalImg.size.width-42,
-                                  normalImg.size.height+4);
-        emailImgView.frame = CGRectMake(320-okImg.size.width-5-normalImg.size.width+40,7,
-                                        normalImg.size.width-40,
-                                        normalImg.size.height+8);
+        posFld.frame = CGRectMake(areaBtn.frame.size.width+5,7,
+                                  320-okImg.size.width-7-areaBtn.frame.size.width-5,
+                                  areaBtn.frame.size.height);
+        emailImgView.frame = CGRectMake(areaBtn.frame.size.width+5,7,
+                                        320-okImg.size.width-7-areaBtn.frame.size.width-5,
+                                        areaBtn.frame.size.height);
         [self addSubview:emailImgView];
         [self addSubview:posFld];
         
@@ -339,6 +339,11 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
 
 - (void) searchNearOtherPos
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     //获得选择区域坐标
     NSString *log = [NSString stringWithFormat:@"%f", selAnn.coordinate.longitude];
     NSString *la  = [NSString stringWithFormat:@"%f", selAnn.coordinate.latitude];
@@ -787,5 +792,12 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
             [self initOtherSitesAnnotation:sites];
         }
     }
+    else if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
 }
 @end

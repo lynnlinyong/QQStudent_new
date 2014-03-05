@@ -31,8 +31,15 @@
     [self initUI];
     
     subArr = [[NSMutableArray alloc]init];
-    //获得课程
-    [self getSubjects];
+    NSArray *sArr = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+    if (!sArr)
+    {
+        [Student getSubjects];
+        sArr = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+    }
+    [subArr release];
+    subArr = [sArr copy];
+    [gdView reloadData];
 }
 
 - (void)didReceiveMemoryWarning
@@ -136,6 +143,11 @@
 
 - (void) getSubjects
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     subArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
     if (!subArr)
     {
@@ -148,19 +160,63 @@
         NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
         ServerRequest *request = [ServerRequest sharedServerRequest];
         request.delegate = self;
-        [request requestASyncWith:kServerPostRequest
+        NSData   *resVal = [request requestSyncWith:kServerPostRequest
                          paramDic:pDic
                            urlStr:url];
+        NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                 encoding:NSUTF8StringEncoding]autorelease];
+        NSDictionary *resDic   = [resStr JSONValue];
+        NSArray      *keysArr  = [resDic allKeys];
+        NSArray      *valsArr  = [resDic allValues];
+        CLog(@"***********Result****************");
+        for (int i=0; i<keysArr.count; i++)
+        {
+            CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+        }
+        CLog(@"***********Result****************");
+        
+        
+        NSNumber *errorid = [resDic objectForKey:@"errorid"];
+        if (errorid.intValue == 0)
+        {
+            subArr = [[resDic objectForKey:@"subjects"] copy];
+            
+            //保存科目列表
+            [[NSUserDefaults standardUserDefaults] setObject:subArr
+                                                      forKey:SUBJECT_LIST];
+            [gdView reloadData];
+        }
+        else
+        {
+            NSString *errorMsg = [resDic objectForKey:@"message"];
+            [self showAlertWithTitle:@"提示"
+                                 tag:0
+                             message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                            delegate:self
+                   otherButtonTitles:@"确定",nil];
+            
+            //重复登录
+            if (errorid.intValue==2)
+            {
+                //清除sessid,清除登录状态,回到地图页
+                [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+                [AppDelegate popToMainViewController];
+            }
+        }
+
     }
-    [gdView reloadData];
 }
 
 - (void) doButtonClicked:(id)sender
 {
+    UIButton *btn = sender;
     NSDictionary *subDic = [subArr objectAtIndex:index];
+    NSDictionary *userDic = [NSDictionary dictionaryWithObjectsAndKeys:subDic,@"subDic",
+                             [NSNumber numberWithInt:btn.tag],@"TAG", nil];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"setSubjectNotice"
                                                         object:nil
-                                                      userInfo:subDic];
+                                                      userInfo:userDic];
 }
 
 #pragma mark -
@@ -209,6 +265,9 @@
     NSString *curName = [subDic objectForKey:@"name"];
     if ([curName isEqualToString:subName])
         [qrBtn setChecked:YES];
+    else
+        [qrBtn setChecked:YES];
+    
     [qrBtn setTitle:[subDic objectForKey:@"name"]
            forState:UIControlStateNormal];
     [qrBtn setTitleColor:[UIColor grayColor]
@@ -221,57 +280,5 @@
     [qrBtn release];
 
     return cell;
-}
-
-#pragma mark -
-#pragma mark ServerRequest Delegate
-- (void) requestAsyncFailed:(ASIHTTPRequest *)request
-{
-    [self showAlertWithTitle:@"提示"
-                         tag:1
-                     message:@"网络繁忙"
-                    delegate:self
-           otherButtonTitles:@"确定",nil];
-    
-    CLog(@"***********Result****************");
-    CLog(@"ERROR");
-    CLog(@"***********Result****************");
-}
-
-- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
-{
-    NSData   *resVal = [request responseData];
-    NSString *resStr = [[[NSString alloc]initWithData:resVal
-                                             encoding:NSUTF8StringEncoding]autorelease];
-    NSDictionary *resDic   = [resStr JSONValue];
-    NSArray      *keysArr  = [resDic allKeys];
-    NSArray      *valsArr  = [resDic allValues];
-    CLog(@"***********Result****************");
-    for (int i=0; i<keysArr.count; i++)
-    {
-        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
-    }
-    CLog(@"***********Result****************");
-    
-    
-    NSNumber *errorid = [resDic objectForKey:@"errorid"];
-    if (errorid.intValue == 0)
-    {
-        subArr = [[resDic objectForKey:@"subjects"] copy];
-        
-        //保存科目列表
-        [[NSUserDefaults standardUserDefaults] setObject:subArr
-                                                  forKey:SUBJECT_LIST];
-        [gdView reloadData];
-    }
-    else
-    {
-        NSString *errorMsg = [resDic objectForKey:@"message"];
-        [self showAlertWithTitle:@"提示"
-                             tag:0
-                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
-                        delegate:self
-               otherButtonTitles:@"确定",nil];
-    }
 }
 @end

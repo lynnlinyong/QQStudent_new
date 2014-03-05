@@ -29,8 +29,31 @@
 {
     [super viewDidLoad];
     
+    [self initBackBarItem];
+    
     //初始化UI
     [self initUI];
+    
+    
+    //注册设置性别消息
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setDateFromNotice:)
+                                                 name:@"setDateNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setSalaryFromNotice:)
+                                                 name:@"setSalaryNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setTimesFromNotice:)
+                                                 name:@"setTimesNotice"
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setPosNotice:) name:@"setPosNotice"
+                                               object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -44,33 +67,18 @@
     upTab.dataSource = nil;
     
     upTab = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidUnload];
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
     [MainViewController setNavTitle:@"轻轻家教"];
-    
-    //注册设置性别消息
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setDateFromNotice:)
-                                                 name:@"setDateNotice"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setTimesFromNotice:)
-                                                 name:@"setTimesNotice"
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(setPosNotice:) name:@"setPosNotice"
-                                               object:nil];
     [super viewDidAppear:animated];
 }
 
 - (void) viewDidDisappear:(BOOL)animated
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidDisappear:animated];
 }
 
@@ -89,6 +97,11 @@
 
 #pragma mark -
 #pragma mark - Custom Action
+- (void) initBackBarItem
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    nav.dataSource = self;
+}
 
 - (void) initUI
 {
@@ -150,24 +163,19 @@
 #pragma mark - Control Event
 - (void) doFinishBtnClicked:(id)sender
 {
+    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    {
+        return;
+    }
+    
     CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
     [MBProgressHUD showHUDAddedTo:nav.view animated:YES];;
     
-    //修改订单
-    NSString *log = [[NSUserDefaults standardUserDefaults] objectForKey:@"LONGITUDE"];
-    NSString *la  = [[NSUserDefaults standardUserDefaults] objectForKey:@"LATITUDE"];
-    
-    //封装iaddress_data
-    NSArray *addParamArr = [NSArray arrayWithObjects:@"name",@"type",@"latitude",@"longitude",@"provinceName",@"cityName",@"districtName",@"cityCode", nil];
-    NSArray *addValueArr = [NSArray arrayWithObjects:posValLab.text,@"InputAddress",log,la,order.orderProvice,order.orderCity,order.orderDist,@"0755", nil];
-    NSDictionary *dic = [NSDictionary dictionaryWithObjects:addValueArr
-                                                    forKeys:addParamArr];
-    NSString *jsonAdd = [dic JSONFragment];
-    CLog(@"jsonAdd:%@", jsonAdd);
-    
     //封装订单信息
-    NSArray *paramsArr = [NSArray arrayWithObjects:@"order_sd",@"order_kcbz",@"order_jyfdnum",@"order_iaddress",@"order_iaddress_data", nil];
-    NSArray *valueArr = [NSArray arrayWithObjects:order.orderAddTimes,@"200",order.orderStudyTimes,order.orderStudyPos,jsonAdd, nil];
+    NSArray *paramsArr = [NSArray arrayWithObjects:@"order_sd",@"order_kcbz",@"order_jyfdnum",
+                          @"order_iaddress",@"order_iaddress_data", nil];
+    NSArray *valueArr = [NSArray arrayWithObjects:order.orderAddTimes,order.everyTimesMoney,
+                         order.orderStudyTimes,order.orderStudyPos,order.addressDataDic, nil];
     NSDictionary *orderDic = [NSDictionary dictionaryWithObjects:valueArr
                                                          forKeys:paramsArr];
     NSString *jsonOrder = [orderDic JSONFragment];
@@ -187,16 +195,6 @@
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
-}
-
-#pragma mark -
-#pragma mark MBProgressHUDDelegate methods
-- (void)hudWasHidden:(MBProgressHUD *)hud
-{
-    // Remove HUD from screen when the HUD was hidded
-    [HUD removeFromSuperview];
-    [HUD release];
-	HUD = nil;
 }
 
 #pragma mark -
@@ -224,6 +222,18 @@
     timeValueLab.text = [notice.userInfo objectForKey:@"Time"];
     order.orderStudyTimes = [[notice.userInfo objectForKey:@"Time"] copy];
     [self dismissPopupViewControllerWithanimationType:MJPopupViewAnimationFade];
+}
+
+- (void) setSalaryFromNotice:(NSNotification *) notice
+{
+    NSString *salary  = @"";
+    if ([[notice.userInfo objectForKey:@"name"] isEqualToString:@"0"])
+        salary = @"师生协商";
+    else
+        salary = [notice.userInfo objectForKey:@"name"];
+    
+    salaryValLab.text = salary;
+    order.everyTimesMoney = salary;
 }
 
 #pragma mark -
@@ -284,7 +294,10 @@
                 [infoLab release];
                 
                 salaryValLab  = [[UILabel alloc]init];
-                salaryValLab.text      = @"师生协商";
+                if (order.everyTimesMoney.intValue==0)
+                    salaryValLab.text  = @"师生协商";
+                else
+                    salaryValLab.text  = order.everyTimesMoney;
                 salaryValLab.backgroundColor = [UIColor clearColor];
                 salaryValLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
                 salaryValLab.frame = CGRectMake(cell.frame.size.width-160-20, 10, 170, cell.frame.size.height-10);
@@ -361,10 +374,9 @@
                 [finishBtn addSubview:infoLab];
                 [infoLab release];
                 
-                //                int money = timeValueLab.text.intValue*salaryValLab.text.intValue;
                 totalMoneyLab       = [[UILabel alloc]init];
                 totalMoneyLab.textColor       = [UIColor colorWithHexString:@"#ff6600"];
-                totalMoneyLab.text  = @"待定";   //[NSString stringWithFormat:@"%d", money];
+                totalMoneyLab.text  = [NSString stringWithFormat:@"￥%@",order.totalMoney];
                 totalMoneyLab.backgroundColor = [UIColor clearColor];
                 totalMoneyLab.frame = CGRectMake(finishBtn.frame.size.width-160-10, 0, 160, cell.frame.size.height);
                 [finishBtn addSubview:totalMoneyLab];
@@ -421,6 +433,7 @@
         case 1:
         {
             SelectSalaryViewController *ssVctr = [[SelectSalaryViewController alloc]init];
+            ssVctr.money = order.everyTimesMoney;
             [nav pushViewController:ssVctr animated:YES];
             [ssVctr release];
             break;
@@ -442,6 +455,46 @@
         default:
             break;
     }
+}
+
+#pragma mark -
+#pragma mark - CustomNavigationDataSource
+- (void) doBackBtnClicked:(id)sender
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [nav popViewControllerAnimated:YES];
+}
+
+- (UIBarButtonItem *)backBarButtomItem
+{
+    //设置返回按钮
+    UIImage *backImg  = [UIImage imageNamed:@"nav_back_normal_btn@2x"];
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    backBtn.frame     = CGRectMake(0, 0,
+                                   50,
+                                   30);
+    [backBtn setBackgroundImage:backImg
+                       forState:UIControlStateNormal];
+    [backBtn setBackgroundImage:[UIImage imageNamed:@"nav_back_hlight_btn@2x"]
+                       forState:UIControlStateHighlighted];
+    [backBtn addTarget:self
+                action:@selector(doBackBtnClicked:)
+      forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *titleLab = [[UILabel alloc]init];
+    titleLab.text     = @"返回";
+    titleLab.textColor= [UIColor whiteColor];
+    titleLab.font     = [UIFont systemFontOfSize:12.f];
+    titleLab.textAlignment = NSTextAlignmentCenter;
+    titleLab.frame = CGRectMake(8, 0,
+                                50,
+                                30);
+    titleLab.backgroundColor = [UIColor clearColor];
+    [backBtn addSubview:titleLab];
+    [titleLab release];
+    
+    return [[UIBarButtonItem alloc]
+            initWithCustomView:backBtn];
 }
 
 #pragma mark -
@@ -496,14 +549,16 @@
                          message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
                         delegate:self
                otherButtonTitles:@"确定",nil];
+        
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
+        }
     }
 }
-//{
-//type:6|7
-//phone:'手机'
-//nickname:'呢称'
-//orderid:'订单ID'
-//taPhone:'接收方手机号'
-//    deviceId :'ID'
-//}
+
 @end

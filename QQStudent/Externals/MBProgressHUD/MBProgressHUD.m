@@ -223,39 +223,54 @@
 #if __has_feature(objc_arc)
 	return hud;
 #else
-	return [hud autorelease];
+	return hud;
 #endif
 }
 
-+ (MBProgressHUD *)showHUDAddedTo:(UIView *)view withText:(NSString *)text animated:(BOOL)animated
++ (MBProgressHUD *)showHUDAddedTo:(UIView *)view
+                         withText:(NSString *)text
+                         animated:(BOOL)animated
+                         delegate:(id) delegate
 {
 	MBProgressHUD *hud = [[MBProgressHUD alloc] initWithView:view];
 	[view addSubview:hud];
     hud.labelText = text;
+    
+    if (delegate)
+    {
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc]initWithTarget:delegate
+                                                                                action:@selector(tapGestureResponse:)];
+        [hud addGestureRecognizer:tapGesture];
+        [tapGesture release];
+    }
+    
 	[hud show:animated];
 #if __has_feature(objc_arc)
 	return hud;
 #else
-	return [hud autorelease];
+	return hud;
 #endif
 }
-
 
 + (BOOL)hideHUDForView:(UIView *)view animated:(BOOL)animated {
 	UIView *viewToRemove = nil;
 	for (UIView *v in [view subviews]) {
 		if ([v isKindOfClass:[MBProgressHUD class]]) {
 			viewToRemove = v;
+            
+            if (viewToRemove != nil) {
+                CLog(@"8888888");
+                MBProgressHUD *HUD = (MBProgressHUD *)viewToRemove;
+                HUD.removeFromSuperViewOnHide = YES;
+                [HUD hide:animated];
+                return YES;
+            } else {
+                return NO;
+            }
 		}
 	}
-	if (viewToRemove != nil) {
-		MBProgressHUD *HUD = (MBProgressHUD *)viewToRemove;
-		HUD.removeFromSuperViewOnHide = YES;
-		[HUD hide:animated];
-		return YES;
-	} else {
-		return NO;
-	}
+    
+    return YES;
 }
 
 

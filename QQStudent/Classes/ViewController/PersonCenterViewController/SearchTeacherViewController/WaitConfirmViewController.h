@@ -20,7 +20,6 @@
     
     int        curPage;
     int        timeTicker;
-    int        waitTimeInvite;
     BOOL       isLast;
     NSMutableArray *teacherArray;
     
