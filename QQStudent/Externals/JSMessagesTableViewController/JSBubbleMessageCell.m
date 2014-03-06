@@ -264,6 +264,7 @@
 
 - (void) setWebAvatarImage:(NSString *) imagePath
 {
+    self.avatarImageView.defaultImage = [UIImage imageNamed:@""];
     self.avatarImageView.URL = imagePath;
 }
 

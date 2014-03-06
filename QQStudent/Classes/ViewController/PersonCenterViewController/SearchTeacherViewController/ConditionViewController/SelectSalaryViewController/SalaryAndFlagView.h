@@ -21,6 +21,12 @@
     UIImageView *flagImgView;
     UILabel *infoRightLab;
     UILabel *infoLeftLab;
+    
+    UIImageView *leftBgImgView;
+    UILabel     *leftBgLab;
+    
+    UIImageView *rightBgImgView;
+    UILabel    *rightBgLab;
 }
 
 @property (nonatomic, assign) BOOL isLeft;

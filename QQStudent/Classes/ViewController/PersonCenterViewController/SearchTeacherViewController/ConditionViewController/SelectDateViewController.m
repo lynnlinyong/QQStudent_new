@@ -81,7 +81,7 @@
     [self.view addSubview:titleLab];
     [titleLab release];
     
-    datePicker = [[CustomDatePicker alloc]initWithFrame:CGRectMake(titleImg.size.width/2-120, 20, 240, 80)];
+    datePicker = [[CustomDatePicker alloc]initWithFrame:CGRectMake(titleImg.size.width/2-120, 20, 240, 160)];
     [datePicker setValueRows:curValue];
     [self.view addSubview:datePicker];
 

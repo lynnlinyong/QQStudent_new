@@ -95,7 +95,7 @@
     [self.view addSubview:navgBtn];
     
     UIImageView *bgView = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"xc_bg"]];
-    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 30,
+    bgView.frame = [UIView fitCGRect:CGRectMake(-2, 28,
                                                 self.view.frame.size.width+4,
                                                 self.view.frame.size.height)
                           isBackView:NO];
@@ -115,8 +115,12 @@
     botomLab.text = @"                               更高课酬, 更多品牌认证老师!";
     botomLab.textColor = [UIColor whiteColor];
     botomLab.backgroundColor = [UIColor colorWithHexString:@"#009f66"];
-    botomLab.frame = [UIView fitCGRect:CGRectMake(0, 480-44-20,320, 20)
-                            isBackView:NO];
+    if (!iPhone5)
+        botomLab.frame = [UIView fitCGRect:CGRectMake(0, 480-44-20,320, 20)
+                                isBackView:NO];
+    else
+        botomLab.frame = [UIView fitCGRect:CGRectMake(0, 480-44-25,320, 20)
+                                isBackView:NO];
     [self.view addSubview:botomLab];
     [botomLab release];
 }
@@ -175,8 +179,10 @@
                 [sfView setIsSelect:YES];
             }
             else
+            {
+                [sfView setLeft:NO money:curMoney];
                 [sfView setIsSelect:NO];
-            [sfView setLeft:NO money:curMoney];
+            }
         }
         else
         {

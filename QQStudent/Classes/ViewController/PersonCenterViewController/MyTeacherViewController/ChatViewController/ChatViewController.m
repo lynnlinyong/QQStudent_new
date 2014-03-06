@@ -1159,9 +1159,7 @@
 #pragma mark -
 #pragma mark ServerRequest Delegate
 - (void)requestFinished:(ASIHTTPRequest *)request
-{
-    CLog(@"Down Load Success!");
-    
+{   
     //播放声音
     NSString *soundPath = [[self getRecordURL] retain];
     NSData *soundData   = [NSData dataWithContentsOfFile:soundPath];
