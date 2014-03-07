@@ -381,6 +381,65 @@
                 if ([contactsDic objectForKey:@"teacher"])
                     content = [contactsDic objectForKey:@"teacher"];
             }
+            else
+            {
+                //下载
+                if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
+                {
+                    return;
+                }
+                
+                NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
+                NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
+                NSArray *valuesArr = [NSArray arrayWithObjects:@"getShareSet",ssid, nil];
+                NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
+                                                                 forKeys:paramsArr];
+                
+                NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+                NSString *url      = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
+                ServerRequest *serverReq = [ServerRequest sharedServerRequest];
+                NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
+                                                       paramDic:pDic
+                                                         urlStr:url];
+                NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                                         encoding:NSUTF8StringEncoding]autorelease];
+                NSDictionary *resDic  = [resStr JSONValue];
+                NSString *eerid = [[resDic objectForKey:@"errorid"] copy];
+                if (resDic)
+                {
+                    if (eerid.intValue==0)
+                    {
+                        [[NSUserDefaults standardUserDefaults] setObject:resDic
+                                                                  forKey:@"ShareContent"];
+                        shareDic    = [[NSUserDefaults standardUserDefaults] objectForKey:@"ShareContent"];
+                        contactsDic = [shareDic objectForKey:@"contacts"];
+                        if (contactsDic)
+                        {
+                            if ([contactsDic objectForKey:@"teacher"])
+                                content = [contactsDic objectForKey:@"teacher"];
+                        }
+
+                    }
+                    else
+                    {
+                        NSString *errorMsg = [resDic objectForKey:@"message"];
+                        [self showAlertWithTitle:@"提示"
+                                             tag:4
+                                         message:[NSString stringWithFormat:@"错误码%@,%@",eerid,errorMsg]
+                                        delegate:self
+                               otherButtonTitles:@"确定",nil];
+                    }
+                }
+                else
+                {
+                    [self showAlertWithTitle:@"提示"
+                                         tag:3
+                                     message:@"获取数据失败!"
+                                    delegate:self
+                           otherButtonTitles:@"确定",nil];
+                }
+                
+            }
             
             //替换content内容
             NSString *subContent  = [content stringByReplacingOccurrencesOfString:@"sub" withString:cell.order.teacher.pf];
@@ -391,7 +450,9 @@
                 sex = @"他";
             else
                 sex = @"她";
-            NSString *sexContent = [codeContent stringByReplacingOccurrencesOfString:@"ta" withString:sex];
+            
+            NSString *sexContent = [codeContent stringByReplacingOccurrencesOfString:@"ta"
+                                                                          withString:sex];
             //调用短信
             if( [MFMessageComposeViewController canSendText] )
             {
@@ -399,7 +460,8 @@
                 controller.body = sexContent;
                 controller.messageComposeDelegate = self;
                 [nav presentModalViewController:controller animated:YES];
-            }else
+            }
+            else
             {
                 [self showAlertWithTitle:@"提示"
                                      tag:0
@@ -407,6 +469,8 @@
                                 delegate:self
                        otherButtonTitles:@"确定", nil];
             }
+
+            
             break;
         }
         default:

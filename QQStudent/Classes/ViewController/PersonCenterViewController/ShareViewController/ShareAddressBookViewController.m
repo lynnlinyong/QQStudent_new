@@ -54,7 +54,6 @@
     addressTab.delegate = nil;
     addressTab.dataSource = nil;
     
-    addressTab = nil;
     [super viewDidUnload];
 }
 
@@ -63,6 +62,7 @@
     [addressTab   release];
     [addressArray release];
     [selectArray  release];
+    if (tmpAddressBook)
     CFRelease (tmpAddressBook);
     [super dealloc];
 }
@@ -113,15 +113,21 @@
     }
     else
     {
-        tmpAddressBook =ABAddressBookCreate();
+        tmpAddressBook = ABAddressBookCreate();
     }
     
     //取得本地所有联系人记录
-    if (tmpAddressBook==nil) {
+    if (tmpAddressBook==nil)
+    {
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:@"没有访问通讯录权限,请到设置->隐私—>通讯录中打开"
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
         return ;
     }
-    
-    addressArray = [(NSMutableArray *)ABAddressBookCopyArrayOfAllPeople(tmpAddressBook) copy];
+    else
+        addressArray = [(NSMutableArray *)ABAddressBookCopyArrayOfAllPeople(tmpAddressBook) copy];
 }
 
 - (NSString *) getName:(id) person
@@ -158,7 +164,6 @@
         return name;
     }
     [tmpNickname release];
-
     
     //获取的联系人单一属性:Department name
     NSString* tmpDepartmentName = (NSString*)ABRecordCopyValue(person, kABPersonDepartmentProperty);
@@ -193,6 +198,13 @@
     }
     
     return phoneNum;
+}
+
+#pragma mark -
+#pragma makr - UIAlertViewDelegate
+- (void) alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    
 }
 
 #pragma mark -

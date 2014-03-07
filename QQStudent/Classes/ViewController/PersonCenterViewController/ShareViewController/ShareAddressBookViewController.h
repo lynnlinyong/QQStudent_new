@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface ShareAddressBookViewController : UIViewController<
+                                                    UIAlertViewDelegate,
                                                     UITableViewDelegate,
                                                     UITableViewDataSource,
                                                     MFMessageComposeViewControllerDelegate>
