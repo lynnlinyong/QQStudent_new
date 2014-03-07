@@ -43,6 +43,7 @@
 @property (strong, nonatomic) UIButton *keyBoardBtn;
 @property (strong, nonatomic) UILongPressButton *recordBtn;
 @property (strong, nonatomic) JSDismissiveTextView *textView;
+//@property (strong, nonatomic) UITextView *textView;
 @property (strong, nonatomic) UIImageView *inputFieldBack;
 @property (strong, nonatomic) UIButton *sendButton;
 

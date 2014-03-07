@@ -111,7 +111,7 @@
 
 - (void) updateStudentInfo
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }
@@ -140,7 +140,7 @@
 
 - (void) uploadSuggest:(NSString *) content
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }

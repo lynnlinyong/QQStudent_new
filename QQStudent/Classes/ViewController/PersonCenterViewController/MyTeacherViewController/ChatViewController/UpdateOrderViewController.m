@@ -163,7 +163,7 @@
 #pragma mark - Control Event
 - (void) doFinishBtnClicked:(id)sender
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }

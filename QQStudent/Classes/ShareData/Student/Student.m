@@ -210,7 +210,7 @@
     NSArray *salaryList = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
     if (!salaryList)
     {
-        if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+        if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
         {
             return;
         }
@@ -324,7 +324,7 @@
     NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:GRADE_LIST];
     if (!gradList)
     {
-        if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+        if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
         {
             return;
         }
@@ -394,7 +394,7 @@
 
 + (void) getSubjects
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }

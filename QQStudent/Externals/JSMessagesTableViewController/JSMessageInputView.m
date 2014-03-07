@@ -113,6 +113,38 @@
     self.textView.keyboardAppearance = UIKeyboardAppearanceDefault;
     self.textView.keyboardType = UIKeyboardTypeDefault;
     self.textView.returnKeyType = UIReturnKeyDefault;
+    self.textView.layer.borderColor = [[UIColor grayColor] CGColor];
+    self.textView.layer.borderWidth = 1.f;
+    self.textView.layer.cornerRadius = 0.0f;
+    [self.textView.layer setMasksToBounds:YES];
+
+    
+//    self.textView = [[UITextView  alloc] initWithFrame:CGRectMake(width+13.0f, 8, SEND_TEXT_WIDTH, height-2)];
+//    self.textView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+//    self.textView.backgroundColor = [UIColor whiteColor];
+//    self.textView.scrollIndicatorInsets = UIEdgeInsetsMake(10.0f, 0.0f, 10.0f, 8.0f);
+//    self.textView.contentInset  = UIEdgeInsetsMake(-4.0f, 4.0f, 0.0f, 0.0f);
+//    self.textView.scrollEnabled = YES;
+//    self.textView.scrollsToTop  = NO;
+//    self.textView.userInteractionEnabled = YES;
+//    self.textView.font = [JSBubbleView font];
+//    self.textView.layer.shadowColor = [[UIColor grayColor] CGColor];
+//    self.textView.layer.shadowOffset = CGSizeMake(1, 1);
+//    self.textView.textColor = [UIColor blackColor];
+//    self.textView.backgroundColor = [UIColor whiteColor];
+//    self.textView.keyboardAppearance = UIKeyboardAppearanceDefault;
+//    self.textView.keyboardType = UIKeyboardTypeDefault;
+//    self.textView.returnKeyType = UIReturnKeyDefault;
+//    self.textView.layer.backgroundColor = [[UIColor clearColor] CGColor];
+//    
+//    self.textView.layer.borderColor = [[UIColor grayColor] CGColor];
+//    
+//    self.textView.layer.borderWidth = 1.f;
+//    
+//    self.textView.layer.cornerRadius = 1.0f;
+//    
+//    [self.textView.layer setMasksToBounds:YES];
+
     [self addSubview:self.textView];
 	
     inputFieldBack = [[UIImageView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x - 1.0f,

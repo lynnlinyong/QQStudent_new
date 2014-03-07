@@ -21,7 +21,7 @@
         self.backgroundColor = [UIColor grayColor];
         
         info1Lab = [[UILabel alloc]init];
-        info1Lab.frame = [UIView fitCGRect:CGRectMake(130, 60, 160, 40)
+        info1Lab.frame = [UIView fitCGRect:CGRectMake(130, 60, 180, 40)
                                 isBackView:NO];
         info1Lab.text = @"给您推荐身边的好地点好环境 好安心 好学习";
         info1Lab.backgroundColor = [UIColor clearColor];
@@ -31,7 +31,7 @@
         [self addSubview:info1Lab];
         
         info2Lab = [[UILabel alloc]init];
-        info2Lab.frame = [UIView fitCGRect:CGRectMake(156, 300, 150, 40)
+        info2Lab.frame = [UIView fitCGRect:CGRectMake(156, 300, 170, 40)
                                 isBackView:NO];
         info2Lab.text = @"输入精确到门牌号哦如:长青路43弄22号";
         info2Lab.textColor     = [UIColor colorWithHexString:@"#00ffff"];
@@ -137,7 +137,7 @@
         okBtn.frame = [UIView fitCGRect:CGRectMake(320-okImg.size.width-7,
                                                    6,
                                                    okImg.size.width,
-                                                   okImg.size.height+2)
+                                                   okImg.size.height+1)
                              isBackView:NO];
         [okBtn addTarget:self
                   action:@selector(doButtonClicked:)
@@ -284,6 +284,7 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
     [self.mapView addGestureRecognizer:longPress];
     [longPress release];
     
+    keboarHeight = 0;
     toolBar = [[BottomToolBar alloc]initWithFrame:
                                     [UIView fitCGRect:CGRectMake(0,
                                                                  480-55-44,
@@ -304,6 +305,16 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(selectPosAreaNotice:)
                                                  name:@"selectPosAreaNotice"
+                                               object:nil];
+    
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(keyboardWillShow:)
+//                                                 name:UIKeyboardWillShowNotification
+//                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillChange:)
+                                                 name:UIKeyboardWillChangeFrameNotification
                                                object:nil];
 }
 
@@ -339,7 +350,7 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
 
 - (void) searchNearOtherPos
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }
@@ -422,27 +433,6 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
     [search AMapGeocodeSearch: geoRequest];
 }
 
-//#pragma mark - HZAreaPicker delegate
-//- (void) pickerDidChaneStatus:(HZAreaPickerView *)picker
-//{
-//    if (picker.pickerStyle == HZAreaPickerWithStateAndCityAndDistrict)
-//    {
-//         CLog(@"ChangStatus:%@",[NSString stringWithFormat:@"%@ %@ %@", picker.locate.state, picker.locate.city, picker.locate.district]);
-//         posDic = [[NSDictionary alloc] initWithObjectsAndKeys:picker.locate.state,@"PROVICE",picker.locate.city, @"CITY",picker.locate.district, @"DIST", nil];
-//    }
-//    else
-//    {
-////        self.cityValue = [NSString stringWithFormat:@"%@ %@", picker.locate.state, picker.locate.city];
-//    }
-//}
-//
-//- (void) cancelLocatePicker
-//{
-//    [self.locatePicker cancelPicker];
-//    self.locatePicker.delegate = nil;
-//    self.locatePicker = nil;
-//}
-
 #pragma mark -
 #pragma mark - SiteOtherViewDelegate
 - (void) view:(SiteOtherView *)view clickedTag:(int)tag
@@ -471,16 +461,48 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
 
 #pragma mark -
 #pragma mark - BottomToolBarDelegate
+#pragma mark -
+#pragma mark - UIViewController Custom Methods
+- (void) repickView:(UIView *)parent
+{
+    NSTimeInterval animationDuration = 0.30f;
+    [UIView beginAnimations:@"ResizeForKeyboard" context:nil];
+    
+    [UIView setAnimationDuration:animationDuration];
+    CGRect rect  = CGRectMake(parent.frame.origin.x,
+                              parent.frame.origin.y+keboarHeight,
+                              parent.frame.size.width,
+                              parent.frame.size.height);
+    parent.frame = rect;
+    
+    [UIView commitAnimations];
+}
+
+- (void) keyboardWillChange:(NSNotification *) notice
+{
+    NSValue *aValue     = [notice.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey];
+    CGRect keyboardRect = [aValue CGRectValue];
+    
+    float offset = keyboardRect.size.height - keboarHeight;
+    NSTimeInterval animationDuration = 0.30f;
+    [UIView beginAnimations:@"ResizeForKeyBoard"
+                    context:nil];
+    [UIView setAnimationDuration:animationDuration];
+
+    int width  = self.view.frame.size.width;
+    int height = self.view.frame.size.height;
+    CGRect rect= CGRectMake(self.view.frame.origin.x,
+                            self.view.frame.origin.y-offset,width, height);
+    self.view.frame = rect;
+    [UIView commitAnimations];
+    
+    keboarHeight = keyboardRect.size.height;
+}
+
 - (void) textViewReturnEditing:(UITextView *) textField
 {
     [textField resignFirstResponder];
     [self repickView:self.view];
-}
-
-- (void) textViewBegianEditing:(UITextView *) textField
-{
-    [self.locatePicker cancelPicker];
-    [self moveViewWhenViewHidden:toolBar parent:self.view];
 }
 
 - (void) bottomToolBar:(id)bar index:(int)clickedIndex

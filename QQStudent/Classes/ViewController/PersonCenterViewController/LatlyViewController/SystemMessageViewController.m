@@ -80,7 +80,7 @@
 
 - (void) getSystemMessage
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }
@@ -101,7 +101,7 @@
 
 - (void) deleteSystemMessage:(NSString *) msgId
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }

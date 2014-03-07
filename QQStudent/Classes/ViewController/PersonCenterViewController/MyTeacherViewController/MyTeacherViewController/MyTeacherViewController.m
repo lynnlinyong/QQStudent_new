@@ -97,7 +97,7 @@
 
 - (void) doCommentOrderNotice:(NSNotification *) notice
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }
@@ -158,7 +158,7 @@
 
 - (void) getOrderTeachers
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }
@@ -381,16 +381,24 @@
                 if ([contactsDic objectForKey:@"teacher"])
                     content = [contactsDic objectForKey:@"teacher"];
             }
-
             
+            //替换content内容
+            NSString *subContent  = [content stringByReplacingOccurrencesOfString:@"sub" withString:cell.order.teacher.pf];
+            NSString *nameContent = [subContent stringByReplacingOccurrencesOfString:@"name" withString:cell.order.teacher.name];
+            NSString *codeContent = [nameContent stringByReplacingOccurrencesOfString:@"searchCode" withString:cell.order.teacher.searchCode];
+            NSString *sex;
+            if (cell.order.teacher.sex==1)
+                sex = @"他";
+            else
+                sex = @"她";
+            NSString *sexContent = [codeContent stringByReplacingOccurrencesOfString:@"ta" withString:sex];
             //调用短信
             if( [MFMessageComposeViewController canSendText] )
             {
                 MFMessageComposeViewController * controller = [[MFMessageComposeViewController alloc]init];
-                controller.body = content;
+                controller.body = sexContent;
                 controller.messageComposeDelegate = self;
                 [nav presentModalViewController:controller animated:YES];
-//                [[[[controller viewControllers] lastObject] navigationItem] setTitle:@"测试短信"];//修改短信界面标题
             }else
             {
                 [self showAlertWithTitle:@"提示"

@@ -61,6 +61,7 @@
 #import "SalaryAndFlagView.h"
 #import "UIColor+CustomColor.h"
 #import "TTImageView.h"
+#import "WaitMaskView.h"
 #import "QRadioButton.h"
 #import "RegexKitLite.h"
 #import "ServerRequest.h"

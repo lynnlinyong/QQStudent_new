@@ -475,7 +475,7 @@
 
 - (void) uploadOrderToServer:(NSDictionary *) valueDic
 {
-    if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }
@@ -1125,7 +1125,7 @@
         NSString *action = [resDic objectForKey:@"action"];
         if ([action isEqualToString:@"submitOrder"])
         {
-            if (![AppDelegate isConnectionAvailable:NO withGesture:NO])
+            if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
             {
                 return;
             }

@@ -8,9 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface PersonCenterViewController : LeveyTabBarController
+@interface PersonCenterViewController : LeveyTabBarController<CustomNavigationDataSource>
 {
 //    UITabBarController    *pTabBarCtr;
 }
-
+@property (nonatomic,copy) Order *order;
 @end

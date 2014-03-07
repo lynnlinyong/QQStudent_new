@@ -32,6 +32,7 @@
 @synthesize certArray;
 @synthesize idOrgName;
 @synthesize isId;
+@synthesize searchCode;
 
 + (Teacher *) setTeacherProperty:(NSDictionary *) resDic
 {
@@ -184,6 +185,12 @@
     else
         teacherObj.idOrgName = @"";
     
+    NSString *searchcCode = [[resDic objectForKey:@"searchCode"] copy];
+    if (searchcCode)
+        teacherObj.searchCode = searchcCode;
+    else
+        teacherObj.searchCode = @"";
+    
     return teacherObj;
 }
 
@@ -213,6 +220,7 @@
         certArray = [[NSArray alloc]init];
         isId      = NO;
         idOrgName = [[NSString alloc]init];
+        searchCode = [[NSString alloc]init];
     }
     
     return self;
@@ -221,6 +229,7 @@
 - (void) dealloc
 {
     [idOrgName release];
+    [searchCode release];
     [info    release];
     [name    release];
     [pf      release];
@@ -263,6 +272,7 @@
         
         tObj.isId      = isId;
         tObj.idOrgName = [idOrgName copy];
+        tObj.searchCode = [searchCode copy];
     }
     
     return tObj;
@@ -296,6 +306,7 @@
         
         tObj.isId      = isId;
         tObj.idOrgName = [idOrgName copy];
+        tObj.searchCode = [searchCode copy];
     }
     
     return tObj;

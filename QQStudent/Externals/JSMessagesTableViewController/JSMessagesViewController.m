@@ -392,7 +392,7 @@
 - (void)finishSend
 {
     [self.inputToolBarView.textView setText:nil];
-//    [self textViewDidChange:self.inputToolBarView.textView];
+    [self textViewDidChange:self.inputToolBarView.textView];
     [self.inputToolBarView.textView resignFirstResponder];
     
     [self.tableView reloadData];
@@ -435,47 +435,47 @@
 
 - (void)textViewDidChange:(UITextView *)textView
 {
-    CGFloat maxHeight = [JSMessageInputView maxHeight];
-    CGFloat textViewContentHeight = textView.contentSize.height;
-    BOOL isShrinking = textViewContentHeight < self.previousTextViewContentHeight;
-    CGFloat changeInHeight = textViewContentHeight - self.previousTextViewContentHeight;
-    
-    if(!isShrinking && self.previousTextViewContentHeight == maxHeight) {
-        changeInHeight = 0;
-    }
-    else {
-        changeInHeight = MIN(changeInHeight, maxHeight - self.previousTextViewContentHeight);
-    }
-    
-    if(changeInHeight != 0.0f) {
-        if(!isShrinking)
-            [self.inputToolBarView adjustTextViewHeightBy:changeInHeight];
-        
-        [UIView animateWithDuration:0.25f
-                         animations:^{
-                             UIEdgeInsets insets = UIEdgeInsetsMake(0.0f,
-                                                                    0.0f,
-                                                                    self.tableView.contentInset.bottom + changeInHeight,
-                                                                    0.0f);
-                             
-                             self.tableView.contentInset = insets;
-                             self.tableView.scrollIndicatorInsets = insets;
-                             [self scrollToBottomAnimated:NO];
-                             
-                             CGRect inputViewFrame = self.inputToolBarView.frame;
-                             self.inputToolBarView.frame = CGRectMake(0.0f,
-                                                                      inputViewFrame.origin.y - changeInHeight,
-                                                                      inputViewFrame.size.width,
-                                                                      inputViewFrame.size.height + changeInHeight);
-                         }
-                         completion:^(BOOL finished) {
-                             if(isShrinking)
-                                 [self.inputToolBarView adjustTextViewHeightBy:changeInHeight];
-                         }];
-        
-        self.previousTextViewContentHeight = MIN(textViewContentHeight, maxHeight);
-    }
-    
+//    CGFloat maxHeight = [JSMessageInputView maxHeight];
+//    CGFloat textViewContentHeight = textView.contentSize.height;
+//    BOOL isShrinking = textViewContentHeight < self.previousTextViewContentHeight;
+//    CGFloat changeInHeight = textViewContentHeight - self.previousTextViewContentHeight;
+//    
+//    if(!isShrinking && self.previousTextViewContentHeight == maxHeight) {
+//        changeInHeight = 0;
+//    }
+//    else {
+//        changeInHeight = MIN(changeInHeight, maxHeight - self.previousTextViewContentHeight);
+//    }
+//    
+//    if(changeInHeight != 0.0f) {
+//        if(!isShrinking)
+//            [self.inputToolBarView adjustTextViewHeightBy:changeInHeight];
+//        
+//        [UIView animateWithDuration:0.25f
+//                         animations:^{
+//                             UIEdgeInsets insets = UIEdgeInsetsMake(0.0f,
+//                                                                    0.0f,
+//                                                                    self.tableView.contentInset.bottom + changeInHeight,
+//                                                                    0.0f);
+//                             
+//                             self.tableView.contentInset = insets;
+//                             self.tableView.scrollIndicatorInsets = insets;
+//                             [self scrollToBottomAnimated:NO];
+//                             
+//                             CGRect inputViewFrame = self.inputToolBarView.frame;
+//                             self.inputToolBarView.frame = CGRectMake(0.0f,
+//                                                                      inputViewFrame.origin.y - changeInHeight,
+//                                                                      inputViewFrame.size.width,
+//                                                                      inputViewFrame.size.height + changeInHeight);
+//                         }
+//                         completion:^(BOOL finished) {
+//                             if(isShrinking)
+//                                 [self.inputToolBarView adjustTextViewHeightBy:changeInHeight];
+//                         }];
+//        
+//        self.previousTextViewContentHeight = MIN(textViewContentHeight, maxHeight);
+//    }
+//    
     self.inputToolBarView.sendButton.enabled = ([textView.text trimWhitespace].length > 0);
 }
 

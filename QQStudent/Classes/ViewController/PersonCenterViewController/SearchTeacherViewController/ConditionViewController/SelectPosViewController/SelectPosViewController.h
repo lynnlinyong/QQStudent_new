@@ -49,6 +49,7 @@
     CustomPointAnnotation  *selAnn;
     CalloutMapAnnotation   *_calloutMapAnnotation;
     CLLocationCoordinate2D loc;
+    float           keboarHeight;
 }
 @property (nonatomic, retain) MAMapView *mapView;
 @property (strong, nonatomic) HZAreaPickerView *locatePicker;

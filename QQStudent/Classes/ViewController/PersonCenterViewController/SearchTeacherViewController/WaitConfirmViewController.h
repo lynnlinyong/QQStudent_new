@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface WaitConfirmViewController : UIViewController<
+                                                    WaitMaskViewDelegate,
                                                     ThreadTimerDelegate,
                                                     MAMapViewDelegate,
                                                     ServerRequestDelegate,
@@ -35,6 +36,8 @@
     UIImageView *cntTimeImageView;
     
     ThreadTimer *timer;
+    
+    Order *order;
 }
 
 @property (nonatomic, copy)   Teacher        *tObj;

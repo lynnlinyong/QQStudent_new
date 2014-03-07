@@ -13,6 +13,7 @@
                             NSMutableCopying>
 {
     NSString   *name;       //昵称
+    NSString   *searchCode; //搜索码
     int        sex;         //性别
     NSString   *pf;         //专业
     int        pfId;        //专业Id
@@ -40,6 +41,7 @@
 }
 
 @property (nonatomic, retain) NSString     *name;
+@property (nonatomic, retain) NSString     *searchCode;
 @property (nonatomic, assign) int          sex;
 @property (nonatomic, retain) NSString     *pf;
 @property (nonatomic, assign) int          pfId;

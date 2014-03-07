@@ -8,6 +8,9 @@
 
 #import "SelectAreaViewController.h"
 
+#define iphone5_HEIGHT   30
+
+#define iphone4_HEIGHT   20
 @interface SelectAreaViewController ()
 
 @end
@@ -76,15 +79,25 @@
     cellArray  = [[NSMutableArray alloc]init];
     gdView = [[UIGridView alloc]init];
     gdView.uiGridViewDelegate = self;
-    gdView.frame = [UIView fitCGRect:CGRectMake(7, 57, 307, 400)
-                          isBackView:NO];
+    if (iPhone5)
+        gdView.frame = [UIView fitCGRect:CGRectMake(7, 53, 307, 400)
+                              isBackView:NO];
+    else
+        gdView.frame = [UIView fitCGRect:CGRectMake(7, 55, 307, 400)
+                              isBackView:NO];
     gdView.userInteractionEnabled = YES;
     [self.view addSubview:gdView];
     
     NSString *provice = [[NSUserDefaults standardUserDefaults] objectForKey:@"SELECT_PROVICE"];
     proviceBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [proviceBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                forState:UIControlStateNormal];
     cityBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [cityBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                     forState:UIControlStateNormal];
     distBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [distBtn setTitleColor:[UIColor colorWithHexString:@"#999999"]
+                  forState:UIControlStateNormal];
     proviceBtn.tag = 100;
     cityBtn.tag    = 101;
     distBtn.tag    = 102;
@@ -102,8 +115,6 @@
     else
         [proviceBtn setTitle:@"省份"
                     forState:UIControlStateNormal];
-    [proviceBtn setTitleColor:[UIColor blackColor]
-                     forState:UIControlStateNormal];
     proviceBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
     proviceBtn.frame = [UIView fitCGRect:CGRectMake(5, 30, bgImg.size.width-10, bgImg.size.height)
                               isBackView:NO];
@@ -132,8 +143,6 @@
                            forState:UIControlStateNormal];
         
     }
-    [cityBtn setTitleColor:[UIColor blackColor]
-                  forState:UIControlStateNormal];
     cityBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
     cityBtn.frame = [UIView fitCGRect:CGRectMake(15+bgImg.size.width, 30,
                                                  bgImg.size.width-10, bgImg.size.height)
@@ -146,8 +155,6 @@
     
     [distBtn setTitle:@"区县"
              forState:UIControlStateNormal];
-    [distBtn setTitleColor:[UIColor blackColor]
-                  forState:UIControlStateNormal];
     distBtn.titleLabel.font = [UIFont systemFontOfSize:14.f];
     distBtn.frame  = [UIView fitCGRect:CGRectMake(25+2*bgImg.size.width, 30,
                                                   bgImg.size.width-10,
@@ -269,18 +276,25 @@
         subView = nil;
     }
     
+    float heightRow = 0;
+    if (iPhone5)
+        heightRow = iphone5_HEIGHT;
+    else
+        heightRow = iphone4_HEIGHT;
+    
     //设置GridView数据
     int row;
     if ((valueArray.count/3!=0) || (valueArray.count<3))
         row = valueArray.count/3+1;
     else
         row = valueArray.count/3;
-    int height = 20 * row;
+    int height = heightRow * row;
     
     CLog(@"Y:%f", gdView.frame.origin.y);
     gdView.frame = CGRectMake(gdView.frame.origin.x,
                                                 gdView.frame.origin.y,
                                                 gdView.frame.size.width, height);
+    gdView.separatorStyle = UITableViewCellSeparatorStyleNone;
     [gdView reloadData];
     
     okBtn.hidden = NO;
@@ -409,7 +423,10 @@
 
 - (CGFloat) gridView:(UIGridView *)grid heightForRowAt:(int)rowIndex
 {
-    return 20;
+    if (iPhone5)
+        return iphone5_HEIGHT;
+    else
+        return iphone4_HEIGHT;
 }
 
 - (NSInteger) numberOfColumnsOfGridView:(UIGridView *) grid
@@ -429,12 +446,23 @@
     {
         int index = rowIndex*3+columnIndex;
         
+        UIImageView *txtBgView = [[UIImageView alloc]init];
+        txtBgView.image = [UIImage imageNamed:@"sd_sel_pos_bg"];
+        float height = 0;
+        if (iPhone5)
+            height = iphone5_HEIGHT;
+        else
+            height = iphone4_HEIGHT;
+        txtBgView.frame = CGRectMake(5, height/2-12.5, 100, 25);
+        [cell addSubview:txtBgView];
+        [txtBgView release];
+        
         UILabel *contentLab = [[UILabel alloc]init];
         contentLab.font  = [UIFont systemFontOfSize:12.f];
         contentLab.text  = [valueArray objectAtIndex:index];
         contentLab.textColor = [UIColor colorWithHexString:@"#999999"];
         contentLab.backgroundColor = [UIColor clearColor];
-        contentLab.frame = CGRectMake(0, 0, 100, 20);
+        contentLab.frame = CGRectMake(10, height/2-12.5, 95, 25);
         [cellArray addObject:cell];
         [cell addSubview:contentLab];
         [contentLab release];

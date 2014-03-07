@@ -94,6 +94,11 @@ static SingleMQTT *sessionInstance = nil;
 
 + (void) connectServer
 {
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
+    {
+        return;
+    }
+    
     NSString *pushAddress = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHADDRESS];
     NSString *port = [[NSUserDefaults standardUserDefaults] objectForKey:PORT];
     if (pushAddress && port)

@@ -9,6 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface NoticeWallViewController : UIViewController
-@property (nonatomic, retain) NSString  *title;
-@property (nonatomic, retain) NSString  *content;
+@property (nonatomic, copy) NSString  *title;
+@property (nonatomic, copy) NSString  *content;
 @end
