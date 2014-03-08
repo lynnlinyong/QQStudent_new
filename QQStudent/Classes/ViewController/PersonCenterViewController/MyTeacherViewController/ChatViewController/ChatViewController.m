@@ -18,6 +18,7 @@
 @synthesize order;
 @synthesize listenBtn;
 @synthesize employBtn;
+@synthesize isFromSearchCondition;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -88,6 +89,9 @@
     employBtn = nil;
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
     
     [super viewDidDisappear:animated];
 }
@@ -227,7 +231,7 @@
                          forState:UIControlStateNormal];
     
     listenBtn.tag   = 0;
-    listenBtn.frame = CGRectMake(320-110, 12, 40, 20);
+    listenBtn.frame = CGRectMake(320-110, 12, 40, 25);
     [listenBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
@@ -243,7 +247,7 @@
     [employBtn setBackgroundImage:[UIImage imageNamed:@"sp_share_btn_hlight"]
                          forState:UIControlStateHighlighted];
     employBtn.tag   = 1;
-    employBtn.frame = CGRectMake(320-65, 12, 60, 20);
+    employBtn.frame = CGRectMake(320-65, 12, 60, 25);
     [employBtn addTarget:self
                   action:@selector(doButtonClicked:)
         forControlEvents:UIControlEventTouchUpInside];
@@ -256,6 +260,9 @@
     //是否支持试听、聘用
     [self isShowListenBtn];
     if (!order)
+        [self isShowEmployBtn];
+    //直接搜索时,调用显示接口
+    if (isFromSearchCondition)
         [self isShowEmployBtn];
 }
 

@@ -608,23 +608,23 @@
 - (void)session:(MQTTSession*)sender handleEvent:(MQTTSessionEvent)eventCode {
     switch (eventCode) {
         case MQTTSessionEventConnected:
-            NSLog(@"connected");
+            CLog(@"connected");
             break;
         case MQTTSessionEventConnectionRefused:
-            NSLog(@"connection refused");
+            CLog(@"connection refused");
             break;
         case MQTTSessionEventConnectionClosed:
-            NSLog(@"connection closed");
+            CLog(@"connection closed");
             break;
         case MQTTSessionEventConnectionError:
-            NSLog(@"connection error");
-            NSLog(@"reconnecting...");
+            CLog(@"connection error");
+            CLog(@"reconnecting...");
             // Forcing reconnection
             if ([AppDelegate isConnectionAvailable:YES withGesture:NO])
                 [SingleMQTT connectServer];
             break;
         case MQTTSessionEventProtocolError:
-            NSLog(@"protocol error");
+            CLog(@"protocol error");
             break;
     }
 }

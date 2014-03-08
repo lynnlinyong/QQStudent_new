@@ -26,7 +26,7 @@
     LBorderView *infoView;
     UIView      *employInfoView;
 }
-
+@property (nonatomic, assign) BOOL    isFromSearchCondition;
 @property (nonatomic, copy)   Order   *order;
 @property (nonatomic, copy)   Teacher *tObj;
 @property (nonatomic, retain) UIButton *listenBtn;

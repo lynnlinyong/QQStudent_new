@@ -40,6 +40,13 @@
     [MainViewController setNavTitle:@"分享到新浪微博"];
 }
 
+- (void) viewDidUnload
+{
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+    [super viewDidUnload];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];

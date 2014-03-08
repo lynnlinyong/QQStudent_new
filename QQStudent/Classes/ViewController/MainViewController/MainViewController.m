@@ -58,6 +58,13 @@
 //    [self checkNewVersion];
 }
 
+- (void) viewDidDisappear:(BOOL)animated
+{
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+    [super viewDidDisappear:animated];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];

@@ -86,8 +86,8 @@ static ServerRequest *sharedServerRequest = nil;
             ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:pUrl];
             for (int i=0; i<paramsArr.count; i++)
             {
-                NSLog(@"value:%@", [valuesArr objectAtIndex:i]);
-                NSLog(@"param:%@", [paramsArr objectAtIndex:i]);
+                CLog(@"value:%@", [valuesArr objectAtIndex:i]);
+                CLog(@"param:%@", [paramsArr objectAtIndex:i]);
                 
                 if ([[paramsArr objectAtIndex:i] isEqual:UPLOAD_FILE])
                 {
@@ -135,7 +135,7 @@ static ServerRequest *sharedServerRequest = nil;
             }
             
             pUrl = [NSURL URLWithString:pUrlStr];
-            NSLog(@"URL=%@", pUrl);
+            CLog(@"URL=%@", pUrl);
             
             ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:pUrl];
             [request setRequestMethod:@"GET"];
@@ -215,7 +215,7 @@ static ServerRequest *sharedServerRequest = nil;
             }
             
             pUrl = [NSURL URLWithString:pUrlStr];
-            NSLog(@"URL=%@", pUrl);
+            CLog(@"URL=%@", pUrl);
     
             ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:pUrl];
             [request setDidFinishSelector:@selector(requestAsyncSuccessed:)];

@@ -52,7 +52,6 @@
 {
 	UIButton *btn = sender;
 	[self selectTabAtIndex:btn.tag];
-    NSLog(@"Select index: %d",btn.tag);
     if ([_delegate respondsToSelector:@selector(tabBar:didSelectIndex:)])
     {
         [_delegate tabBar:self didSelectIndex:btn.tag];

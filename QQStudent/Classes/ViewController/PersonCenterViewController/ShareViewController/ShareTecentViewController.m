@@ -45,6 +45,13 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void) viewDidUnload
+{
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+    [super viewDidUnload];
+}
+
 - (void) dealloc
 {
     [shareImgView release];

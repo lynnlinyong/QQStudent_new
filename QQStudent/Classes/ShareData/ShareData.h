@@ -74,7 +74,11 @@
 #define IS_ORDER_CONFIRM  @"IS_ORDER_CONFIRM"
 
 //策略服务器地址
-#define ServerAddress   @"http://app.changingedu.com:8085/Interfaces/app/"
+
+//测试服务器
+//#define ServerAddress   @"http://app.changingedu.com:8085/Interfaces/app/"
+//正式服务器
+#define ServerAddress    @"http://app.changingedu.com/Interfaces/app/"
 
 #define     MAP_API_KEY  @"513e60ac02ea80ee24943c1d383dc56c"
 

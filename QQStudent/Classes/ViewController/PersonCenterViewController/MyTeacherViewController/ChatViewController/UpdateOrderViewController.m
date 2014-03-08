@@ -67,6 +67,10 @@
     upTab.dataSource = nil;
     
     upTab = nil;
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super viewDidUnload];
 }

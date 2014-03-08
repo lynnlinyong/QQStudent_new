@@ -71,6 +71,9 @@
     
     orderTab.delegate = nil;
     orderTab.dataSource = nil;
+    
+    CustomNavigationViewController *nav = (CustomNavigationViewController *) [MainViewController getNavigationViewController];
+    nav.dataSource = nil;
     [super viewDidUnload];
 }
 
@@ -1189,6 +1192,7 @@
             cVctr.tObj  = tObj;
             cVctr.order = curOrder;
             cVctr.order.teacher = tObj;
+            cVctr.isFromSearchCondition = YES;
             [nav pushViewController:cVctr animated:YES];
             [cVctr release];
         }
