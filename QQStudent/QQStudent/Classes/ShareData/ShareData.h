@@ -76,10 +76,10 @@
 //策略服务器地址
 
 //测试服务器
-#define ServerAddress   @"http://app.changingedu.com:8085/Interfaces/app/"
+//#define ServerAddress   @"http://app.changingedu.com:8085/Interfaces/app/"
 
 //正式服务器
-//#define ServerAddress    @"http://app.changingedu.com/Interfaces/app/"
+#define ServerAddress    @"http://app.changingedu.com/Interfaces/app/"
 
 #define     MAP_API_KEY  @"513e60ac02ea80ee24943c1d383dc56c"
 

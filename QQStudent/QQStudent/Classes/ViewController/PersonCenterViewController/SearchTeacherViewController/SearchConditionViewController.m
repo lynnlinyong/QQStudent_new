@@ -838,13 +838,11 @@
                     {
                         NSString *sex = [[userDic objectForKey:@"Sex"] copy];
                         if (sex.intValue == 1)
-                        {
                             sexValLab.text = @"男";
-                        }
+                        else if (sex.intValue == 0)
+                            sexValLab.text = @"不限";
                         else
-                        {
                             sexValLab.text = @"女";
-                        }
                     }
                     else
                         sexValLab.text = @"";

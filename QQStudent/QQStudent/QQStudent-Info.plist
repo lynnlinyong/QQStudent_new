@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleBlackOpaque</string>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -23,6 +19,15 @@
 		<dict>
 			<key>CFBundleIconFiles</key>
 			<array>
+				<string>Icon-80</string>
+				<string>Icon-58</string>
+				<string>Icon-29</string>
+				<string>logo_80</string>
+				<string>logo_58</string>
+				<string>logo_29</string>
+				<string>Icon-120</string>
+				<string>Icon</string>
+				<string>logo_120</string>
 				<string>icon.png</string>
 				<string>icon@2x.png</string>
 			</array>
@@ -61,9 +66,13 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleBlackOpaque</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>

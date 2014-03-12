@@ -11,6 +11,8 @@
 		BA02B2D918A6113A002EFB80 /* CalloutMapAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = BA02B2D518A6113A002EFB80 /* CalloutMapAnnotation.m */; };
 		BA02B2DA18A6113A002EFB80 /* TTCustomAnnotationView.m in Sources */ = {isa = PBXBuildFile; fileRef = BA02B2D718A6113A002EFB80 /* TTCustomAnnotationView.m */; };
 		BA02B2DD18A61298002EFB80 /* TeacherPropertyView.m in Sources */ = {isa = PBXBuildFile; fileRef = BA02B2DC18A61298002EFB80 /* TeacherPropertyView.m */; };
+		BA03303A18D0001F00DDCEC7 /* AMapSearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA03303818D0001F00DDCEC7 /* AMapSearchKit.framework */; };
+		BA03303B18D0001F00DDCEC7 /* MAMapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA03303918D0001F00DDCEC7 /* MAMapKit.framework */; };
 		BA0634A318A32BE8000CFCEF /* area.plist in Resources */ = {isa = PBXBuildFile; fileRef = BA06349218A32BE8000CFCEF /* area.plist */; };
 		BA0634A418A32BE8000CFCEF /* areapicker-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BA06349318A32BE8000CFCEF /* areapicker-Info.plist */; };
 		BA0634A518A32BE8000CFCEF /* city.plist in Resources */ = {isa = PBXBuildFile; fileRef = BA06349518A32BE8000CFCEF /* city.plist */; };
@@ -159,8 +161,8 @@
 		BA95338418A0CD3500D2BCEF /* CompletePersonalInfoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BA95338318A0CD3500D2BCEF /* CompletePersonalInfoViewController.m */; };
 		BA9584C3189BB37F00FE6DD0 /* EGORefreshTableHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = BA9584C2189BB37F00FE6DD0 /* EGORefreshTableHeaderView.m */; };
 		BA95890F18B1C9460047A626 /* AMap.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BA95890E18B1C9460047A626 /* AMap.bundle */; };
-		BA95E6B818BB164F006E114E /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = BA95E6B718BB164F006E114E /* icon.png */; };
-		BA95E6BA18BB1655006E114E /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BA95E6B918BB1655006E114E /* icon@2x.png */; };
+		BA95E6B818BB164F006E114E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = BA95E6B718BB164F006E114E /* Icon.png */; };
+		BA95E6BA18BB1655006E114E /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BA95E6B918BB1655006E114E /* Icon@2x.png */; };
 		BA95FB7D189BC1120016C261 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA95FB7C189BC1120016C261 /* QuartzCore.framework */; };
 		BA963B7618AA42850039F446 /* JSBubbleMessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = BA963B3E18AA42850039F446 /* JSBubbleMessageCell.m */; };
 		BA963B7718AA42850039F446 /* JSBubbleView.m in Sources */ = {isa = PBXBuildFile; fileRef = BA963B4018AA42850039F446 /* JSBubbleView.m */; };
@@ -492,8 +494,6 @@
 		BADA1F9018C1DA7E00D5D6E5 /* s_boy.png in Resources */ = {isa = PBXBuildFile; fileRef = BADA1F8D18C1DA7E00D5D6E5 /* s_boy.png */; };
 		BADA1F9118C1DA7E00D5D6E5 /* s_girl.png in Resources */ = {isa = PBXBuildFile; fileRef = BADA1F8E18C1DA7E00D5D6E5 /* s_girl.png */; };
 		BADA1F9218C1DA7E00D5D6E5 /* s_girl@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BADA1F8F18C1DA7E00D5D6E5 /* s_girl@2x.png */; };
-		BADA312B18CEB5A500017EAC /* AMapSearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BADA312A18CEB5A500017EAC /* AMapSearchKit.framework */; };
-		BADA312D18CEB60900017EAC /* MAMapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BADA312C18CEB60900017EAC /* MAMapKit.framework */; };
 		BADA313118CED50E00017EAC /* nav_top_bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BADA313018CED50E00017EAC /* nav_top_bg@2x.png */; };
 		BADA313318CED74E00017EAC /* nav_top_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = BADA313218CED74E00017EAC /* nav_top_bg.png */; };
 		BADFC76118A20EBA00EA2A5E /* NSObjectAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = BADFC75218A20EBA00EA2A5E /* NSObjectAdditions.m */; };
@@ -531,6 +531,13 @@
 		BA02B2D718A6113A002EFB80 /* TTCustomAnnotationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTCustomAnnotationView.m; sourceTree = "<group>"; };
 		BA02B2DB18A61297002EFB80 /* TeacherPropertyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TeacherPropertyView.h; sourceTree = "<group>"; };
 		BA02B2DC18A61298002EFB80 /* TeacherPropertyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TeacherPropertyView.m; sourceTree = "<group>"; };
+		BA03303718CFFE7200DDCEC7 /* Icon-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-120.png"; sourceTree = "<group>"; };
+		BA03303818D0001F00DDCEC7 /* AMapSearchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AMapSearchKit.framework; path = QQStudent/Externals/AMapSearchKit.framework; sourceTree = "<group>"; };
+		BA03303918D0001F00DDCEC7 /* MAMapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MAMapKit.framework; path = QQStudent/Externals/MAMapKit.framework; sourceTree = "<group>"; };
+		BA03303C18D0015B00DDCEC7 /* Icon-29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-29.png"; sourceTree = "<group>"; };
+		BA03303D18D0017400DDCEC7 /* Icon-58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-58.png"; sourceTree = "<group>"; };
+		BA03303E18D001A800DDCEC7 /* Icon-80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-80.png"; sourceTree = "<group>"; };
+		BA03303F18D0026200DDCEC7 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		BA06349218A32BE8000CFCEF /* area.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = area.plist; sourceTree = "<group>"; };
 		BA06349318A32BE8000CFCEF /* areapicker-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "areapicker-Info.plist"; sourceTree = "<group>"; };
 		BA06349418A32BE8000CFCEF /* areapicker-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "areapicker-Prefix.pch"; sourceTree = "<group>"; };
@@ -738,8 +745,8 @@
 		BA9584C1189BB37F00FE6DD0 /* EGORefreshTableHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGORefreshTableHeaderView.h; sourceTree = "<group>"; };
 		BA9584C2189BB37F00FE6DD0 /* EGORefreshTableHeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGORefreshTableHeaderView.m; sourceTree = "<group>"; };
 		BA95890E18B1C9460047A626 /* AMap.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = AMap.bundle; sourceTree = "<group>"; };
-		BA95E6B718BB164F006E114E /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
-		BA95E6B918BB1655006E114E /* icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon@2x.png"; sourceTree = "<group>"; };
+		BA95E6B718BB164F006E114E /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		BA95E6B918BB1655006E114E /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		BA95FB7C189BC1120016C261 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		BA963B3D18AA42850039F446 /* JSBubbleMessageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSBubbleMessageCell.h; sourceTree = "<group>"; };
 		BA963B3E18AA42850039F446 /* JSBubbleMessageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSBubbleMessageCell.m; sourceTree = "<group>"; };
@@ -1173,8 +1180,6 @@
 		BADA1F8D18C1DA7E00D5D6E5 /* s_boy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = s_boy.png; sourceTree = "<group>"; };
 		BADA1F8E18C1DA7E00D5D6E5 /* s_girl.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = s_girl.png; sourceTree = "<group>"; };
 		BADA1F8F18C1DA7E00D5D6E5 /* s_girl@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "s_girl@2x.png"; sourceTree = "<group>"; };
-		BADA312A18CEB5A500017EAC /* AMapSearchKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AMapSearchKit.framework; path = QQStudent/Externals/AMapSearchKit.framework; sourceTree = "<group>"; };
-		BADA312C18CEB60900017EAC /* MAMapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MAMapKit.framework; path = QQStudent/Externals/MAMapKit.framework; sourceTree = "<group>"; };
 		BADA313018CED50E00017EAC /* nav_top_bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "nav_top_bg@2x.png"; sourceTree = "<group>"; };
 		BADA313218CED74E00017EAC /* nav_top_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = nav_top_bg.png; sourceTree = "<group>"; };
 		BADFC75118A20EBA00EA2A5E /* NSObjectAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectAdditions.h; sourceTree = "<group>"; };
@@ -1219,13 +1224,12 @@
 			files = (
 				BA9E742C18AC88C100B35412 /* MessageUI.framework in Frameworks */,
 				BAA6F15118B7153D003562CD /* AVFoundation.framework in Frameworks */,
-				BADA312D18CEB60900017EAC /* MAMapKit.framework in Frameworks */,
+				BA03303B18D0001F00DDCEC7 /* MAMapKit.framework in Frameworks */,
 				BA93201D18B65F8B009C818B /* libsqlite3.dylib in Frameworks */,
 				BA9B626E18B3061100DA46DF /* AddressBook.framework in Frameworks */,
 				BA9B626F18B3061100DA46DF /* AddressBookUI.framework in Frameworks */,
 				BAA4240718B1022C008EC8A7 /* Social.framework in Frameworks */,
 				BAA4240518B10222008EC8A7 /* Accounts.framework in Frameworks */,
-				BADA312B18CEB5A500017EAC /* AMapSearchKit.framework in Frameworks */,
 				BA963BA218AA46000039F446 /* AudioToolbox.framework in Frameworks */,
 				BA9288B8189E16B00051B4A2 /* libicucore.dylib in Frameworks */,
 				BA9D4BDA18916ABB00F764CB /* CoreGraphics.framework in Frameworks */,
@@ -1242,6 +1246,7 @@
 				BA9D4BD818916ABB00F764CB /* Foundation.framework in Frameworks */,
 				BA94285818A3737500736F9B /* libMqttSDK.a in Frameworks */,
 				BAA4240F18B109E8008EC8A7 /* libTCWeiboSDK.a in Frameworks */,
+				BA03303A18D0001F00DDCEC7 /* AMapSearchKit.framework in Frameworks */,
 				BA9B628018B33F3B00DA46DF /* libWeChatSDK.a in Frameworks */,
 				BAA6F14D18B70ABB003562CD /* libopencore-amrnb.a in Frameworks */,
 				BAA6F14E18B70ABB003562CD /* libopencore-amrwb.a in Frameworks */,
@@ -2172,8 +2177,13 @@
 		BA9D4BC918916ABB00F764CB = {
 			isa = PBXGroup;
 			children = (
-				BA95E6B918BB1655006E114E /* icon@2x.png */,
-				BA95E6B718BB164F006E114E /* icon.png */,
+				BA03303F18D0026200DDCEC7 /* Default.png */,
+				BA03303E18D001A800DDCEC7 /* Icon-80.png */,
+				BA03303D18D0017400DDCEC7 /* Icon-58.png */,
+				BA03303C18D0015B00DDCEC7 /* Icon-29.png */,
+				BA03303718CFFE7200DDCEC7 /* Icon-120.png */,
+				BA95E6B918BB1655006E114E /* Icon@2x.png */,
+				BA95E6B718BB164F006E114E /* Icon.png */,
 				BA9D4BDB18916ABB00F764CB /* QQStudent */,
 				BA9D4BD418916ABB00F764CB /* Frameworks */,
 				BA9D4BD318916ABB00F764CB /* Products */,
@@ -2191,8 +2201,8 @@
 		BA9D4BD418916ABB00F764CB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				BADA312C18CEB60900017EAC /* MAMapKit.framework */,
-				BADA312A18CEB5A500017EAC /* AMapSearchKit.framework */,
+				BA03303818D0001F00DDCEC7 /* AMapSearchKit.framework */,
+				BA03303918D0001F00DDCEC7 /* MAMapKit.framework */,
 				BA9288B7189E16B00051B4A2 /* libicucore.dylib */,
 				BA93201C18B65F8B009C818B /* libsqlite3.dylib */,
 				BA93C9AB189C9B5C00EFE257 /* libstdc++.6.0.9.dylib */,
@@ -3002,8 +3012,8 @@
 				BA660BB518BB0FE6007265BA /* login_help_phone_btn@2x.png in Resources */,
 				BA660BB618BB0FE6007265BA /* normal_btn@2x.png in Resources */,
 				BA660BB718BB0FE6007265BA /* normal_fld@2x.png in Resources */,
-				BA95E6B818BB164F006E114E /* icon.png in Resources */,
-				BA95E6BA18BB1655006E114E /* icon@2x.png in Resources */,
+				BA95E6B818BB164F006E114E /* Icon.png in Resources */,
+				BA95E6BA18BB1655006E114E /* Icon@2x.png in Resources */,
 				BAA01F1D18BB1FCF0017A5AC /* dialog_bottom.png in Resources */,
 				BAA01F1E18BB1FCF0017A5AC /* dialog_bottom@2x.png in Resources */,
 				BAA01F1F18BB1FCF0017A5AC /* dialog_cancel_hlight_btn.png in Resources */,
@@ -3454,10 +3464,11 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee JingWei (G6TD3445KH)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/2D\\\"",
-					"\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/Search\\\"",
-					"\\\"$(SRCROOT)/QQStudent/Externals\\\"",
+					"\\\\\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/2D\\\\\\\"",
+					"\\\\\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/Search\\\\\\\"",
+					"\\\\\\\"$(SRCROOT)/QQStudent/Externals\\\\\\\"",
 					/Users/lynn/Desktop/QQStudent/QQStudent/Externals,
+					/Users/lynn/Documents/Project/QQStudent_new/QQStudent/QQStudent/Externals,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "QQStudent/QQStudent-Prefix.pch";
@@ -3491,10 +3502,11 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee JingWei (G6TD3445KH)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/2D\\\"",
-					"\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/Search\\\"",
-					"\\\"$(SRCROOT)/QQStudent/Externals\\\"",
+					"\\\\\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/2D\\\\\\\"",
+					"\\\\\\\"$(SRCROOT)/../../项目资料/轻轻家教/高德地图/AMap_iOS_API_Lib_V2.1.3/Search\\\\\\\"",
+					"\\\\\\\"$(SRCROOT)/QQStudent/Externals\\\\\\\"",
 					/Users/lynn/Desktop/QQStudent/QQStudent/Externals,
+					/Users/lynn/Documents/Project/QQStudent_new/QQStudent/QQStudent/Externals,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "QQStudent/QQStudent-Prefix.pch";
