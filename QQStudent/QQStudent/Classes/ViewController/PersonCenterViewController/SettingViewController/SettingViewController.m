@@ -98,7 +98,6 @@
 {
     NSData *stuData  = [[NSUserDefaults standardUserDefaults] valueForKey:STUDENT];
     student = [[NSKeyedUnarchiver unarchiveObjectWithData:stuData] copy];
-    setTab.delegate   = self;
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 7)
     {
         if (iPhone5)
@@ -107,7 +106,8 @@
             CLog(@"It's is iphone5 IOS7");
             setTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 20, 320, 480-44-44)
                                                               isBackView:YES]
-                                                 style:UITableViewStyleGrouped];        }
+                                                 style:UITableViewStyleGrouped];
+        }
         else
         {
             CLog(@"It's is iphone4 IOS7");
@@ -137,6 +137,7 @@
                                                  style:UITableViewStyleGrouped];
         }
     }
+    setTab.delegate   = self;
     setTab.dataSource = self;
     [self.view addSubview:setTab];
     
