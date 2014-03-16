@@ -1142,8 +1142,8 @@
 {
     if (self.messages.count>0)
     {
-//        int index = self.messages.count-1-indexPath.row;
-        NSDictionary *dic = [self.messages objectAtIndex:indexPath.row];
+        int index = self.messages.count-1-indexPath.row;
+        NSDictionary *dic = [self.messages objectAtIndex:index];
         if ([dic objectForKey:@"text"])
         {
             CLog(@"The Message is Text");
