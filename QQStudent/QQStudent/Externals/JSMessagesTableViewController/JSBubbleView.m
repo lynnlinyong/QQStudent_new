@@ -201,6 +201,7 @@ CGFloat const kJSAvatarSize = 30.0f;
                                       textSize.width,
                                       textSize.height);
         
+        [[UIColor colorWithHexString:@"#999999"] set];
         [self.text drawInRect:textFrame
                      withFont:[JSBubbleView font]
                 lineBreakMode:NSLineBreakByWordWrapping

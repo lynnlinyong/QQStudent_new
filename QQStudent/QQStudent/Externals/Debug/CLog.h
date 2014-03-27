@@ -6,8 +6,8 @@
 //  Copyright 2012年 seed. All rights reserved.
 //
 
-//#ifdef DEBUG
-//#define CLog(fmat, ...) NSLog((DEBUG_PREFIX fmat), ##__VA_ARGS__);
-//#else
+#ifdef DEBUG
+#define CLog(fmat, ...) NSLog((DEBUG_PREFIX fmat), ##__VA_ARGS__);
+#else
 #define CLog(fmat, ...)
-//#endif
+#endif

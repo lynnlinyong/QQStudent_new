@@ -69,6 +69,9 @@
     [titleLab release];
     
     gdView = [[UITableView alloc]init];
+    if ([gdView respondsToSelector:@selector(setSeparatorInset:)]) {
+        [gdView setSeparatorInset:UIEdgeInsetsZero];
+    }
     gdView.delegate   = self;
     gdView.dataSource = self;
     gdView.frame = CGRectMake(titleImg.size.width/2-120, 20, 240, 120);

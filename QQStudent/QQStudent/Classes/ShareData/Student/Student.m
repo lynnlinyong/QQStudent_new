@@ -222,6 +222,16 @@
                                                          forKeys:paramsArr];
         
         NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        if (!webAdd)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"服务器地址不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+            return;
+        }
         NSString *url = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
         ServerRequest *request = [ServerRequest sharedServerRequest];
         NSData   *resVal = [request requestSyncWith:kServerPostRequest
@@ -335,6 +345,16 @@
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
         NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        if (!webAdd)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"服务器地址不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+            return;
+        }
         NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
         ServerRequest *request = [ServerRequest sharedServerRequest];
         NSData *resVal = [request requestSyncWith:kServerPostRequest
@@ -399,15 +419,25 @@
         return;
     }
     
-    NSArray *subArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
-    if (!subArr)
-    {
+//    NSArray *subArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
+//    if (!subArr)
+//    {
         NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
-        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
-        NSArray *valuesArr = [NSArray arrayWithObjects:@"getsubjects",ssid, nil];
+        NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"ios",@"sessid", nil];
+        NSArray *valuesArr = [NSArray arrayWithObjects:@"getsubjects",@"1",ssid, nil];
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
         NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        if (!webAdd)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"服务器地址不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+            return;
+        }
         NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
         ServerRequest *request = [ServerRequest sharedServerRequest];
         NSData   *resVal = [request requestSyncWith:kServerPostRequest
@@ -429,7 +459,7 @@
         NSNumber *errorid = [resDic objectForKey:@"errorid"];
         if (errorid.intValue == 0)
         {
-            subArr = [[resDic objectForKey:@"subjects"] copy];
+            NSArray *subArr = [[resDic objectForKey:@"subjects"] copy];
             
             //保存科目列表
             [[NSUserDefaults standardUserDefaults] setObject:subArr
@@ -446,7 +476,7 @@
                 [AppDelegate popToMainViewController];
             }
         }
-    }
+//    }
 }
 
 //根据年级列表,名字查询ID

@@ -262,9 +262,9 @@
                 MBProgressHUD *HUD = (MBProgressHUD *)viewToRemove;
                 HUD.removeFromSuperViewOnHide = YES;
                 [HUD hide:animated];
-                return YES;
+//                return YES;
             } else {
-                return NO;
+//                return NO;
             }
 		}
 	}

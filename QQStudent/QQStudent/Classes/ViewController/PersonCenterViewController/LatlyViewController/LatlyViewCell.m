@@ -76,7 +76,9 @@
 }
 
 - (void) setMsgDic:(NSDictionary *)dic
-{    
+{
+    msgDic = [dic copy];
+    
     int num = ((NSNumber *)[dic objectForKey:@"allNumber"]).intValue;
     if (num!=0)
     {

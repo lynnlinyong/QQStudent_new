@@ -79,6 +79,9 @@
     
     
     finishOrderTab = [[UITableView alloc]init];
+    if ([finishOrderTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [finishOrderTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     finishOrderTab.delegate   = self;
     finishOrderTab.dataSource = self;
     finishOrderTab.scrollEnabled = NO;
@@ -382,12 +385,19 @@
         return;
     }
     
-    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
-    
     UIButton *btn  = sender;
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSString *webAdd   = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    if (!webAdd)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
     NSString *url      = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"orderid",@"value",@"sessid",nil];
     NSArray *valuesArr = [NSArray arrayWithObjects:@"submitApply",order.orderId,[NSNumber numberWithInt:btn.tag],ssid, nil];
@@ -395,6 +405,10 @@
     CLog(@"values:%@", valuesArr);
     NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    
     ServerRequest *request = [ServerRequest sharedServerRequest];
     request.delegate = self;
     [request requestASyncWith:kServerPostRequest

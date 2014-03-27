@@ -98,21 +98,25 @@
 #pragma mark - Custom Action
 - (void) setOrder:(Order *)tOrder
 {
-    Teacher *tObj = tOrder.teacher;
+    Teacher *tObj = [tOrder.teacher copy];
     if (tObj.sex == 1)
     {
         [headBtn setImage:[UIImage circleImage:[UIImage imageNamed:@"s_boy"]
-                                     withParam:0 withColor:[UIColor whiteColor]]
+                                     withParam:0 withColor:[UIColor greenColor]]
                  forState:UIControlStateNormal];
         introduceLab.text = [NSString stringWithFormat:@"%@ 男 %@", tObj.name,tObj.pf];
     }
     else
     {
         [headBtn setImage:[UIImage circleImage:[UIImage imageNamed:@"s_girl"]
-                                     withParam:0 withColor:[UIColor whiteColor]]
+                                     withParam:0 withColor:[UIColor orangeColor]]
                  forState:UIControlStateNormal];
         introduceLab.text = [NSString stringWithFormat:@"%@ 女 %@", tObj.name,tObj.pf];
     }
+    
+    order = nil;
+    order = [tOrder copy];
+    
     TTImageView *hImgView = [[TTImageView alloc]init];
     hImgView.delegate = self;
     hImgView.URL = tObj.headUrl;
@@ -121,9 +125,7 @@
         idImageView.hidden = NO;
     
     [starImageView setHlightStar:tObj.comment];
-    
-    order = nil;
-    order = [tOrder copy];
+    [tObj release];
 }
 
 #pragma mark -
@@ -132,6 +134,7 @@
 {
     if (order.teacher.sex == 1)
     {
+        CLog(@"sdfjisjfisdfjisdjfisdjfis");
         [headBtn setImage:[UIImage circleImage:image
                                      withParam:0
                                      withColor:[UIColor greenColor]]
@@ -139,6 +142,7 @@
     }
     else
     {
+        CLog(@"sdfjisjfisdfjisdjfisdjfis");
         [headBtn setImage:[UIImage circleImage:image
                                      withParam:0
                                      withColor:[UIColor orangeColor]]

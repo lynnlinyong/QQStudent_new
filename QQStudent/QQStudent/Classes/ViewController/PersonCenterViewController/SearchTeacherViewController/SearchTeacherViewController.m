@@ -82,6 +82,9 @@
     self.view.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
     
     searchTab = [[UITableView alloc]init];
+    if ([searchTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [searchTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     searchTab.delegate   = self;
     searchTab.dataSource = self;
     searchTab.backgroundColor = [UIColor colorWithHexString:@"#E1E0DE"];
@@ -301,9 +304,6 @@
     
     [searchArray removeAllObjects];
     
-    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
-    
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"text",@"sessid", nil];
     NSArray *valusArr  = [NSArray arrayWithObjects:@"findTeacher",
@@ -313,7 +313,20 @@
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate       = self;
     NSString *webAddress     = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    if (!webAddress)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];

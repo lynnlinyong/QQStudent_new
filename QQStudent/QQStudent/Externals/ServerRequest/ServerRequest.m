@@ -102,6 +102,7 @@ static ServerRequest *sharedServerRequest = nil;
                                forKey:[paramsArr objectAtIndex:i]];
                 //                [request setTimeOutSeconds:10];
             }
+            [request setTimeOutSeconds:15];
             [request setRequestMethod:@"POST"];
             [request setDefaultResponseEncoding:NSUTF8StringEncoding];
             [request addRequestHeader:@"Content-Type"
@@ -138,6 +139,7 @@ static ServerRequest *sharedServerRequest = nil;
             CLog(@"URL=%@", pUrl);
             
             ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:pUrl];
+            [request setTimeOutSeconds:15];
             [request setRequestMethod:@"GET"];
             [request startSynchronous];
             return [request responseData];
@@ -186,6 +188,7 @@ static ServerRequest *sharedServerRequest = nil;
                 [request setPostValue:[valuesArr objectAtIndex:i] 
                                forKey:[paramsArr objectAtIndex:i]];
             }
+            [request setTimeOutSeconds:15];
             [request setDefaultResponseEncoding:NSUTF8StringEncoding];
             [request addRequestHeader:@"Content-Type"
                                 value:@"text/xml; charset=utf-8"];
@@ -218,6 +221,7 @@ static ServerRequest *sharedServerRequest = nil;
             CLog(@"URL=%@", pUrl);
     
             ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:pUrl];
+            [request setTimeOutSeconds:15];
             [request setDidFinishSelector:@selector(requestAsyncSuccessed:)];
             [request setDidFailSelector:@selector(requestAsyncFailed:)];
             [request startAsynchronous];

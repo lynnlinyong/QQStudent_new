@@ -48,6 +48,9 @@
     shareTab = [[UITableView alloc]initWithFrame:[UIView fitCGRect:CGRectMake(0, 0, 240, 170)
                                                         isBackView:NO]
                                            style:UITableViewStylePlain];
+    if ([shareTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [shareTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     shareTab.delegate      = self;
     shareTab.dataSource    = self;
     shareTab.scrollEnabled = NO;

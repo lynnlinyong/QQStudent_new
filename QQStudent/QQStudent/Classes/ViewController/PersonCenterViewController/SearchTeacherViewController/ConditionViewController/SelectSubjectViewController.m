@@ -37,6 +37,10 @@
         [Student getSubjects];
         sArr = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
     }
+    else
+    {
+        [Student getSubjects];
+    }
     [subArr release];
     subArr = [sArr copy];
     [gdView reloadData];
@@ -86,6 +90,9 @@
     [titleLab release];
     
     gdView = [[UIGridView alloc]init];
+    if ([gdView respondsToSelector:@selector(setSeparatorInset:)]) {
+        [gdView setSeparatorInset:UIEdgeInsetsZero];
+    }
     gdView.uiGridViewDelegate = self;
     gdView.frame = CGRectMake(0, 20, 240, 210);
     [self.view addSubview:gdView];
@@ -157,6 +164,16 @@
         NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                          forKeys:paramsArr];
         NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        if (!webAdd)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"服务器地址不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+            return;
+        }
         NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
         ServerRequest *request = [ServerRequest sharedServerRequest];
         request.delegate = self;
@@ -266,7 +283,7 @@
     if ([curName isEqualToString:subName])
         [qrBtn setChecked:YES];
     else
-        [qrBtn setChecked:YES];
+        [qrBtn setChecked:NO];
     
     [qrBtn setTitle:[subDic objectForKey:@"name"]
            forState:UIControlStateNormal];

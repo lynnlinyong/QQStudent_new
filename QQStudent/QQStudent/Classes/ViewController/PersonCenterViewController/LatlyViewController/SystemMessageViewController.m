@@ -72,6 +72,9 @@
     systemMsgArray = [[NSMutableArray alloc]init];
     
     systemMsgTab = [[UITableView alloc]init];
+    if ([systemMsgTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [systemMsgTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     systemMsgTab.delegate   = self;
     systemMsgTab.dataSource = self;
     systemMsgTab.frame = [UIView fitCGRect:CGRectMake(0, 0, 320, 420) isBackView:NO];
@@ -91,7 +94,17 @@
     NSDictionary *pDic = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url  = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    if (!webAddress)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
+    NSString *url  = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate = self;
     [serverReq requestASyncWith:kServerPostRequest
@@ -112,6 +125,16 @@
     NSDictionary *dic  = [NSDictionary dictionaryWithObjects:valuesArr
                                                      forKeys:paramsArr];
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    if (!webAdd)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
     NSString *url = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
     ServerRequest *request = [ServerRequest sharedServerRequest];
     request.delegate = self;

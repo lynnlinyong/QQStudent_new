@@ -60,6 +60,9 @@
 - (void) initUI
 {
     upTab = [[UITableView alloc]init];
+    if ([upTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [upTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     upTab.delegate     = self;
     upTab.dataSource   = self;
     upTab.frame = [UIView fitCGRect:CGRectMake(0, 44, 320, 480)
@@ -211,7 +214,17 @@
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate   = self;
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    if (!webAddress)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];

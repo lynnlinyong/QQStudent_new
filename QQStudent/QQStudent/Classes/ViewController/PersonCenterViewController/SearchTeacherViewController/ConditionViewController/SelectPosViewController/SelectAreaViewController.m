@@ -78,6 +78,9 @@
     valueArray = [[NSMutableArray alloc]init];
     cellArray  = [[NSMutableArray alloc]init];
     gdView = [[UIGridView alloc]init];
+    if ([gdView respondsToSelector:@selector(setSeparatorInset:)]) {
+        [gdView setSeparatorInset:UIEdgeInsetsZero];
+    }
     gdView.uiGridViewDelegate = self;
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 7)
     {

@@ -79,11 +79,11 @@
     //清除消息中心消息
     [[UIApplication sharedApplication ] setApplicationIconBadgeNumber:0];
     
-    //初始化MQTT Server
-    [self initMQTTServer];
-    
     //获得Web服务器地址
     [MainViewController getWebServerAddress];
+    
+    //初始化MQTT服务器
+    [AppDelegate initMQTTServer];
     
     //获取未读消息列表
     [self getPushMessage];
@@ -135,7 +135,13 @@
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
     if (!webAdd)
     {
-        [MainViewController getWebServerAddress];
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
     }
     
     NSString *ssid = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
@@ -173,7 +179,17 @@
         
         ServerRequest *request = [ServerRequest sharedServerRequest];
         NSString *webAddress   = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-        NSString *url  = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+        if (!webAddress)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"服务器地址不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+            return;
+        }
+        NSString *url  = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
         NSData *resVal = [request requestSyncWith:kServerPostRequest
                                          paramDic:pDic
                                            urlStr:url];
@@ -196,7 +212,7 @@
     }
 }
 
-- (void) initMQTTServer
++ (void) initMQTTServer
 {
     //连接MQTT服务器
     SingleMQTT *session = [SingleMQTT shareInstance];

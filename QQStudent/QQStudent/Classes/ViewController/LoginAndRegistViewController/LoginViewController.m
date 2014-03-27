@@ -429,10 +429,6 @@
     //恢复视图
     [self repickView:self.view];
     
-    
-    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
-    
     NSString *idString    = [SingleMQTT getCurrentDevTopic];
     NSString *deviceToken = [[NSUserDefaults standardUserDefaults] objectForKey:QQ_STUDENT];
     NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"phoneNumber",@"email",
@@ -445,10 +441,25 @@
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate = self;
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    if (!webAddress)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
+    
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
+
 }
 
 - (void) doHpBtnClicked:(id)sender
@@ -468,8 +479,6 @@
     [textField resignFirstResponder];
     return YES;
 }
-
-
 
 - (void) textFieldDidBeginEditing:(UITextField *)textField
 {

@@ -15,12 +15,12 @@
     UIButton *sendButton = [UIButton buttonWithType:UIButtonTypeCustom];
     sendButton.autoresizingMask = (UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin);
     
-    UIEdgeInsets insets = UIEdgeInsetsMake(0.0f, 13.0f, 0.0f, 13.0f);
-    UIImage *sendBack = [[UIImage imageNamed:@"sp_search_btn_normal"] resizableImageWithCapInsets:insets];
-    UIImage *sendBackHighLighted = [[UIImage imageNamed:@"sp_search_btn_normal"] resizableImageWithCapInsets:insets];
+//    UIEdgeInsets insets = UIEdgeInsetsMake(0.0f, 13.0f, 0.0f, 13.0f);
+    UIImage *sendBack = [UIImage imageNamed:@"sp_search_btn_normal"];
+//    UIImage *sendBackHighLighted = [[UIImage imageNamed:@"sp_search_btn_normal"] resizableImageWithCapInsets:insets];
     [sendButton setBackgroundImage:sendBack forState:UIControlStateNormal];
     [sendButton setBackgroundImage:sendBack forState:UIControlStateDisabled];
-    [sendButton setBackgroundImage:sendBackHighLighted forState:UIControlStateHighlighted];
+//    [sendButton setBackgroundImage:sendBackHighLighted forState:UIControlStateHighlighted];
     
     NSString *title = @"发送";//NSLocalizedString(@"Send", nil);
     [sendButton setTitle:title forState:UIControlStateNormal];

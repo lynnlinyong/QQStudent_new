@@ -111,6 +111,9 @@
 - (void) initUI
 {
     upTab = [[UITableView alloc]init];
+    if ([upTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [upTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     upTab.delegate   = self;
     upTab.dataSource = self;
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 7)
@@ -206,9 +209,6 @@
         return;
     }
     
-    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];;
-    
     //封装订单信息
     NSArray *paramsArr = [NSArray arrayWithObjects:@"order_sd",@"order_kcbz",@"order_jyfdnum",
                           @"order_iaddress",@"order_iaddress_data", nil];
@@ -229,7 +229,19 @@
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate = self;
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    if (!webAddress)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD showHUDAddedTo:nav.view animated:YES];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];

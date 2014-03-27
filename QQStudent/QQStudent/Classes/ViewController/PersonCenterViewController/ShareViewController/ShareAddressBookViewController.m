@@ -91,6 +91,9 @@
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:shareBtn];
     
     addressTab   = [[UITableView alloc]init];
+    if ([addressTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [addressTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     addressTab.delegate   = self;
     addressTab.dataSource = self;
     addressTab.frame = [UIView fitCGRect:CGRectMake(0, 10, 320, 460)

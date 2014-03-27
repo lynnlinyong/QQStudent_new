@@ -59,6 +59,16 @@
     {
         NSString *ssid   = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
         NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+        if (!webAdd)
+        {
+            CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+            MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                      withText:@"服务器地址不可用"
+                                                      animated:YES
+                                                      delegate:NULL];
+            [hud hide:YES afterDelay:3];
+            return;
+        }
         NSString *urlStr = [NSString stringWithFormat:@"%@book/?orderid=%@&sessid=%@", webAdd,orderId,ssid];
         NSURL *url = [NSURL URLWithString:urlStr];
         request = [NSURLRequest requestWithURL:url];

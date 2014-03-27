@@ -48,8 +48,6 @@
     
     [self initBackBarItem];
     
-//    [Student getSubjects];
-    
     //初始化UI
     [self initUI];
 }
@@ -113,6 +111,9 @@
     [titleImgView release];
     
     orderTab = [[UITableView alloc]init];
+    if ([orderTab respondsToSelector:@selector(setSeparatorInset:)]) {
+        [orderTab setSeparatorInset:UIEdgeInsetsZero];
+    }
     orderTab.delegate = self;
     orderTab.dataSource = self;
     orderTab.scrollEnabled = NO;
@@ -441,6 +442,16 @@
                                                                  forKeys:paramsArr];
                 
                 NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+                if (!webAdd)
+                {
+                    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+                    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                              withText:@"服务器地址不可用"
+                                                              animated:YES
+                                                              delegate:NULL];
+                    [hud hide:YES afterDelay:3];
+                    return;
+                }
                 NSString *url    = [NSString stringWithFormat:@"%@%@", webAdd,STUDENT];
                 
                 //上传录音文件
@@ -594,7 +605,17 @@
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
     serverReq.delegate = self;
     NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-    NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+    if (!webAddress)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+        return;
+    }
+    NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
     [serverReq requestASyncWith:kServerPostRequest
                        paramDic:pDic
                          urlStr:url];
@@ -1213,7 +1234,17 @@
             ServerRequest *serverReq = [ServerRequest sharedServerRequest];
             serverReq.delegate = self;
             NSString *webAddress = [[NSUserDefaults standardUserDefaults] valueForKey:WEBADDRESS];
-            NSString *url = [NSString stringWithFormat:@"%@%@/", webAddress,STUDENT];
+            if (!webAddress)
+            {
+                CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+                MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                          withText:@"服务器地址不可用"
+                                                          animated:YES
+                                                          delegate:NULL];
+                [hud hide:YES afterDelay:3];
+                return;
+            }
+            NSString *url = [NSString stringWithFormat:@"%@%@", webAddress,STUDENT];
             [serverReq requestASyncWith:kServerPostRequest
                                paramDic:pDic
                                  urlStr:url];

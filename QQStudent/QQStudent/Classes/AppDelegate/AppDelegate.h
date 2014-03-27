@@ -15,6 +15,7 @@
                                     ServerRequestDelegate>
 @property (strong, nonatomic) UIWindow *window;
 
++ (void) initMQTTServer;
 + (BOOL) isInView:(NSString *) vctrName;
 + (BOOL) isConnectionAvailable:(BOOL) animated withGesture:(BOOL) isCan;
 + (void) popToMainViewController;

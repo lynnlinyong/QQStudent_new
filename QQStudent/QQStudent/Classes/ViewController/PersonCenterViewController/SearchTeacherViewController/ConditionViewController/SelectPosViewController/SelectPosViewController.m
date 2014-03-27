@@ -354,12 +354,56 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
     
     keboarHeight = 0;
 
-    toolBar = [[BottomToolBar alloc]initWithFrame:
-               [UIView fitCGRect:CGRectMake(0,
-                                            480-44-44,
-                                            320,
-                                            44)
-                      isBackView:NO]];
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 7)
+    {
+        if (iPhone5)
+        {
+            //ios7 iphone5
+            CLog(@"It's is iphone5 IOS7");
+            toolBar = [[BottomToolBar alloc]initWithFrame:
+                       [UIView fitCGRect:CGRectMake(0,
+                                                    480-44-44,
+                                                    320,
+                                                    44)
+                              isBackView:NO]];
+        }
+        else
+        {
+            CLog(@"It's is iphone4 IOS7");
+            //ios 7 iphone 4
+            toolBar = [[BottomToolBar alloc]initWithFrame:
+                       [UIView fitCGRect:CGRectMake(0,
+                                                    480-44-44,
+                                                    320,
+                                                    44)
+                              isBackView:NO]];
+        }
+    }
+    else
+    {
+        if (!iPhone5)
+        {
+            // ios 6 iphone4
+            CLog(@"It's is iphone4 IOS6");
+            toolBar = [[BottomToolBar alloc]initWithFrame:
+                       [UIView fitCGRect:CGRectMake(0,
+                                                    480-44-54,
+                                                    320,
+                                                    44)
+                              isBackView:NO]];
+        }
+        else
+        {
+            //ios 6 iphone5
+            CLog(@"It's is iphone5 IOS6");
+            toolBar = [[BottomToolBar alloc]initWithFrame:
+                       [UIView fitCGRect:CGRectMake(0,
+                                                    480-44-44,
+                                                    320,
+                                                    44)
+                              isBackView:NO]];
+        }
+    }
     toolBar.delegate = self;
     [self.view addSubview:toolBar];
     
@@ -435,6 +479,15 @@ city dist:(NSString *)dist address:(NSString *) address pos:(CLLocationCoordinat
     CLog(@"siteDic:%@", pDic);
     
     NSString *webAdd = [[NSUserDefaults standardUserDefaults] objectForKey:WEBADDRESS];
+    if (!webAdd)
+    {
+        CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:nav.view
+                                                  withText:@"服务器地址不可用"
+                                                  animated:YES
+                                                  delegate:NULL];
+        [hud hide:YES afterDelay:3];
+    }
     NSString *url = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
     
     ServerRequest *request = [ServerRequest sharedServerRequest];
