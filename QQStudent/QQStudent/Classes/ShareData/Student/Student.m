@@ -208,8 +208,8 @@
 + (void) getSalarys
 {
     NSArray *salaryList = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
-    if (!salaryList)
-    {
+//    if (!salaryList)
+//    {
         if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
         {
             return;
@@ -268,7 +268,7 @@
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
             [AppDelegate popToMainViewController];
         }
-    }
+//    }
 }
 
 +(NSString *) searchSalaryID:(NSString *) salaryName
@@ -332,8 +332,8 @@
 + (void) getGradeList
 {
     NSArray *gradList = [[NSUserDefaults standardUserDefaults] objectForKey:GRADE_LIST];
-    if (!gradList)
-    {
+//    if (!gradList)
+//    {
         if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
         {
             return;
@@ -379,7 +379,7 @@
             [[NSUserDefaults standardUserDefaults] setObject:gradList
                                                       forKey:GRADE_LIST];
         }
-    }
+//    }
 }
 
 

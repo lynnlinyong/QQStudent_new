@@ -74,7 +74,7 @@
     infoLab.lineBreakMode = NSLineBreakByWordWrapping;
     infoLab.frame = CGRectMake(0,
                                                  (self.view.frame.size.height-bottomImg.size.height)/2-15,
-                                                 self.view.frame.size.width, 30);
+                                                 self.view.frame.size.width, 40);
     infoLab.backgroundColor = [UIColor clearColor];
     [self.view addSubview:infoLab];
     [infoLab release];

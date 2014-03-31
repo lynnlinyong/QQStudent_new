@@ -134,7 +134,6 @@
 {
     if (order.teacher.sex == 1)
     {
-        CLog(@"sdfjisjfisdfjisdjfisdjfis");
         [headBtn setImage:[UIImage circleImage:image
                                      withParam:0
                                      withColor:[UIColor greenColor]]
@@ -142,7 +141,6 @@
     }
     else
     {
-        CLog(@"sdfjisjfisdfjisdjfisdjfis");
         [headBtn setImage:[UIImage circleImage:image
                                      withParam:0
                                      withColor:[UIColor orangeColor]]

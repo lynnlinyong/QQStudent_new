@@ -512,13 +512,13 @@
     CLog(@"***********Result****************");
     
     CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    [MBProgressHUD hideHUDForView:nav.view animated:NO];
 }
 
 - (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
 {
     CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
-    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    [MBProgressHUD hideHUDForView:nav.view animated:NO];
     
     NSData   *resVal = [request responseData];
     NSString *resStr = [[[NSString alloc]initWithData:resVal

@@ -156,8 +156,8 @@
     }
     
     subArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SUBJECT_LIST];
-    if (!subArr)
-    {
+//    if (!subArr)
+//    {
         NSString *ssid     = [[NSUserDefaults standardUserDefaults] objectForKey:SSID];
         NSArray *paramsArr = [NSArray arrayWithObjects:@"action",@"sessid", nil];
         NSArray *valuesArr = [NSArray arrayWithObjects:@"getsubjects",ssid, nil];
@@ -222,7 +222,7 @@
             }
         }
 
-    }
+//    }
 }
 
 - (void) doButtonClicked:(id)sender

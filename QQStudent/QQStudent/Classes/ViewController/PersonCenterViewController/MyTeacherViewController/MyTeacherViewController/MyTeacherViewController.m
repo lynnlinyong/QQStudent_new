@@ -62,6 +62,9 @@
                                           isBackView:YES];
         }
     }
+    
+    [self.tableView reloadData];
+    [self doneLoadingTableViewData];
 }
 
 - (void) viewDidDisappear:(BOOL)animated

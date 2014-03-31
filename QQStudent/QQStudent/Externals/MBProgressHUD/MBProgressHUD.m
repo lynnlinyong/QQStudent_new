@@ -527,7 +527,12 @@
 }
 
 - (void)hideDelayed:(NSNumber *)animated {
-	[self hide:[animated boolValue]];
+//	[self hide:[animated boolValue]];
+    
+    //modify by lynn
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
 }
 
 - (void)handleGraceTimer:(NSTimer *)theTimer {

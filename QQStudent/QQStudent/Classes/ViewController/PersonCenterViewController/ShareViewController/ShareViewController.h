@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface ShareViewController : UIViewController<
+                                                ServerRequestDelegate,
                                                 SinaWeiboDelegate,
                                                 UIAlertViewDelegate,
                                                 UITableViewDelegate,

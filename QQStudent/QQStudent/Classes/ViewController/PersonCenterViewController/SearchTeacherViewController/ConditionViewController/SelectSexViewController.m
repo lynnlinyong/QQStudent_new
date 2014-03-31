@@ -79,7 +79,6 @@
     gdView.scrollEnabled = NO;
     [self.view addSubview:gdView];
     
-
     UIImageView *bottomImgView = [[UIImageView alloc]init];
     bottomImgView.image = bottomImg;
     bottomImgView.frame = CGRectMake(-2,

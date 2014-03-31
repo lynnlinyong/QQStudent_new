@@ -146,39 +146,10 @@
     }
     NSString *url      = [NSString stringWithFormat:@"%@%@", webAdd, STUDENT];
     ServerRequest *serverReq = [ServerRequest sharedServerRequest];
-    NSData *resVal     = [serverReq requestSyncWith:kServerPostRequest
-                                           paramDic:pDic
-                                             urlStr:url];
-    NSString *resStr = [[[NSString alloc]initWithData:resVal
-                                             encoding:NSUTF8StringEncoding]autorelease];
-    NSDictionary *resDic  = [resStr JSONValue];
-    NSString *eerid = [[resDic objectForKey:@"errorid"] copy];
-    if (resDic)
-    {
-        if (eerid.intValue==0)
-        {
-            CLog(@"shareContent:%@", resDic);
-            [[NSUserDefaults standardUserDefaults] setObject:resDic
-                                                      forKey:@"ShareContent"];
-        }
-        else
-        {
-            NSString *errorMsg = [resDic objectForKey:@"message"];
-            [self showAlertWithTitle:@"提示"
-                                 tag:4
-                             message:[NSString stringWithFormat:@"错误码%@,%@",eerid,errorMsg]
-                            delegate:self
-                   otherButtonTitles:@"确定",nil];
-        }
-    }
-    else
-    {
-        [self showAlertWithTitle:@"提示"
-                             tag:3
-                         message:@"获取数据失败!"
-                        delegate:self
-               otherButtonTitles:@"确定",nil];
-    }
+    serverReq.delegate = self;
+    [serverReq requestASyncWith:kServerPostRequest
+                       paramDic:pDic
+                         urlStr:url];
 }
 
 - (void) setCellBgImage:(UIImage *)bgImg sender:(id)sender
@@ -190,6 +161,73 @@
         {
             UIImageView *imgView = (UIImageView *)view;
             imgView.image = bgImg;
+        }
+    }
+}
+
+
+#pragma mark -
+#pragma mark - ServerRequest Delegate
+- (void) requestAsyncFailed:(ASIHTTPRequest *)request
+{
+    [self showAlertWithTitle:@"提示"
+                         tag:1
+                     message:@"网络繁忙"
+                    delegate:self
+           otherButtonTitles:@"确定",nil];
+    
+    CLog(@"***********Result****************");
+    CLog(@"ERROR");
+    CLog(@"***********Result****************");
+    
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+}
+
+- (void) requestAsyncSuccessed:(ASIHTTPRequest *)request
+{
+    CustomNavigationViewController *nav = [MainViewController getNavigationViewController];
+    [MBProgressHUD hideHUDForView:nav.view animated:YES];
+    
+    NSData   *resVal = [request responseData];
+    NSString *resStr = [[[NSString alloc]initWithData:resVal
+                                             encoding:NSUTF8StringEncoding]autorelease];
+    NSDictionary *resDic   = [resStr JSONValue];
+    NSArray      *keysArr  = [resDic allKeys];
+    NSArray      *valsArr  = [resDic allValues];
+    CLog(@"***********Result****************");
+    for (int i=0; i<keysArr.count; i++)
+    {
+        CLog(@"%@=%@", [keysArr objectAtIndex:i], [valsArr objectAtIndex:i]);
+    }
+    CLog(@"***********Result****************");
+    
+    NSNumber *errorid = [resDic objectForKey:@"errorid"];
+    if (errorid.intValue == 0)
+    {
+        NSString *action = [resDic objectForKey:@"action"];
+        if ([action isEqualToString:@"getShareSet"])
+        {
+            CLog(@"shareContent:%@", resDic);
+            [[NSUserDefaults standardUserDefaults] setObject:resDic
+                                                      forKey:@"ShareContent"];
+        }
+    }
+    else
+    {
+        NSString *errorMsg = [resDic objectForKey:@"message"];
+        [self showAlertWithTitle:@"提示"
+                             tag:0
+                         message:[NSString stringWithFormat:@"错误码%@,%@",errorid,errorMsg]
+                        delegate:self
+               otherButtonTitles:@"确定",nil];
+        //重复登录
+        if (errorid.intValue==2)
+        {
+            //清除sessid,清除登录状态,回到地图页
+            [[NSUserDefaults standardUserDefaults] setObject:@"" forKey:SSID];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LOGINE_SUCCESS];
+            [AppDelegate popToMainViewController];
         }
     }
 }

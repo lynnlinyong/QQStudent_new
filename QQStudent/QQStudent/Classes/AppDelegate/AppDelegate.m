@@ -83,14 +83,20 @@
     [MainViewController getWebServerAddress];
     
     //初始化MQTT服务器
-    [AppDelegate initMQTTServer];
+    [self initMQTTServer];
     
     //获取未读消息列表
     [self getPushMessage];
     
-    //上线更新
-    [self updateLoginStatus:1];
-    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        
+        //上线更新
+        [self updateLoginStatus:1];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+        });
+    });
+
     //向微信注册
     [WXApi registerApp:WeiXinAppID withDescription:@"QQ_Student_IOS v1.0"];
     
@@ -212,8 +218,13 @@
     }
 }
 
-+ (void) initMQTTServer
+- (void) initMQTTServer
 {
+    if ([AppDelegate isConnectionAvailable:YES withGesture:NO])
+    {
+        return;
+    }
+    
     //连接MQTT服务器
     SingleMQTT *session = [SingleMQTT shareInstance];
     [SingleMQTT connectServer];
@@ -230,21 +241,20 @@
 
 + (BOOL) isConnectionAvailable:(BOOL) animated withGesture:(BOOL) isCan
 {
-    
     BOOL isExistenceNetwork = YES;
     Reachability *reach = [Reachability reachabilityWithHostName:@"www.baidu.com"];
     switch ([reach currentReachabilityStatus]) {
         case NotReachable:
             isExistenceNetwork = NO;
-            //NSLog(@"notReachable");
+            CLog(@"notReachable");
             break;
         case ReachableViaWiFi:
             isExistenceNetwork = YES;
-            //NSLog(@"WIFI");
+            CLog(@"WIFI");
             break;
         case ReachableViaWWAN:
             isExistenceNetwork = YES;
-            //NSLog(@"3G");
+            CLog(@"3G");
             break;
     }
     
