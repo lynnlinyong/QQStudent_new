@@ -101,6 +101,7 @@ static SingleMQTT *sessionInstance = nil;
     
     NSString *pushAddress = [[NSUserDefaults standardUserDefaults] objectForKey:PUSHADDRESS];
     NSString *port = [[NSUserDefaults standardUserDefaults] objectForKey:PORT];
+    CLog(@"pushAddress:%@, port:%@", pushAddress, port);
     if (pushAddress && port)
     {
         CLog(@"push:%@", pushAddress);

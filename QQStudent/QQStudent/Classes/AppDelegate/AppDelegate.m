@@ -220,7 +220,7 @@
 
 - (void) initMQTTServer
 {
-    if ([AppDelegate isConnectionAvailable:YES withGesture:NO])
+    if (![AppDelegate isConnectionAvailable:YES withGesture:NO])
     {
         return;
     }

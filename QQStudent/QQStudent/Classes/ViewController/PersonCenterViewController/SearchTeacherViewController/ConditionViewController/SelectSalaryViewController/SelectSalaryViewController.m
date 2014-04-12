@@ -28,11 +28,11 @@
 {
     [super viewDidLoad];
     
-    //初始化UI
-    [self initUI];
-    
     //获得课酬列表
     [Student getSalarys];
+    
+    //初始化UI
+    [self initUI];
     
     [self setSalayView];
 }
@@ -46,6 +46,7 @@
 
 - (void) viewDidDisappear:(BOOL)animated
 {
+    CLog(@"salaryDic:%@", potMoney);
     NSDictionary *salaryDic = [potMoney objectAtIndex:selIndex];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"setSalaryNotice"
                                                         object:self
@@ -72,15 +73,7 @@
                            isBackView:NO];
     [self.view addSubview:infoLab];
     
-    
-    NSArray *potArr   = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
-    if(!potArr)
-    {
-        [Student getSalarys];
-        potMoney = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
-    }
-    else
-        potMoney = potArr;
+    potMoney = [[NSUserDefaults standardUserDefaults] objectForKey:SALARY_LIST];
     
     UIImage *bgImg    = [UIImage imageNamed:@"talk_money"];
     UIButton *navgBtn = [UIButton buttonWithType:UIButtonTypeCustom];
